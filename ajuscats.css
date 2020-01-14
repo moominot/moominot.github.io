@@ -51,6 +51,6 @@ background-size: cover;
 margin-bottom: 0px;
 padding: 15px 0 0 15px;
 
-  .material-icons {
+  .top-nav > i {
      vertical-align : middle;
   }
