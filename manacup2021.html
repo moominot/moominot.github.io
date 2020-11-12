@@ -65,14 +65,33 @@
       </ul>
  
 <div class="iframecontainer">
+   
+    <div id="spinner" class="spinner">
+      <div class="preloader-wrapper small active">
+      <div class="spinner-layer spinner-blue">
+        <div class="circle-clipper left">
+          <div class="circle"></div>
+        </div>
+         <div class="gap-patch">
+          <div class="circle"></div>
+        </div>
+         <div class="circle-clipper right">
+          <div class="circle"></div>
+         </div>
+        </div>
+       </div>
+      </div>
     
-  <iframe class="responsive-iframe" src='https://script.google.com/macros/s/AKfycbyuGFLoHuczL0F_p0RsJLGumgqD2b6Z79RQA82pZbhTtTpbab4/exec?page=divisio'></iframe>
+  <iframe id="divisio" class="responsive-iframe" src='https://script.google.com/macros/s/AKfycbyuGFLoHuczL0F_p0RsJLGumgqD2b6Z79RQA82pZbhTtTpbab4/exec?page=divisio'></iframe>
 </div>
 <script>  
 
     document.addEventListener('DOMContentLoaded', function() {
         M.AutoInit();
   });
+   document.getElementById('divisio').onload = function() {
+  document.getElementById('spinner').style.display='none';
+};
   </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 </body>
