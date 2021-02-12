@@ -5,6 +5,10 @@
    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
    <link rel="manifest" href="/manifest.json">
+   <script
+  type="module"
+  src="https://cdn.jsdelivr.net/npm/@pwabuilder/pwainstall"
+></script>
 </head>
   <style>
     html {
@@ -43,6 +47,11 @@
 } 
   </style>   
 <body>
+     <pwa-install id="installComponent"></pwa-install>
+  <script async defer>
+    const ref = document.getElementById("installComponent);
+    red.getInstalledStatus();
+  </script>
     <nav>
         <div class="nav-wrapper  teal lighten-3">
           <a href="https://script.google.com/macros/s/AKfycbyuGFLoHuczL0F_p0RsJLGumgqD2b6Z79RQA82pZbhTtTpbab4/exec?page=divisio" class="brand-logo"  target='iframeView'>Manacup</a>
