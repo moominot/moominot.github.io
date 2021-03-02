@@ -4,11 +4,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
-   <link rel="manifest" href="/manifest.json">
-   <script
-  type="module"
-  src="https://cdn.jsdelivr.net/npm/@pwabuilder/pwainstall"
-></script>
+
+
 </head>
   <style>
     html {
@@ -47,11 +44,7 @@
 } 
   </style>   
 <body>
-     <pwa-install id="installComponent"></pwa-install>
-  <script async defer>
-    const ref = document.getElementById("installComponent);
-    red.getInstalledStatus();
-  </script>
+
     <nav>
         <div class="nav-wrapper  teal lighten-3">
           <a href="https://script.google.com/macros/s/AKfycbyuGFLoHuczL0F_p0RsJLGumgqD2b6Z79RQA82pZbhTtTpbab4/exec?page=divisio" class="brand-logo"  target='iframeView'>Manacup</a>
@@ -81,10 +74,7 @@
         <li><a  class="sidenav-close" href="mailto:tonillull@gmail.com" target='iframeView'> <i class="material-icons">mail</i>Incidències a l'app</a></li>
 
       </ul>
- 
-<div class="iframecontainer">
-   
-    <div id="spinner" class="spinner">
+       <div id="spinner" class="spinner">
       <div class="preloader-wrapper small active">
       <div class="spinner-layer spinner-blue">
         <div class="circle-clipper left">
@@ -99,6 +89,10 @@
         </div>
        </div>
       </div>
+ 
+<div class="iframecontainer">
+   
+
     
   <iframe name='iframeView' id="divisio" class="responsive-iframe" src='https://script.google.com/macros/s/AKfycbyuGFLoHuczL0F_p0RsJLGumgqD2b6Z79RQA82pZbhTtTpbab4/exec?page=divisio'></iframe>
 </div>
@@ -111,14 +105,7 @@
   document.getElementById('spinner').style.display='none';
 };
   </script>
-  <script  type="module">
 
-
-import 'https://cdn.jsdelivr.net/npm/@pwabuilder/pwaupdate';
-
-const el = document.createElement('pwa-update');
-document.body.appendChild(el);
-   </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 </body>
   </html>
