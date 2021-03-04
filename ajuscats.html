@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
-    <link rel="manifest" href="/manifest.json">
-    <script type="module" src="https://cdn.jsdelivr.net/npm/@pwabuilder/pwainstall"></script>
+
 </head>
 <style>
     html {
@@ -47,11 +46,7 @@
 </style>
 
 <body>
-    <pwa-install id="installComponent"></pwa-install>
-    <script async defer>
-        const ref = document.getElementById("installComponent);
-    red.getInstalledStatus();
-    </script>
+
     <nav>
         <div class="nav-wrapper  blue lighten-3">
             <a class="brand-logo" href="http://www.ajuscrabble.cat/apalabrados/campionats/"
@@ -71,6 +66,39 @@
                 <li><a class="sidenav-close"
                         href="https://script.google.com/macros/s/AKfycbyA7fJwqymA4c_fatdsYWqeqxxnFZzIlG9VJfUn1c-7ugKURiWJ/exec?page=divisio&idFull=1WzKYktfegrNvbVLSppxC5SHPqNmXj4ZRonfN_wGrWls&divisio=1"
                         target='iframeView'><i class="material-icons">all_inclusive</i>Divisió BETA</a></li>  
+                <li><details>
+                        <summary>
+                            Estadístiques
+                        </summary>
+                
+                    <ul>
+                        <li><a class="sidenav-close"
+                        href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRhtQ9rEQnkFw6NjVKVEY4BbtWU7WS5W0FikjELnYy6LuAPLaZw9BonTyfdFSrQrX100w5xGjqgFOr3/pubchart?oid=126863936&format=interactive"
+                        target='iframeView'><i class="material-icons">all_inclusive</i>Resum</a></li>
+                        <li><a class="sidenav-close"
+                            href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRhtQ9rEQnkFw6NjVKVEY4BbtWU7WS5W0FikjELnYy6LuAPLaZw9BonTyfdFSrQrX100w5xGjqgFOr3/pubchart?oid=790011567&format=interactive"
+                            target='iframeView'><i class="material-icons">all_inclusive</i>Classificació general</a></li>
+                        <li><a class="sidenav-close"
+                            href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRhtQ9rEQnkFw6NjVKVEY4BbtWU7WS5W0FikjELnYy6LuAPLaZw9BonTyfdFSrQrX100w5xGjqgFOr3/pubchart?oid=37916783&format=interactive"
+                            target='iframeView'><i class="material-icons">all_inclusive</i>Total partides</a></li>
+                            <li><a class="sidenav-close"
+                                href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRhtQ9rEQnkFw6NjVKVEY4BbtWU7WS5W0FikjELnYy6LuAPLaZw9BonTyfdFSrQrX100w5xGjqgFOr3/pubchart?oid=1819049626&format=interactive"
+                                target='iframeView'><i class="material-icons">all_inclusive</i>Setmanal partides</a></li>
+                                <li><a class="sidenav-close"
+                                    href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRhtQ9rEQnkFw6NjVKVEY4BbtWU7WS5W0FikjELnYy6LuAPLaZw9BonTyfdFSrQrX100w5xGjqgFOr3/pubchart?oid=1484411725&format=interactive"
+                                    target='iframeView'><i class="material-icons">all_inclusive</i>Millor diferencial</a></li>
+                                    <li><a class="sidenav-close"
+                                        href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRhtQ9rEQnkFw6NjVKVEY4BbtWU7WS5W0FikjELnYy6LuAPLaZw9BonTyfdFSrQrX100w5xGjqgFOr3/pubchart?oid=992024115&format=interactive"
+                                        target='iframeView'><i class="material-icons">all_inclusive</i>Partida major puntuació</a></li>                                   
+                                        <li><a class="sidenav-close"
+                                            href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRhtQ9rEQnkFw6NjVKVEY4BbtWU7WS5W0FikjELnYy6LuAPLaZw9BonTyfdFSrQrX100w5xGjqgFOr3/pubchart?oid=655913937&format=interactive"
+                                            target='iframeView'><i class="material-icons">all_inclusive</i>Partida major puntuació conjunta</a></li>                                   
+                                            <li><a class="sidenav-close"
+                                                href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRhtQ9rEQnkFw6NjVKVEY4BbtWU7WS5W0FikjELnYy6LuAPLaZw9BonTyfdFSrQrX100w5xGjqgFOr3/pubchart?oid=1569909577&format=interactive"
+                                                target='iframeView'><i class="material-icons">all_inclusive</i>Millor  mitjanaMillor  mitjana a favor</a></li>     
+                                    </ul>  
+                    </details></li>
+                
 
             </ul>
         </div>
@@ -107,6 +135,38 @@
         <li><a class="sidenav-close"
                 href="https://script.google.com/macros/s/AKfycbyA7fJwqymA4c_fatdsYWqeqxxnFZzIlG9VJfUn1c-7ugKURiWJ/exec?page=divisio&idFull=1WzKYktfegrNvbVLSppxC5SHPqNmXj4ZRonfN_wGrWls&divisio=1"
                 target='iframeView'><i class="material-icons">all_inclusive</i>Divisió BETA</a></li>  
+                <li><details>
+                    <summary>
+                        Estadístiques
+                    </summary>
+            
+                <ul>
+                    <li><a class="sidenav-close"
+                    href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRhtQ9rEQnkFw6NjVKVEY4BbtWU7WS5W0FikjELnYy6LuAPLaZw9BonTyfdFSrQrX100w5xGjqgFOr3/pubchart?oid=126863936&format=interactive"
+                    target='iframeView'><i class="material-icons">all_inclusive</i>Resum</a></li>
+                    <li><a class="sidenav-close"
+                        href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRhtQ9rEQnkFw6NjVKVEY4BbtWU7WS5W0FikjELnYy6LuAPLaZw9BonTyfdFSrQrX100w5xGjqgFOr3/pubchart?oid=790011567&format=interactive"
+                        target='iframeView'><i class="material-icons">all_inclusive</i>Classificació general</a></li>
+                    <li><a class="sidenav-close"
+                        href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRhtQ9rEQnkFw6NjVKVEY4BbtWU7WS5W0FikjELnYy6LuAPLaZw9BonTyfdFSrQrX100w5xGjqgFOr3/pubchart?oid=37916783&format=interactive"
+                        target='iframeView'><i class="material-icons">all_inclusive</i>Total partides</a></li>
+                        <li><a class="sidenav-close"
+                            href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRhtQ9rEQnkFw6NjVKVEY4BbtWU7WS5W0FikjELnYy6LuAPLaZw9BonTyfdFSrQrX100w5xGjqgFOr3/pubchart?oid=1819049626&format=interactive"
+                            target='iframeView'><i class="material-icons">all_inclusive</i>Setmanal partides</a></li>
+                            <li><a class="sidenav-close"
+                                href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRhtQ9rEQnkFw6NjVKVEY4BbtWU7WS5W0FikjELnYy6LuAPLaZw9BonTyfdFSrQrX100w5xGjqgFOr3/pubchart?oid=1484411725&format=interactive"
+                                target='iframeView'><i class="material-icons">all_inclusive</i>Millor diferencial</a></li>
+                                <li><a class="sidenav-close"
+                                    href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRhtQ9rEQnkFw6NjVKVEY4BbtWU7WS5W0FikjELnYy6LuAPLaZw9BonTyfdFSrQrX100w5xGjqgFOr3/pubchart?oid=992024115&format=interactive"
+                                    target='iframeView'><i class="material-icons">all_inclusive</i>Partida major puntuació</a></li>                                   
+                                    <li><a class="sidenav-close"
+                                        href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRhtQ9rEQnkFw6NjVKVEY4BbtWU7WS5W0FikjELnYy6LuAPLaZw9BonTyfdFSrQrX100w5xGjqgFOr3/pubchart?oid=655913937&format=interactive"
+                                        target='iframeView'><i class="material-icons">all_inclusive</i>Partida major puntuació conjunta</a></li>                                   
+                                        <li><a class="sidenav-close"
+                                            href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRhtQ9rEQnkFw6NjVKVEY4BbtWU7WS5W0FikjELnYy6LuAPLaZw9BonTyfdFSrQrX100w5xGjqgFOr3/pubchart?oid=1569909577&format=interactive"
+                                            target='iframeView'><i class="material-icons">all_inclusive</i>Millor  mitjana a favor</a></li>     
+                                </ul>  
+                </details></li>
         <li><a class="sidenav-close" href="https://icon.cat/wordertorn/" target='_blank'><i
                     class="material-icons">check</i>WORdERtorn</a></li>
 
@@ -259,14 +319,7 @@
                     
                 };
             </script>
-            <script type="module">
 
-
-                import 'https://cdn.jsdelivr.net/npm/@pwabuilder/pwaupdate';
-
-                const el = document.createElement('pwa-update');
-                document.body.appendChild(el);
-            </script>
             <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 </body>
 
