@@ -66,9 +66,9 @@
                 href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRhtQ9rEQnkFw6NjVKVEY4BbtWU7WS5W0FikjELnYy6LuAPLaZw9BonTyfdFSrQrX100w5xGjqgFOr3/pubchart?oid=1569909577&format=interactive"
                 target='iframeView'><i class="Tiny material-icons">donut_small</i>Millor mitjana a favor</a></li>
         <li><a class="sidenav-close"
-                 href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRhtQ9rEQnkFw6NjVKVEY4BbtWU7WS5W0FikjELnYy6LuAPLaZw9BonTyfdFSrQrX100w5xGjqgFOr3/pubchart?oid=1484255680&format=interactive"
-                target='iframeView'><i class="Tiny material-icons">donut_small</i>Partida més ràpida</a></li>        
-                
+                href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRhtQ9rEQnkFw6NjVKVEY4BbtWU7WS5W0FikjELnYy6LuAPLaZw9BonTyfdFSrQrX100w5xGjqgFOr3/pubchart?oid=1484255680&format=interactive"
+                target='iframeView'><i class="Tiny material-icons">donut_small</i>Partida més ràpida</a></li>
+
     </ul>
     <nav>
         <div class="nav-wrapper  blue lighten-3">
@@ -138,8 +138,7 @@
                 target='iframeView'><i class="material-icons">all_inclusive</i>Divisió BETA</a></li>
     </ul>
 
-    <div class="iframecontainer">
-        <div id="spinner" class="spinner" style="display: 'none';">
+        <div id="spinner" class="spinner" style="display: none;">
             <div class="preloader-wrapper small active">
                 <div class="spinner-layer spinner-blue">
                     <div class="circle-clipper left">
@@ -156,6 +155,7 @@
         </div>
 
 
+    <div class="iframecontainer">
 
         <iframe name='iframeView' id="divisio" class="responsive-iframe" src=''></iframe>
     </div>
@@ -282,10 +282,11 @@
             document.getElementById('spinner').style.display = 'none';
             document.getElementById('inici').style.display = 'none';
         };
-        document.getElementsByClassName('sidenav-close').onclick = function () {
+        document.querySelectorAll('.sidenav-close').forEach((el) => el.addEventListener("click",  function () {
             document.getElementById('spinner').style.display = '';
+            //alert("click");
 
-        };
+        }));
     </script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
