@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+
+</head>
+  <style>
+    html {
+    line-height: 1.5;
+    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;
+    font-weight: normal;
+    color: rgba(0,0,0,0.87);
+}
+
+
+.iframecontainer {
+  position: absolute;
+  overflow: hidden;
+  width: 100%;
+  top: 56px;
+  bottom: 0;
+}
+
+/* Then style the iframe to fit in the container div with full height and width */
+.responsive-iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  border:none;
+}
+.spinner {
+  position: fixed;
+  top: 50%;
+  width: 100%;
+  text-align: center;
+  z-index: 100;
+} 
+  </style>   
+<body>
+  <div class="iframecontainer">
+   
+
+    
+  <iframe name='iframeView' id="divisio" class="responsive-iframe" src='https://script.google.com/macros/s/AKfycbyuGFLoHuczL0F_p0RsJLGumgqD2b6Z79RQA82pZbhTtTpbab4/exec?page=divisio'></iframe>
+</div>
+<script>  
+
+
+   document.getElementById('divisio').onload = function() {
+  document.getElementById('spinner').style.display='none';
+};
+  </script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+</body>
+  </html>
