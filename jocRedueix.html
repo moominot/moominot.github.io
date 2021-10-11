@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<!-- Required meta tags -->
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+	<!-- Metro 4 -->
+	<link rel="stylesheet" href="https://cdn.metroui.org.ua/v4/css/metro-all.min.css">
+</head>
+
+<body>
+	<div id="app" class=" grid flex-align-center">
+		<div class=" grid flex-align-center">
+			<h1 id="visor" class="cell ">Preparats!</h1>
+      <span id="badge" class=""></span>
+			<h5 id="resultat" class="cell fg-white"></h5>
+		</div>
+		<div class="container ">
+			<div class="grid teclat flex-align-center">
+				<div class="row">
+					<div class="cell">
+						<div class="button primary square  large numero">1</div>
+					</div>
+					<div class="cell">
+						<div class="button primary square  large numero">2</div>
+					</div>
+					<div class="cell">
+						<div class="button primary square  large numero">3</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="cell">
+						<div class="button primary square  large numero">4</div>
+					</div>
+					<div class="cell">
+						<div class="button primary square  large numero">5</div>
+					</div>
+					<div class="cell">
+						<div class="button primary square  large numero">6</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="cell">
+						<div class="button primary square  large numero">7</div>
+					</div>
+					<div class="cell">
+						<div class="button primary square  large numero">8</div>
+					</div>
+					<div class="cell">
+						<div class="button primary square  large numero">9</div>
+					</div>
+				</div>
+			</div>
+		</div>
+    <br>
+		<div class=" grid flex-align-center">
+			<div class="row">
+				<button id="start" class="button alert  start">Comença</button>
+			</div>
+		</div>
+	</div>
+
+
+	<!-- Metro 4 -->
+	<script src="https://cdn.metroui.org.ua/v4/js/metro.min.js"></script>
+	<script>
+		var resultat
+    var marcador = 0
+
+    function redueix() {
+      document.getElementById("start").innerHTML="Passa"
+
+  var suma = Math.floor(Math.random() * 9999) + 1;
+  suma = suma.toString()
+  
+  var output = suma.split('');
+console.log(output)
+
+const reducer = (previousValue, currentValue) => +previousValue + +currentValue;
+
+resultat = output.reduce(reducer)
+
+while (resultat > 9){
+  var nouArray = resultat.toString().split('')
+  resultat = nouArray.reduce(reducer)
+}
+
+  document.getElementById('visor').innerHTML = suma
+ 
+  console.log(resultat);
+}
+  function clickEventHandler(e){
+              console.log(e);
+        if(e.target.matches(".numero")){
+          if( resultat.toString() === e.target.outerText){
+            console.log(e.target.outerText);
+            
+            document.getElementById("resultat").classList.add("bg-green")
+            document.getElementById("resultat").classList.remove("no-visible")
+            
+            document.getElementById("resultat").innerHTML="Perfecte!"
+            setTimeout(function(){
+              document.getElementById("resultat").classList.add("no-visible")
+              document.getElementById("resultat").classList.remove("bg-green")
+            
+          },1000)
+          marcador ++
+            document.getElementById("badge").innerHTML= "TOTAL ENCERTS: "+ marcador
+            redueix()
+
+          }else{
+            
+            document.getElementById("resultat").classList.add("bg-red")
+            document.getElementById("resultat").classList.remove("no-visible")
+            document.getElementById("resultat").innerHTML="Torna'ho a provar!"
+             setTimeout(function(){
+              document.getElementById("resultat").classList.add("no-visible")
+              document.getElementById("resultat").classList.remove("bg-red")
+            
+          },1000)
+            
+          }
+        }
+
+         if(e.target.matches(".start")){
+          
+            redueix()
+
+          
+        }
+  }
+        
+      
+
+      
+      document.getElementById("app").addEventListener("click",clickEventHandler);
+ 
+	</script>
+</body>
+
+</html>
