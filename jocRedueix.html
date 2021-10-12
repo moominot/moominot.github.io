@@ -140,7 +140,7 @@ function timer(){
 var element = document.getElementById("temps")
 var progress = Metro.getPlugin(element, "progress");
  
-
+progress.val(0)
   
 let increment = setInterval(function(){
   
@@ -214,8 +214,10 @@ function final(){
            document.getElementById("presentació").classList.add("d-none") 
         }
    if(e.target.matches("#restart")){ 
-percent =0
-marcador = 0     
+percent = 0
+marcador = 0  
+document.getElementById("start").innerHTML="Comença"
+document.getElementById("visor").innerHTML="Preparats!"
            document.getElementById("joc").classList.remove("d-none")    
            document.getElementById("pantallaFinal").classList.add("d-none") 
         }
