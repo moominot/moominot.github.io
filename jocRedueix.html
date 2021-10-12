@@ -93,6 +93,8 @@
 
 					<h1 id="misFinal" class="cell ">Enhorabona!</h1>
 					<h3>Has aconseguit fer <span id="puntsFinal"></span> reduccions.</h3>
+<button id="restart" class="button alert">Torna-hi</button>
+				
 
 				</div>
 			</div>
@@ -210,6 +212,12 @@ function final(){
          if(e.target.matches("#ok")){       
            document.getElementById("joc").classList.remove("d-none")    
            document.getElementById("presentació").classList.add("d-none") 
+        }
+   if(e.target.matches("#restart")){ 
+percent =0
+marcador = 0     
+           document.getElementById("joc").classList.remove("d-none")    
+           document.getElementById("pantallaFinal").classList.add("d-none") 
         }
   }
         
