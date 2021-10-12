@@ -8,57 +8,93 @@
 
 	<!-- Metro 4 -->
 	<link rel="stylesheet" href="https://cdn.metroui.org.ua/v4/css/metro-all.min.css">
+
 </head>
 
 <body>
 	<div id="app" class=" grid flex-align-center">
-		<div class=" grid flex-align-center">
-			<h5 id="resultat" class="cell fg-white"></h5>
-			<h1 id="visor" class="cell ">Preparats!</h1>
-      <span id="badge" class=""></span>
-			
-		</div>
-		<div class="container ">
-			<div class="grid teclat flex-align-center">
-				<div class="row">
-					<div class="cell">
-						<div class="button primary square  large numero">1</div>
-					</div>
-					<div class="cell">
-						<div class="button primary square  large numero">2</div>
-					</div>
-					<div class="cell">
-						<div class="button primary square  large numero">3</div>
-					</div>
-				</div>
-				<div class="row">
-					<div class="cell">
-						<div class="button primary square  large numero">4</div>
-					</div>
-					<div class="cell">
-						<div class="button primary square  large numero">5</div>
-					</div>
-					<div class="cell">
-						<div class="button primary square  large numero">6</div>
-					</div>
-				</div>
-				<div class="row">
-					<div class="cell">
-						<div class="button primary square  large numero">7</div>
-					</div>
-					<div class="cell">
-						<div class="button primary square  large numero">8</div>
-					</div>
-					<div class="cell">
-						<div class="button primary square  large numero">9</div>
-					</div>
+		<div id="presentació">
+			<div class="container">
+				<div class="grid flex-align-center">
+          <h1>REDUX</h1>
+          <p>El joc de reduir nombres a una sola xifra</p>
+          <p>Exemple:</p>
+          <h1>5987</h1>
+          <h3>5 + 9 + 8 + 7 = 29</h3>
+          <h3>2 + 9 = 11</h3>
+          <h3>1 + 1 = 2</h3>
+          <h2>Resposta: 2</h2>
+          <p>Comences amb 1 minut de temps. Per cada encert el teu temps augmenta en 3 segons, però si falles perds 6 segons</p>
+          <button id="ok" class="button start">D'acord</button>
 				</div>
 			</div>
 		</div>
-    <br>
-		<div class=" grid flex-align-center">
-			<div class="row">
-				<button id="start" class="button alert  start">Comença</button>
+		<div id="joc" class="d-none">
+			<div class="container ">
+				<div class=" grid flex-align-center">
+					<div id="temps" data-role="progress" data-value="0" data-type="buffer"></div>
+
+					<h5 id="resultat" class="cell fg-white"></h5>
+					<h1 id="visor" class="cell ">Preparats!</h1>
+					<span id="badge" class=""></span>
+				</div>
+			</div>
+			<div class="container ">
+				<div class="grid teclat flex-align-center">
+					<div class="row">
+						<div class="cell">
+							<div class="button primary square  large numero">1</div>
+						</div>
+						<div class="cell">
+							<div class="button primary square  large numero">2</div>
+						</div>
+						<div class="cell">
+							<div class="button primary square  large numero">3</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="cell">
+							<div class="button primary square  large numero">4</div>
+						</div>
+						<div class="cell">
+							<div class="button primary square  large numero">5</div>
+						</div>
+						<div class="cell">
+							<div class="button primary square  large numero">6</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="cell">
+							<div class="button primary square  large numero">7</div>
+						</div>
+						<div class="cell">
+							<div class="button primary square  large numero">8</div>
+						</div>
+						<div class="cell">
+							<div class="button primary square  large numero">9</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<br>
+			<div class=" grid flex-align-center">
+				<div class="row">
+					<button id="start" class="button alert  start">Comença</button>
+				</div>
+			</div>
+		</div>
+
+
+		<div id="pantallaFinal" class="d-none">
+			<div class="container ">
+
+				<div class=" grid flex-align-center">
+
+
+					<h1 id="misFinal" class="cell ">Enhorabona!</h1>
+					<p>Has aconseguit fer <span id="puntsFinal"></span></p>
+
+				</div>
 			</div>
 		</div>
 	</div>
@@ -69,9 +105,12 @@
 	<script>
 		var resultat
     var marcador = 0
+    var temps = 100
+    var percent = 0
 
     function redueix() {
       document.getElementById("start").innerHTML="Passa"
+      
 
   var suma = Math.floor(Math.random() * 9999) + 1;
   suma = suma.toString()
@@ -89,9 +128,43 @@ while (resultat > 9){
 }
 
   document.getElementById('visor').innerHTML = suma
+  
  
   console.log(resultat);
 }
+
+function timer(){
+
+var element = document.getElementById("temps")
+var progress = Metro.getPlugin(element, "progress");
+ 
+
+  
+let increment = setInterval(function(){
+  
+  percent++;
+  progress.val(percent)
+  if(percent >= 100) {
+    clearInterval(increment)
+    final()
+  }
+}, 600) 
+ 
+
+}
+
+
+
+function final(){
+          document.getElementById("joc").classList.add("d-none")  
+          document.getElementById('puntsFinal').innerHTML = marcador  
+           document.getElementById("pantallaFinal").classList.remove("d-none") 
+
+}
+
+
+
+
   function clickEventHandler(e){
               console.log(e);
         if(e.target.matches(".numero")){
@@ -102,6 +175,7 @@ while (resultat > 9){
             document.getElementById("resultat").classList.remove("no-visible")
             
             document.getElementById("resultat").innerHTML="Perfecte!"
+            percent = percent - 5
             setTimeout(function(){
               document.getElementById("resultat").classList.add("no-visible")
               document.getElementById("resultat").classList.remove("bg-green")
@@ -116,6 +190,8 @@ while (resultat > 9){
             document.getElementById("resultat").classList.add("bg-red")
             document.getElementById("resultat").classList.remove("no-visible")
             document.getElementById("resultat").innerHTML="Torna'ho a provar!"
+            percent = percent + 10
+            console.log(percent)
              setTimeout(function(){
               document.getElementById("resultat").classList.add("no-visible")
               document.getElementById("resultat").classList.remove("bg-red")
@@ -125,11 +201,15 @@ while (resultat > 9){
           }
         }
 
-         if(e.target.matches(".start")){
-          
+         if(e.target.matches(".start")){          
             redueix()
-
-          
+            if(percent ==0){
+              timer()
+              } 
+        }
+         if(e.target.matches("#ok")){       
+           document.getElementById("joc").classList.remove("d-none")    
+           document.getElementById("presentació").classList.add("d-none") 
         }
   }
         
