@@ -1,6 +1,6 @@
 var button = document.createElement("Button");
-button.innerHTML = "+";
-button.style = "position:fixed;width:40px;height:40px;bottom:20px;right:20px;border-radius:rounded;text-align:center;box-shadow: 2px 2px 3px #999;z-index: 9999"
+button.innerHTML = "ajusta a pantalla estreta";
+button.style = "position:fixed;width:100%;height:40px;top:0px;right:0px;text-align:center;z-index: 9999"
 button.onclick = magia;
 document.body.appendChild(button);
 
