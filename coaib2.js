@@ -1,6 +1,6 @@
 var button = document.createElement("Button");
 button.innerHTML = "+";
-button.style = "position:fixed;width:40px;height:40px;bottom:20px;right:20px;color:#FFF;border-radius:rounded;text-align:center;box-shadow: 2px 2px 3px #999;z-index: 9999"
+button.style = "position:fixed;width:40px;height:40px;bottom:20px;right:20px;border-radius:rounded;text-align:center;box-shadow: 2px 2px 3px #999;z-index: 9999"
 button.onclick = magia;
 document.body.appendChild(button);
 
