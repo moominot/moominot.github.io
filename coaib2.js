@@ -1,7 +1,7 @@
 var button = document.createElement("Button");
 button.innerHTML = "recarrega";
 button.style = "top:0;right:0;position:absolute;z-index: 9999"
-butoon.onclick = magia;
+button.onclick = magia;
 document.body.appendChild(button);
 
 function magia(){
