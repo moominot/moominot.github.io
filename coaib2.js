@@ -12,3 +12,4 @@ setTimeout(function(){
         document.querySelector('mat-drawer-content').style.marginLeft = "0px";
     },1000);
 }
+window.addEventListener("resize", magia);
