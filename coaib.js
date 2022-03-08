@@ -3,6 +3,9 @@
     setTimeout(function(){
       document.querySelector('mat-drawer-content').style.marginLeft = "0px";
     },1000);
+setTimeout(function(){
+      document.querySelector('mat-drawer-content').style.marginLeft = "0px";
+    },10000);
 
    
 
