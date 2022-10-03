@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html id="html">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+   
+
+<meta name="theme-color" content="#ffffff">
+
+
+</head>
+  <style>
+    html {
+    line-height: 1.5;
+    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;
+    font-weight: normal;
+    color: rgba(0,0,0,0.87);
+}
+
+
+.iframecontainer {
+  position: absolute;
+  overflow: hidden;
+  width: 100%;
+  top: 56px;
+  bottom: 0;
+}
+
+/* Then style the iframe to fit in the container div with full height and width */
+.responsive-iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  border:none;
+}
+.spinner {
+  position: fixed;
+  top: 50%;
+  width: 100%;
+  text-align: center;
+  z-index: 100;
+} 
+  </style>   
+<body>
+
+    <nav>
+        <div class="nav-wrapper light-blue">
+          <a href="https://script.google.com/macros/s/AKfycbwk3JR-IPd21gdp9np3zkHiNrje1sv3aAAir01DyLpe48qpqcT55OlFGOI_8kimaawn/exec?page=index&plantilla=template&admin=toni" class="brand-logo"  target='iframeView'> <small>9è Mundial Scrabble Clàssic</small></a>
+          <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+          <ul class="right hide-on-med-and-down">
+            <li><a href="https://script.google.com/macros/s/AKfycbwk3JR-IPd21gdp9np3zkHiNrje1sv3aAAir01DyLpe48qpqcT55OlFGOI_8kimaawn/exec?page=index&plantilla=template&admin=toni"  target='iframeView'><i class="material-icons">home</i></a></li>
+            <li><a  href="http://www.mundialscrabble.cat/9e-edicio-2022/reglament-del-9e-mundial-de-scrabble-en-catala/" target='iframeView'>Reglament</a></li>
+            <li><a  href="http://www.mundialscrabble.cat/9e-edicio-2022/premis-del-9e-mundial-de-scrabble-en-catala/" target='iframeView'>Premis</a></li>
+            <li><a  href="http://diccionari.totescrable.cat/validador/" target='_blank'>Validador</a></li>
+             <li><a  href="/rellotgeScrabble/index.html" target='iframeView'>Rellotge</a></li>
+             <li onclick="toggleFullScreen(document.body);"><a href="https://script.google.com/macros/s/AKfycbwk3JR-IPd21gdp9np3zkHiNrje1sv3aAAir01DyLpe48qpqcT55OlFGOI_8kimaawn/exec?page=index&plantilla=plantillapantalla"
+                target='iframeView'><i
+              class="material-icons">fullscreen</i>f</a></li>
+
+          </ul>
+        </div>
+      </nav>
+    
+      <ul class="sidenav" id="mobile-demo">
+         <li>
+            <div class="user-view">
+                <div class="background">
+                    <img src="http://www.ajuscrabble.cat/files/2020/06/ajusc-620x200.png" width="100%" height="auto" style="padding:16px ;">
+                </div>
+                <br><br>
+                <div><span class=" name">9è Mundial</span></div>
+                <div><span class=" email">Campionat d'scrabble clàssic a 10 rondes</span></div>
+            </div>
+        </li>
+        
+        <li><a class="sidenav-close" href="https://script.google.com/macros/s/AKfycbwk3JR-IPd21gdp9np3zkHiNrje1sv3aAAir01DyLpe48qpqcT55OlFGOI_8kimaawn/exec?page=index&plantilla=template&admin=toni"  target='iframeView'><i class="material-icons">home</i>Inici</a></li>
+        <li><a class="sidenav-close" href="http://diccionari.totescrable.cat/validador/" target='_blank'><i class="material-icons">check</i>Validador</a></li>
+        <li><a class="sidenav-close" href="http://www.mundialscrabble.cat/9e-edicio-2022/reglament-del-9e-mundial-de-scrabble-en-catala/" target='iframeView'><i class="material-icons">view_list</i>Reglament</a></li>
+        <li><a class="sidenav-close" href="http://www.mundialscrabble.cat/9e-edicio-2022/premis-del-9e-mundial-de-scrabble-en-catala/" target='iframeView'><i class="material-icons">cake</i>Premis</a></li>
+
+         <li><a class="sidenav-close" href="/rellotgeScrabble/index.html" target='_blank'><i class="material-icons">access_time</i>Rellotge<span class="yellow badge">Beta</span></a></li>
+         <li onclick="toggleFullScreen(document.body)"><a class="sidenav-close"><i
+            class="material-icons">fullscreen</i>Pantalla completa</a></li>
+          <li><div class="divider"></div></li>
+          <li><a class="sidenav-close" href="https://script.google.com/macros/s/AKfycbyiyQDsAqM74ln8giazO037JEiRiiA1StomNV7M2VU2rqjm_vf1WPnDIdGT2Qlpgx7N/exec" target='iframeView'><i
+            class="material-icons">history</i>Historial</a></li>
+         <li><div class="divider"></div></li>
+
+      </ul>
+       <div id="spinner" class="spinner">
+      <div class="preloader-wrapper small active">
+      <div class="spinner-layer spinner-blue">
+        <div class="circle-clipper left">
+          <div class="circle"></div>
+        </div>
+         <div class="gap-patch">
+          <div class="circle"></div>
+        </div>
+         <div class="circle-clipper right">
+          <div class="circle"></div>
+         </div>
+        </div>
+       </div>
+      </div>
+ 
+ 
+<div class="iframecontainer">
+   
+
+    
+  <iframe name='iframeView' id="divisio" class="responsive-iframe" src='https://script.google.com/macros/s/AKfycbwk3JR-IPd21gdp9np3zkHiNrje1sv3aAAir01DyLpe48qpqcT55OlFGOI_8kimaawn/exec?page=index&plantilla=template&admin=toni'></iframe>
+</div>
+  
+<script>  
+
+
+
+   document.getElementById('divisio').onload = function() {
+  document.getElementById('spinner').style.display='none';
+};
+
+   
+
+   function toggleFullScreen(elem) {
+    // ## The below if statement seems to work better ## if ((document.fullScreenElement && document.fullScreenElement !== null) || (document.msfullscreenElement && document.msfullscreenElement !== null) || (!document.mozFullScreen && !document.webkitIsFullScreen)) {
+    if ((document.fullScreenElement !== undefined && document.fullScreenElement === null) || (document.msFullscreenElement !== undefined && document.msFullscreenElement === null) || (document.mozFullScreen !== undefined && !document.mozFullScreen) || (document.webkitIsFullScreen !== undefined && !document.webkitIsFullScreen)) {
+        if (elem.requestFullScreen) {
+            elem.requestFullScreen({ navigationUI: 'hide' });
+        } else if (elem.mozRequestFullScreen) {
+            elem.mozRequestFullScreen({ navigationUI: 'hide' });
+        } else if (elem.webkitRequestFullScreen) {
+            elem.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
+        } else if (elem.msRequestFullscreen) {
+            elem.msRequestFullscreen({ navigationUI: 'hide' });
+        }
+    } else {
+        if (document.cancelFullScreen) {
+            document.cancelFullScreen();
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        } else if (document.webkitCancelFullScreen) {
+            document.webkitCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+    }
+}
+document.addEventListener('DOMContentLoaded', function() {
+        M.AutoInit();
+      
+  });
+  </script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+</body>
+  </html>
