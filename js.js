@@ -38,13 +38,14 @@ for(const entry of entries) {
 // newuser:
 // size: m
 console.log(entries)
+var app = queryString.replace('?url=','')
+var config = "hhttps://script.google.com/macros/s/AKfycbyskXj3dDYibP2O52FghL6i6-byrGTVPbICkcvfMd3O8yDz3LHQ-WtSNCfqKQTgzETx0w/exec?idFull=&pestanya=&idCarpeta=&page=config"
+
 window.addEventListener("load",function(){
-urlParams.has('url')?vesURL():console.log("no s'ha trobat el paràmetre url")
+urlParams.has('url')?vesURL(app):vesURL(config)
 })
 
-
-function vesURL(){
-  var url = queryString.replace('?url=','')
+function vesURL(url){  
   var iframe = document.getElementById("divisio")
   iframe.src = url
 }
