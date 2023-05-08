@@ -34,7 +34,7 @@ for(const entry of entries) {
 // size: m
 console.log(entries)
 window.addEventListener("load",function(){
-urlParams.has('url')?vesURL(urlParams.get('entries')):console.log("no s'ha trobat el paràmetre url")
+urlParams.has('url')?vesURL(urlParams.get('url')):console.log("no s'ha trobat el paràmetre url")
 })
 
 
