@@ -33,8 +33,9 @@ const
 // newuser:
 // size: m
 console.log(entries)
-
+window.addEventListener("load",function(){
 urlParams.has('url')?vesURL(urlParams.get('url')):console.log("no s'ha trobat el paràmetre url")
+})
 
 
 function vesURL(url){
