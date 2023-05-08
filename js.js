@@ -19,16 +19,25 @@ const
   values = urlParams.values(),
   entries = urlParams.entries();
 
-for (const key of keys) console.log(key);
+//for (const key of keys) console.log(key);
 // product, color, newuser, size
 
-for (const value of values) console.log(value);
+//for (const value of values) console.log(value);
 // shirt, blue, , m
 
-for(const entry of entries) {
-  console.log(`${entry[0]}: ${entry[1]}`);
-}
+//for(const entry of entries) {
+  //console.log(`${entry[0]}: ${entry[1]}`);
+//}
 // product: shirt
 // color: blue
 // newuser:
 // size: m
+console.log(entries)
+
+urlParams.has('url')?vesURL(urlParams.get('url')):console.log()
+
+
+function vesURL(url){
+  var iframe = document.getElementById("divisio")
+  iframe.src = url
+}
