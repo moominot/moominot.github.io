@@ -45,10 +45,7 @@ const urlParams = new URLSearchParams(queryString);
 
 
 var app = queryString.replace('?url=','')
-var config = `<html><head></head><body><h3>Afegeix el paràmetre ?url= i afegeix la pàgina que vulguis embeguda</h3>
-<p>Per exemple: <a href='moominot.github.io/noiframe?url=http://google.com'>moominot.github.io/noiframe<strong>?url=http://google.com</strong></a></p>
-<p>Aquesta pàgina està pensada per embeure webapps generada amb Google App Scripts i eliminar el bànner que surt per defecte</p>
-</body></html>`
+var config = "noiframeinput.html"
 
 window.addEventListener("load",function(){
 urlParams.has('url')?vesURL(app):vesURL(config)
