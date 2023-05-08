@@ -44,7 +44,7 @@ urlParams.has('url')?vesURL():console.log("no s'ha trobat el paràmetre url")
 
 
 function vesURL(){
-  var url = newUser.replace('?url=','')
+  var url = queryString.replace('?url=','')
   var iframe = document.getElementById("divisio")
   iframe.src = url
 }
