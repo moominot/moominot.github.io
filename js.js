@@ -17,7 +17,7 @@ console.log(newUser);
 const
   keys = urlParams.keys(),
   values = urlParams.values(),
-  entries = urlParams.entries(),
+  entries = urlParams.entries();
 
 
 
