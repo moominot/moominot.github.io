@@ -17,21 +17,21 @@ console.log(newUser);
 const
   keys = urlParams.keys(),
   values = urlParams.values(),
-  entries = urlParams.entries();
-console.log(entries)
+  entries = urlParams.entries(),
+
+
+
+//console.log(entries)
 //for (const key of keys) console.log(key);
 // product, color, newuser, size
 
 //for (const value of values) console.log(value);
 // shirt, blue, , m
-var url = ""
+
 for(const entry of entries) {
-  entry[0]=="url"?
-    url+=entry[1]:
-  url+="&"+entry[0]+"="+entry[1]
-  
+
   console.log(`${entry[0]}: ${entry[1]}`);
-  console.log(url)
+  
 }
 // product: shirt
 // color: blue
@@ -39,11 +39,12 @@ for(const entry of entries) {
 // size: m
 console.log(entries)
 window.addEventListener("load",function(){
-urlParams.has('url')?vesURL(url):console.log("no s'ha trobat el paràmetre url")
+urlParams.has('url')?vesURL():console.log("no s'ha trobat el paràmetre url")
 })
 
 
-function vesURL(url){
+function vesURL(){
+  var url = newUser.replace('?url=','')
   var iframe = document.getElementById("divisio")
   iframe.src = url
 }
