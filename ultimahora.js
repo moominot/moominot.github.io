@@ -3,4 +3,4 @@ document.querySelector(".registered-content").classList.remove("registered-conte
 document.querySelector(".teads-inread").remove()
 document.querySelector(".henneoHB-intext").remove()
 document.querySelectorAll(".adimpact-3").forEach(el=>el.remove())
-document.querySelectorAll(".ads-container").forEach(el=>el.remove())
+document.querySelectorAll(".ads-container").forEach(ad=>ad.remove())
