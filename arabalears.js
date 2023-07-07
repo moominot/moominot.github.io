@@ -1,2 +1,2 @@
-ocument.querySelector(".paywall").remove()
+document.querySelector(".paywall").remove()
 document.body.classList.remove("closed")
