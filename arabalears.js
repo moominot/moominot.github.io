@@ -1,4 +1,6 @@
 document.querySelector(".paywall").remove()
 document.body.classList.remove("closed")
-document.querySelector(".ara-body div").style.display="block"
+var amagat = document.querySelector(".ara-body div")
+  amagat.style.display="block"
+  amagat.classList.add("ara-body")
 
