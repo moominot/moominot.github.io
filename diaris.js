@@ -23,7 +23,7 @@ if(loc.indexOf("elpais.com")>0){
   document.querySelectorAll(".adimpact-3").forEach(el=>el.remove())
   document.querySelectorAll(".ads-container").forEach(ad=>ad.remove())
                      
-}else if(loc.indexOf("diariodemallorca.es")>0){
+}else if(loc.indexOf("diariodemallorca.es")>0||loc.indexOf("diariodeibiza.es")>0){
   document.querySelectorAll(".article-body--truncated").forEach(r => r.classList.remove("article-body--truncated"))  
   document.querySelector(".article-body--seo-closed").style.display = "initial";
   document.getElementById("paywall").remove();
