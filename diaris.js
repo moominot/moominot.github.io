@@ -15,7 +15,7 @@ if(loc.indexOf("elpais.com")>0){
         div.style.display="block"  
         div.classList.add("ara-body")}
       })
-}else if(loc.indexOf("ulimahora.es")>0){
+}else if(loc.indexOf("ultimahora.es")>0){
   document.querySelector(".unregistered-content").remove()
   document.querySelector(".registered-content").classList.remove("registered-content")
   document.querySelector(".teads-inread").remove()
