@@ -89,7 +89,7 @@
         var loc= iframe.src
 
 if(loc.indexOf("elpais.com")>0){
-  iframe.querySelector("#ctn_freemium_article").remove
+ iframeRef(document.querySelector("#ctn_freemium_article").remove())
   var artamagat = iframeRef(document.querySelector(".a_b_wall._dn"))
     artamagat.classList.add("a_c")
     artamagat.classList.remove("a_b_wall")
