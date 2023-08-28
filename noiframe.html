@@ -64,11 +64,6 @@
       function vesURL(url) {
         iframe.src = url;
       }
-      function iframeRef( frameRef ) {
-    return frameRef.contentWindow
-        ? frameRef.contentWindow.document
-        : frameRef.contentDocument
-}
 
 
       function carregaScripts() {
@@ -89,15 +84,17 @@
         var loc= iframe.src
 
 if(loc.indexOf("elpais.com")>0){
- iframeRef(document.querySelector("#ctn_freemium_article").remove())
-  var artamagat = iframeRef(document.querySelector(".a_b_wall._dn"))
+  window.location=loc
+ document.querySelector("#ctn_freemium_article").remove()
+  var artamagat = document.querySelector(".a_b_wall._dn")
     artamagat.classList.add("a_c")
     artamagat.classList.remove("a_b_wall")
     artamagat.classList.remove("_dn")
   
 }else if(loc.indexOf("arabalears.cat")>0||loc.indexOf("ara.cat")>0){
-  iframeRef(document.querySelector(".paywall").remove())
-  iframeRef(document.body.classList.remove("closed"))
+   window.location=loc
+ document.querySelector(".paywall").remove()
+  document.body.classList.remove("closed")
   var amagat = iframeRef(document..querySelectorAll(".ara-body div"))
       amagat.forEach(div=>{
         if(div.style.display="none"){
@@ -106,17 +103,19 @@ if(loc.indexOf("elpais.com")>0){
       })
   
 }else if(loc.indexOf("ultimahora.es")>0){
-  iframeRef(document.querySelector(".unregistered-content").remove())
-  iframeRef(document.querySelector(".registered-content").classList.remove("registered-content"))
-  iframeRef(document.querySelector(".teads-inread").remove())
-  iframeRef(document.querySelector(".henneoHB-intext").remove())
-  iframeRef(document.querySelectorAll(".adimpact-3").forEach(el=>el.remove()))
-  iframeRef(document.querySelectorAll(".ads-container").forEach(ad=>ad.remove()))
+   window.location=loc
+ document.querySelector(".unregistered-content").remove()
+  document.querySelector(".registered-content").classList.remove("registered-content")
+ document.querySelector(".teads-inread").remove()
+document.querySelector(".henneoHB-intext").remove()
+  document.querySelectorAll(".adimpact-3").forEach(el=>el.remove())
+  document.querySelectorAll(".ads-container").forEach(ad=>ad.remove())
                      
 }else if(loc.indexOf("diariodemallorca.es")>0||loc.indexOf("diariodeibiza.es")>0){
- iframeRef(document.querySelectorAll(".article-body--truncated").forEach(r => r.classList.remove("article-body--truncated"))  )
- iframeRef(document.querySelector(".article-body--seo-closed").style.display) = "initial";
-  iframeRef(document.getElementById("paywall").remove());
+   window.location=loc
+document.querySelectorAll(".article-body--truncated").forEach(r => r.classList.remove("article-body--truncated"))  
+document.querySelector(".article-body--seo-closed").style.display = "initial";
+ document.getElementById("paywall").remove();
 }
       }
     </script>
