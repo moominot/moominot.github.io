@@ -78,35 +78,36 @@
         }, "1000");
       }
       function hackDiaris(){
-        var loc= apphttp 
+        
+        var loc= iframe.src
 
 if(loc.indexOf("elpais.com")>0){
-  document.querySelector("#ctn_freemium_article").remove
-  var artamagat = document.querySelector(".a_b_wall._dn")
+  iframe.querySelector("#ctn_freemium_article").remove
+  var artamagat = iframe.querySelector(".a_b_wall._dn")
     artamagat.classList.add("a_c")
     artamagat.classList.remove("a_b_wall")
     artamagat.classList.remove("_dn")
 }else if(loc.indexOf("arabalears.cat")>0||loc.indexOf("ara.cat")>0){
-  document.querySelector(".paywall").remove
-  document.body.classList.remove("closed")
-  var amagat = document.querySelectorAll(".ara-body div")
+  iframe.querySelector(".paywall").remove()
+  iframe.body.classList.remove("closed")
+  var amagat = iframe.querySelectorAll(".ara-body div")
       amagat.forEach(div=>{
         if(div.style.display="none"){
         div.style.display="block"  
         div.classList.add("ara-body")}
       })
 }else if(loc.indexOf("ultimahora.es")>0){
-  document.querySelector(".unregistered-content").remove
-  document.querySelector(".registered-content").classList.remove("registered-content")
-  document.querySelector(".teads-inread").remove
-  document.querySelector(".henneoHB-intext").remove
-  document.querySelectorAll(".adimpact-3").forEach(el=>el.remove)
-  document.querySelectorAll(".ads-container").forEach(ad=>ad.remove)
+  iframe.querySelector(".unregistered-content").remove()
+  iframe.querySelector(".registered-content").classList.remove("registered-content")
+  iframe.querySelector(".teads-inread").remove()
+  iframe.querySelector(".henneoHB-intext").remove()
+  iframe.querySelectorAll(".adimpact-3").forEach(el=>el.remove())
+  iframe.querySelectorAll(".ads-container").forEach(ad=>ad.remove())
                      
 }else if(loc.indexOf("diariodemallorca.es")>0||loc.indexOf("diariodeibiza.es")>0){
-  document.querySelectorAll(".article-body--truncated").forEach(r => r.classList.remove("article-body--truncated"))  
-  document.querySelector(".article-body--seo-closed").style.display = "initial";
-  document.getElementById("paywall").remove;
+  iframe.querySelectorAll(".article-body--truncated").forEach(r => r.classList.remove("article-body--truncated"))  
+  iframe.querySelector(".article-body--seo-closed").style.display = "initial";
+  iframe.getElementById("paywall").remove();
 }
       }
     </script>
