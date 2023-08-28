@@ -64,22 +64,39 @@
       function vesURL(url) {
         iframe.src = url;
         
-        carregaScripts()
       }
 
 
       function carregaScripts() {
         setTimeout(() => {
-          hackDiaris()
-     /*      document
+        
+        document
             .querySelectorAll(".article-body--truncated")
             .forEach((r) => r.classList.remove("article-body--truncated"));
 
           document.querySelector(".article-body--seo-closed").style.display =
             "initial";
           document.getElementById("paywall").remove();
-          console.log("Delayed for 1 second."); */
-        }, "5000");
+          document.body.classList.remove("closed")
+  var amagat = document.querySelectorAll(".ara-body div")
+      amagat.forEach(div=>{
+        if(div.style.display="none"){
+        div.style.display="block"  
+        div.classList.add("ara-body")}
+         document.querySelector(".unregistered-content").remove()
+  document.querySelector(".registered-content").classList.remove("registered-content")
+ document.querySelector(".teads-inread").remove()
+document.querySelector(".henneoHB-intext").remove()
+  document.querySelectorAll(".adimpact-3").forEach(el=>el.remove())
+  document.querySelectorAll(".ads-container").forEach(ad=>ad.remove())
+         document.querySelector("#ctn_freemium_article").remove()
+  var artamagat = document.querySelector(".a_b_wall._dn")
+    artamagat.classList.add("a_c")
+    artamagat.classList.remove("a_b_wall")
+    artamagat.classList.remove("_dn")
+      })
+          console.log("Delayed for 1 second."); 
+        }, "1000");
       }
       function hackDiaris(){
         
