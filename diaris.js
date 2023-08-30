@@ -27,4 +27,7 @@ if(loc.indexOf("elpais.com")>0){
   document.querySelectorAll(".article-body--truncated").forEach(r => r.classList.remove("article-body--truncated"))  
   document.querySelector(".article-body--seo-closed").style.display = "initial";
   document.getElementById("paywall").remove();
+}else if(loc.indexOf("lavanguardia.com")>0){
+  document.getElementById("meter-paywall").remove()
+  document.querySelector(".ev-open-modal-paywall-REQUIRE_LOGIN_WITH_ENTITLEMENT").remove()  
 }
