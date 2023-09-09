@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top" />
+    <meta
+      charset="utf-8"
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1"
+      
+    />
+    <!-- <meta content="user-scalable=no"> -->
+    <title>Biblioteca</title>
+
+    <style>
+      body{        
+        margin: 0px;
+      }
+      
+      .iframecontainer {
+        position: absolute;
+        overflow: hidden;
+        width: 100%;
+        top: 0px;
+        bottom: 0;
+      }
+
+      /* Then style the iframe to fit in the container div with full height and width */
+      .responsive-iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="iframecontainer">
+      <iframe
+        name="iframeView"
+        id="divisio"
+        class="responsive-iframe"
+        src=""
+      ></iframe>
+    </div>
+
+    <script>
+      const queryString = window.location.search;
+      console.log(queryString);      
+      var iframe = document.getElementById("divisio");      
+      var confighttp = "https://script.google.com/macros/s/AKfycbz_Y9LrnTSdKwAFIrdL1fmx3mMAwZIl0SRbIb9bsm2PCPbI3shOYwYRjuOzve80ymi9/exec";
+      var apphttp = confighttp+queryString
+      window.addEventListener("load", function () {
+        vesURL(apphttp)
+      });    
+      function vesURL(url) {
+        iframe.src = url;        
+      }      
+    </script>
+  </body>
+</html>
