@@ -24,9 +24,10 @@ if(loc.indexOf("elpais.com")>0){
   document.querySelectorAll(".ads-container").forEach(ad=>ad.remove())
                      
 }else if(loc.indexOf("diariodemallorca.es")>0||loc.indexOf("diariodeibiza.es")>0){
-  document.querySelectorAll(".article-body--truncated").forEach(r => r.classList.remove("article-body--truncated"))  
+  /* document.querySelectorAll(".article-body--truncated").forEach(r => r.classList.remove("article-body--truncated"))  
   document.querySelector(".article-body--seo-closed").style.display = "initial";
-  document.getElementById("paywall").remove();
+  document.getElementById("paywall").remove(); */
+  document.querySelectorAll('head > link[rel="stylesheet"')[1].href="https://moominot.github.io/entry.hack.css"
 }else if(loc.indexOf("lavanguardia.com")>0){
   document.getElementById("meter-paywall").remove()
   document.querySelector(".ev-open-modal-paywall-REQUIRE_LOGIN_WITH_ENTITLEMENT").remove()  
