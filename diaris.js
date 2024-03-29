@@ -28,6 +28,8 @@ if(loc.indexOf("elpais.com")>0){
   document.querySelector(".article-body--seo-closed").style.display = "initial";
   document.getElementById("paywall").remove(); */
   document.querySelectorAll('head > link[rel="stylesheet"')[1].href="https://moominot.github.io/entry.hack.css"
+  document.querySelector("[data-close='closedContent']").remove()
+  document.querySelector("#view-offer").remove()
 }else if(loc.indexOf("lavanguardia.com")>0){
   document.getElementById("meter-paywall").remove()
   document.querySelector(".ev-open-modal-paywall-REQUIRE_LOGIN_WITH_ENTITLEMENT").remove()  
