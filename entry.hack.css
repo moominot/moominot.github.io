@@ -30817,7 +30817,7 @@ amp-selector.tabpanels [role="tabpanel"][selected] {
   a:after:last-child {
   content: none;
 }
-.lazy-transclude{
+.view-offer{
 display: none;
 }
 p[data-close="closedContent"]{
