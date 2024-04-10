@@ -1,3 +1,11 @@
+.view-offer{
+  display: none;
+  }
+  p[data-close="closedContent"]{
+    display: none;
+  }
+
+  
 .fourtytwo--ds {
   color: #016200;
 }
@@ -30817,9 +30825,4 @@ amp-selector.tabpanels [role="tabpanel"][selected] {
   a:after:last-child {
   content: none;
 }
-.view-offer{
-display: none;
-}
-p[data-close="closedContent"]{
-  display: none;
-}
+
