@@ -39,7 +39,7 @@ for(const entry of entries) {
 // size: m
 console.log(entries)
 var app = queryString.replace('?url=','')
-var config = "https://script.google.com/macros/s/AKfycbz76sE_0kS0ZKu7U55HPO0FSh3GieZD-F6RBExriXy5OFRcaEe8-w8kQob6lN2d90rcjA/exec?page=config"
+var config = "https://script.google.com/macros/s/AKfycbz76sE_0kS0ZKu7U55HPO0FSh3GieZD-F6RBExriXy5OFRcaEe8-w8kQob6lN2d90rcjA/exec"
 
 window.addEventListener("load",function(){
 urlParams.has('url')?vesURL(app):vesURL(config+queryString)
