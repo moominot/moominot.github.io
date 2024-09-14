@@ -23,7 +23,7 @@ if(loc.indexOf("elpais.com")>0){
   document.querySelectorAll(".adimpact-3").forEach(el=>el.remove())
   document.querySelectorAll(".ads-container").forEach(ad=>ad.remove())
                      
-}else if(loc.indexOf("diariodemallorca.es")>0||loc.indexOf("diariodeibiza.es")>0){
+}else if(loc.indexOf("diariodemallorca.es")>0||loc.indexOf("diariodeibiza.es")>0||loc.indexOf("diariodeibiza.es")>0){
   /* document.querySelectorAll(".article-body--truncated").forEach(r => r.classList.remove("article-body--truncated"))  
   document.querySelector(".article-body--seo-closed").style.display = "initial";
   document.getElementById("paywall").remove(); */
@@ -33,4 +33,7 @@ if(loc.indexOf("elpais.com")>0){
 }else if(loc.indexOf("lavanguardia.com")>0){
   document.getElementById("meter-paywall").remove()
   document.querySelector(".ev-open-modal-paywall-REQUIRE_LOGIN_WITH_ENTITLEMENT").remove()  
+  document.querySelectorAll('head > link[rel="stylesheet"')[1].href="https://moominot.github.io/entry.hack.css"
+  document.querySelector(".view-offer").remove()
+  
 }
