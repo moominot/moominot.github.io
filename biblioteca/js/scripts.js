@@ -9,7 +9,7 @@
     toggleSpinnerOn()
 
 
-    const dades = fetch('dades.json');
+    const dades = fetch('./BibliotecaLlibres.json');
     
 
 
