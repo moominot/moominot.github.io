@@ -10,10 +10,10 @@
 
 
     const dades = fetch('dades.json');
-    console.log('data', data);
+    
 
 
-  ompledades(dades)
+  ompledades(dades.DADES)
     
   };
 
