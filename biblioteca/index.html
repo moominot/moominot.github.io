@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <base target="_top">
+
+  <meta charset="utf-8">
+
+  <meta name="description" content="">
+  <title>App</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous">
+    
+  </script>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
+  <!--  Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet" />
+  <script src="./js/listjs.js"></script> 
+  <link rel="stylesheet" href="/css/style.css">
+
+</head>
+
+<body>
+ <div class="offcanvas offcanvas-top h-50" tabindex="-1" id="config">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title">Configuració</h5>
+    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body">
+    <form action="https://moominot.github.io/biblioteca.html">
+      <div class="mb-3">
+        <label for="email" class="form-label">Email on vols rebre els llibres:</label>
+        <input type="email" class="form-control" id="emailsend" name="email" placeholder="nomdispositiu@kindle.com">
+      </div>
+      <div class="mb-3">
+        <label for="paginacio" class="form-label">Número de llibres que vols veure per pàgina;</label>
+        <input type="number" name="paginacio" placeholder="num d'entrades per pàgina" class="form-control" id="paginaciovalue">
+      </div>
+      
+     <!--  <div class="col-12">
+        <label>Les preferències es desen a la sessió actual, si vols desar l'enllaç amb les preferències seleccionades, afegeix l'enllaç del botó seguent als teus preferits.</label>
+        <button class="btn btn-primary" type="submit">Enllaç amb les preferències desades</button>
+      </div> -->
+    </form>
+  </div>
+</div>
+   <!-- spinner -->
+  <div id="spinner" style="display:"></div>
+  <script>
+    function toggleSpinnerOn(){
+      document.getElementById("spinner").style.display=""      
+    }
+    function toggleSpinnerOff(){
+      document.getElementById("spinner").style.display="none"      
+    }
+  </script>
+  
+  <template id="cardlateral">
+  <div class=" mb-3 ID">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <img src="..." class="img-fluid rounded-start Portada" >
+      </div>
+      <div class="col-md-8">
+        <div class="card-body">
+          <div class="">
+            <h5 class="card-title Títol">Card title</h5>
+            <span class="badge bg-secondary Idioma">New</span>
+
+            <p class="card-text Autor cerca ">Autor</p>
+            <p class="card-text Descripció">This is a wider card with supporting text below as a natural lead-in to
+              additional content. This content is a little bit longer.</p>
+            <p class="card-text"><small class="text-muted Etiquetes">Last updated 3 mins ago</small></p>
+            <p class="card-text">
+              <small class="text-muted"><em class="Publicació cerca">New</em>, <em class="Editor cerca">New</em></small>
+            </p>
+            <div class="row">
+              <div class="input-group">
+            <span class="input-group-text" >Envia a:</span>
+            <select class="form-select add" id="email" >
+              <option value="casapadrinakindle@kindle.com">kindle den Toni</option>
+              <option value="mmollmaskindle@kindle.com">kindle de na Maria</option>
+              
+              <option value="<?= email ?>"><?= email ?></option>
+            </select>
+            <button  class="btn btn-primary id" onclick="mail(this)" >
+              <i class="mail bi bi-cloud-upload"></i>
+              <div class="d-none spinboto">
+                <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                <span class="visually-hidden" role="status">Loading...</span>
+              </div>
+              </button>
+          </div>
+              
+              <a class="url">Descarrega el fitxer</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+<template id="cardllista">
+  <div class="card mb-3  resum">
+    <div class="row g-0">
+      <div class="col">
+        <div class="card-body">
+          <div class="ID"  data-bs-toggle="modal" data-bs-target="#modal"
+    onclick="ompleModalId(this.dataset.id)">
+            <span class="badge bg-secondary Idioma float-end cerca">New</span>
+            <h5 class="card-title Títol">Card title</h5>
+            <p class="card-text Autor cerca">Autor</p>
+            <p class="card-text Descripció text-truncate">This is a wider card with supporting text below as a natural
+              lead-in to additional content. This content is a little bit longer.</p></div>
+              <div>
+            <p class="card-text"><small class="text-muted Etiquetes" >Last updated 3 mins ago</small></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+  <div id="llista">
+    <nav class="navbar bg-light container-fluid  sticky-top mb-3">
+      <div class="container-fluid ">
+        
+        <div class="navbar-brand p-1 display-6">Biblioteca</div>
+
+        <form class="d-flex" role="search">
+          <div class="input-group p-1">
+            <input type="search" class="search form-control" placeholder="Cerca" aria-label="Recipient's username" aria-describedby="button-addon2" id="cerca-input">
+            <select class="form-select" id="ordena" >
+              <option value="row" selected>Més nou a la biblioteca</option>
+              <option value="Títol">Títol</option>
+              <option value="Autor">Autor</option>              
+              <option value="Publicació">Data publicació</option>
+            </select>
+            <button class="sort btn btn-outline-secondary" type="button" id="botoordena" data-sort="row">Ordena</button>
+            <button class="btn btn-outline-secondary " type="button" data-bs-toggle="modal" data-bs-target="#modal" onclick="ompleModalId('random')"><i class="bi bi-shuffle"></i></button>
+          
+          </div>
+          <i class="bi bi-three-dots-vertical btn" data-bs-toggle="offcanvas" data-bs-target="#config"></i>
+        </form>
+      </div>
+    </nav>
+   
+    <div class="container-fluid">     
+      
+      <ul class="list list-group list-group-flush"></ul>
+
+      <ul class="pagination" id="pagines"></ul>
+      
+    </div>
+   
+  </div>
+<script>
+  const paginacio = '<?= paginacio ?>'
+  </script>
+
+
+ <!-- Modal -->
+<div class="modal fade" id="modal"  tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-fullscreen-md-down modal-xl">
+    <div class="modal-content" id="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-title">Detall</h5>
+        <button type="button" class="btn-close" data-bs-toggle="modal"  aria-label="Close"></button>
+      </div>
+      <div class="modal-body " id="modal-body">
+        <div class="list" id="modal-list">
+        </div>
+       
+      </div>
+     <!--  <div class="modal-footer">
+      
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Understood</button>
+      </div> -->
+    </div>
+  </div>
+</div>
+<script>
+  function ompleModal(titol,bodyHTML){
+var modalTitol = document.getElementById("modal-title")
+var modalBody = document.getElementById("modal-list")
+
+modalTitol.innerHTML=titol
+modalBody.innerHTML=bodyHTML
+  }
+
+</script>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+  <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header" id="toastheader">     
+      <strong class="me-auto">Email</strong>
+      <small>ara mateix</small>
+      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body" id="toastbody">
+      Llibre enviat correctament
+    </div>
+  </div>
+</div>
+
+<script>
+  
+function mostraToast(header,body){
+ 
+document.getElementById("toastheader").innerHTML= header
+
+document.getElementById("toastbody").innerHTML= body
+    
+var toastLiveExample = document.getElementById("liveToast")
+
+    const toast = new bootstrap.Toast(toastLiveExample)
+
+    toast.show() 
+}
+</script>
+<script src="./js/scripts.js></scripts>
+
+</body>
+
+</html>
