@@ -84,7 +84,6 @@
               <option value="casapadrinakindle@kindle.com">kindle den Toni</option>
               <option value="mmollmaskindle@kindle.com">kindle de na Maria</option>
               
-              <option id="emailurl" value=""></option>
             </select>
             <button  class="btn btn-primary id" onclick="mail(this)" >
               <i class="mail bi bi-cloud-upload"></i>
@@ -163,9 +162,8 @@
       const urlParams = new URLSearchParams(queryString);
       const paginacio =  urlParams.paginacio
   const email = urlParams.email
-  const emailopt = document.getElementById("emailurl")
-  emailopt.value = email
-  email.innerHTML = email
+  const emailopt = document.getElementById("email")
+  emailopt.add(new Option(email))
   </script>
 
 
