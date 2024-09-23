@@ -7,6 +7,8 @@
   
   function functionInit(){  
     toggleSpinnerOn()
+    const emailopt = document.getElementById("email")
+  emailopt.add(new Option(email))
 
 
     const dades = fetch('./BibliotecaLlibres.json');
