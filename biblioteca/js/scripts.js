@@ -10,12 +10,23 @@
   /*   const emailopt = document.getElementById("email")
   emailopt.add(new Option(email)) */
 
-
-    const dades = fetch('./BibliotecaLlibres.json');
+    Promise.all([
+    fetch('./BibliotecaLlibres.json'),
+  
     
-console.log(dades)
+  ])
+    .then((responses) =>
+      Promise.all(responses.map((response) => response.json()))
+    )
+    .then(([data]) => {
+     const dades = data.DADES
 
-  ompledades(dades.DADES)
+      // Continue with your logic here..
+        ompledades(dades)
+    })
+    .catch((error) => console.error("Error:", error));
+
+    
     
   };
 
