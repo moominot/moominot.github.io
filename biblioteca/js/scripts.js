@@ -11,7 +11,7 @@
 
     const dades = fetch('./BibliotecaLlibres.json');
     
-
+console.log(dades)
 
   ompledades(dades.DADES)
     
