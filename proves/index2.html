@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Formulari i Taula amb Vue.js i Firebase</title>
     <script src="https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.prod.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-database.js"></script>
+
     <style>
         table {
             width: 100%;
@@ -67,7 +66,7 @@
 
     <script>
         // Configuració de Firebase
-        const firebaseConfig = {
+/*         const firebaseConfig = {
     apiKey: "AIzaSyBDeC21hIyFhCD_j3hWdpgvfbZ1zjZyFvc",
     authDomain: "provatempsreal.firebaseapp.com",
     projectId: "provatempsreal",
@@ -77,7 +76,7 @@
         };
 
         // Inicialitza Firebase
-        const app = firebase.initializeApp(firebaseConfig);
+        const app = firebase.initializeApp(firebaseConfig); */
         const database = firebase.database(app);
 
         // Inicialitza Vue.js
@@ -135,5 +134,24 @@
             }
         }).mount('#app');
     </script>
+    <script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyBDeC21hIyFhCD_j3hWdpgvfbZ1zjZyFvc",
+    authDomain: "provatempsreal.firebaseapp.com",
+    projectId: "provatempsreal",
+    storageBucket: "provatempsreal.firebasestorage.app",
+    messagingSenderId: "269372325034",
+    appId: "1:269372325034:web:619f20a3c0ebbee24864d3"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+</script>
 </body>
 </html>
