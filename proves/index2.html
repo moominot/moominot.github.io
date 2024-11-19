@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Formulari amb Firebase</title>
-    <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-database.js"></script>
+
 </head>
 <body>
     <h1>Formulari de Dades</h1>
@@ -24,19 +23,28 @@
 
     <p id="resposta"></p>
 
-    <script>
-        // Configuració de Firebase (substitueix pel codi del teu projecte)
-        const firebaseConfig = {
+    <script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
     apiKey: "AIzaSyBDeC21hIyFhCD_j3hWdpgvfbZ1zjZyFvc",
     authDomain: "provatempsreal.firebaseapp.com",
     projectId: "provatempsreal",
     storageBucket: "provatempsreal.firebasestorage.app",
     messagingSenderId: "269372325034",
     appId: "1:269372325034:web:619f20a3c0ebbee24864d3"
-        };
+  };
 
-        // Inicialitza Firebase
-        const app = firebase.initializeApp(firebaseConfig);
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+</script>
+
+    <script>
+
         const database = firebase.database(app);
 
         const formulari = document.getElementById('formulari');
