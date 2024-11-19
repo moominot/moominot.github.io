@@ -40,11 +40,11 @@
                 body: params,
             });
 
-            const resultat = await resposta.json();
-            document.getElementById('resposta').textContent = resultat.missatge;
+            //const resultat = await resposta.json();
+            document.getElementById('resposta').textContent = "s'ha enviat";
         } catch (error) {
             document.getElementById('resposta').textContent = 'Error en enviar el formulari.';
-            console.error(error);
+            //console.error(error);
         }
     });
 </script>
