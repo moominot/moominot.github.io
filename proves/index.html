@@ -23,27 +23,31 @@
     <p id="resposta"></p>
 
     <script>
-        const formulari = document.getElementById('formulari');
-        formulari.addEventListener('submit', async (event) => {
-            event.preventDefault();
+    const formulari = document.getElementById('formulari');
+    formulari.addEventListener('submit', async (event) => {
+        event.preventDefault();
 
-            const dades = new FormData(formulari);
-            const jsonDades = Object.fromEntries(dades.entries());
+        const dades = new FormData(formulari);
+        const url = "https://script.google.com/macros/s/AKfycbzHmseGtRigQcnFyZYmTeht7QOEbBaFKrszY1ABrNjxuNV6wzeqkVAeDNFuU9n_eloK/exec";
 
-            try {
-                const resposta = await fetch('https://script.google.com/macros/s/AKfycbzHmseGtRigQcnFyZYmTeht7QOEbBaFKrszY1ABrNjxuNV6wzeqkVAeDNFuU9n_eloK/exec', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(jsonDades),
-                });
+        const params = new URLSearchParams(dades).toString();
 
-                const resultat = await resposta.json();
-                document.getElementById('resposta').textContent = resultat.missatge;
-            } catch (error) {
-                document.getElementById('resposta').textContent = 'Error en enviar el formulari.';
-                console.error(error);
-            }
-        });
-    </script>
+        try {
+            const resposta = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params,
+            });
+
+            const resultat = await resposta.json();
+            document.getElementById('resposta').textContent = resultat.missatge;
+        } catch (error) {
+            document.getElementById('resposta').textContent = 'Error en enviar el formulari.';
+            console.error(error);
+        }
+    });
+</script>
+
+
 </body>
 </html>
