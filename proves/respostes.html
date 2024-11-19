@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trobada Form</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+  <div class="container mt-5">
+    <h1>Formulari de Trobada</h1>
+    <form id="trobadaForm" onsubmit="main(); return false;">
+      <div class="mb-3">
+        <label for="nom" class="form-label">Nom</label>
+        <input type="text" class="form-control" id="nom" name="nom" required>
+      </div>
+      <div class="mb-3">
+        <label for="llinatges" class="form-label">Llinatges</label>
+        <input type="text" class="form-control" id="llinatges" name="llinatges" required>
+      </div>
+      <div class="mb-3">
+        <label for="edat" class="form-label">Edat</label>
+        <input type="number" class="form-control" id="edat" name="edat" min="0" required>
+      </div>
+      <div class="mb-3">
+        <label for="data_naixement" class="form-label">Data de Naixement</label>
+        <input type="date" class="form-control" id="data_naixement" name="data_naixement" required>
+      </div>
+      <button type="submit" id="enviaAssistencia" class="btn btn-primary">Enviar</button>
+      <span id="spnbtn3" class="spinner-border text-primary d-none" role="status" aria-hidden="true"></span>
+    </form>
+  </div>
+
+  <script>
+    async function main() {
+      preventFormSubmit();
+      const form = document.getElementById("trobadaForm");
+      const dataform = new FormData(form);
+      const values = Object.fromEntries(dataform.entries());
+
+      document.getElementById("enviaAssistencia").disabled = true;
+      document.getElementById("spnbtn3").classList.remove("d-none");
+
+      try {
+        const response = await fetch(macroURL, {
+          method: 'POST',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            envia: 'trobada',
+            values: values,
+          
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error en la resposta del servidor: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log('Resposta del servidor:', data);
+
+        if (data.success) {
+          alert("Dades enviades correctament!");
+          setTimeout(() => iniciJSON(false, "trobades"), 500);
+        } else {
+          alert("Hi ha hagut un error: " + data.message);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert("Error en enviar les dades. Torna-ho a provar.");
+      } finally {
+        document.getElementById("enviaAssistencia").disabled = false;
+        document.getElementById("spnbtn3").classList.add("d-none");
+      }
+    }
+
+    function preventFormSubmit() {
+      const form = document.getElementById("trobadaForm");
+      form.addEventListener("submit", function (event) {
+        event.preventDefault();
+      });
+    }
+
+    // Exemple de valors globals. Substitueix-los pels teus valors reals.
+    const macroURL = "https://script.google.com/macros/s/AKfycbzHmseGtRigQcnFyZYmTeht7QOEbBaFKrszY1ABrNjxuNV6wzeqkVAeDNFuU9n_eloK/exec";
+
+  </script>
+</body>
+</html>
