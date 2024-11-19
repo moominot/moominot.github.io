@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulari</title>
+</head>
+<body>
+    <h1>Formulari de Dades</h1>
+    <form id="formulari">
+        <label for="nom">Nom:</label><br>
+        <input type="text" id="nom" name="nom" required><br><br>
+
+        <label for="correu">Correu electrònic:</label><br>
+        <input type="email" id="correu" name="correu" required><br><br>
+
+        <label for="missatge">Missatge:</label><br>
+        <textarea id="missatge" name="missatge" rows="4" required></textarea><br><br>
+
+        <button type="submit">Enviar</button>
+    </form>
+
+    <p id="resposta"></p>
+
+    <script>
+        const formulari = document.getElementById('formulari');
+        formulari.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const dades = new FormData(formulari);
+            const jsonDades = Object.fromEntries(dades.entries());
+
+            try {
+                const resposta = await fetch('https://script.google.com/macros/s/AKfycbzHmseGtRigQcnFyZYmTeht7QOEbBaFKrszY1ABrNjxuNV6wzeqkVAeDNFuU9n_eloK/exec', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(jsonDades),
+                });
+
+                const resultat = await resposta.json();
+                document.getElementById('resposta').textContent = resultat.missatge;
+            } catch (error) {
+                document.getElementById('resposta').textContent = 'Error en enviar el formulari.';
+                console.error(error);
+            }
+        });
+    </script>
+</body>
+</html>
