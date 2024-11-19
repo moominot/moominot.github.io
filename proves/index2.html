@@ -3,72 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Formulari amb Firebase</title>
-
+    <title>Formulari i Taula amb Vue.js i Firebase</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.prod.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-database.js"></script>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Formulari de Dades</h1>
-    <form id="formulari">
-        <label for="nom">Nom:</label><br>
-        <input type="text" id="nom" name="nom" required><br><br>
+    <div id="app">
+        <h1>Formulari amb Vue.js i Firebase</h1>
+        <form @submit.prevent="enviarDades">
+            <label for="nom">Nom:</label><br>
+            <input type="text" v-model="nouNom" required><br><br>
 
-        <label for="correu">Correu electrònic:</label><br>
-        <input type="email" id="correu" name="correu" required><br><br>
+            <label for="correu">Correu electrònic:</label><br>
+            <input type="email" v-model="nouCorreu" required><br><br>
 
-        <label for="missatge">Missatge:</label><br>
-        <textarea id="missatge" name="missatge" rows="4" required></textarea><br><br>
+            <label for="missatge">Missatge:</label><br>
+            <textarea v-model="nouMissatge" rows="4" required></textarea><br><br>
 
-        <button type="submit">Enviar</button>
-    </form>
+            <button type="submit">Enviar</button>
+        </form>
 
-    <p id="resposta"></p>
+        <p>{{ resposta }}</p>
 
-    <script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
+        <h2>Respostes en temps real</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Nom</th>
+                    <th>Correu</th>
+                    <th>Missatge</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="resposta in respostes" :key="resposta.id">
+                    <td>{{ resposta.data }}</td>
+                    <td>{{ resposta.nom }}</td>
+                    <td>{{ resposta.correu }}</td>
+                    <td>{{ resposta.missatge }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
-  // Your web app's Firebase configuration
-  const firebaseConfig = {
+    <script>
+        // Configuració de Firebase
+        const firebaseConfig = {
     apiKey: "AIzaSyBDeC21hIyFhCD_j3hWdpgvfbZ1zjZyFvc",
     authDomain: "provatempsreal.firebaseapp.com",
     projectId: "provatempsreal",
     storageBucket: "provatempsreal.firebasestorage.app",
     messagingSenderId: "269372325034",
     appId: "1:269372325034:web:619f20a3c0ebbee24864d3"
-  };
+        };
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-</script>
-
-    <script>
-
+        // Inicialitza Firebase
+        const app = firebase.initializeApp(firebaseConfig);
         const database = firebase.database(app);
 
-        const formulari = document.getElementById('formulari');
-        formulari.addEventListener('submit', async (event) => {
-            event.preventDefault();
+        // Inicialitza Vue.js
+        const { createApp } = Vue;
 
-            // Recull les dades del formulari
-            const dades = {
-                nom: document.getElementById('nom').value,
-                correu: document.getElementById('correu').value,
-                missatge: document.getElementById('missatge').value,
-                data: new Date().toISOString()
-            };
+        createApp({
+            data() {
+                return {
+                    nouNom: '',
+                    nouCorreu: '',
+                    nouMissatge: '',
+                    resposta: '',
+                    respostes: []
+                };
+            },
+            methods: {
+                async enviarDades() {
+                    try {
+                        // Recull les dades del formulari
+                        const dades = {
+                            nom: this.nouNom,
+                            correu: this.nouCorreu,
+                            missatge: this.nouMissatge,
+                            data: new Date().toLocaleString()
+                        };
 
-            try {
-                // Desa les dades a Firebase
-                await firebase.database().ref('respostes').push(dades);
-                document.getElementById('resposta').textContent = "Formulari enviat amb èxit!";
-                formulari.reset();
-            } catch (error) {
-                document.getElementById('resposta').textContent = "Error en enviar el formulari.";
-                console.error(error);
+                        // Desa les dades a Firebase
+                        await firebase.database().ref('respostes').push(dades);
+
+                        // Missatge d'èxit
+                        this.resposta = "Formulari enviat amb èxit!";
+                        this.nouNom = '';
+                        this.nouCorreu = '';
+                        this.nouMissatge = '';
+                    } catch (error) {
+                        this.resposta = "Error en enviar el formulari.";
+                        console.error(error);
+                    }
+                },
+                escoltaRespostes() {
+                    // Escolta canvis en temps real
+                    const respostesRef = firebase.database().ref('respostes');
+                    respostesRef.on('value', (snapshot) => {
+                        const dades = snapshot.val();
+                        this.respostes = Object.keys(dades || {}).map(clau => ({
+                            id: clau,
+                            ...dades[clau]
+                        }));
+                    });
+                }
+            },
+            mounted() {
+                // Comença a escoltar respostes quan el component es carrega
+                this.escoltaRespostes();
             }
-        });
+        }).mount('#app');
     </script>
 </body>
 </html>
