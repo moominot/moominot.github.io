@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <title>Marcador de Bàsquet Dinàmic</title>
+    <style>
+        /* Afegim estils per als nous elements */
+        .configuracio {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+        }
+        .config-input {
+            padding: 8px;
+            margin: 5px;
+            width: 100px;
+        }
+        /* Mantenim la resta d'estils de la versió anterior */
+        /* ... (tots els estils anteriors aquí) ... */
+    </style>
+</head>
+<body>
+    <div class="configuracio">
+        <input type="number" id="numParts" class="config-input" min="1" max="10" value="4">
+        <button onclick="crearParts()">Establir nombre de parts</button>
+    </div>
+
+    <div class="quarter-selector" id="quarterButtons">
+        <!-- Els botons de quarts es crearan dinàmicament aquí -->
+    </div>
+
+    <!-- Mantenim la resta d'elements igual que abans -->
+    <div class="scoreboard" id="totalScore">0 - 0</div>
+
+    <div class="buttons">
+        <button class="stat-button" onclick="addPoints(1)">+1 Punts</button>
+        <button class="stat-button" onclick="addPoints(2)">+2 Punts</button>
+        <button class="stat-button" onclick="addPoints(3)">+3 Punts</button>
+        <button class="stat-button" onclick="addStat('faltes')">Falta</button>
+        <button class="stat-button" onclick="addStat('timeouts')">Time-out</button>
+    </div>
+
+    <table class="stats-table">
+        <thead>
+            <tr>
+                <th>Part</th>
+                <th>Punts</th>
+                <th>Faltes</th>
+                <th>Time-outs</th>
+            </tr>
+        </thead>
+        <tbody id="statsBody">
+            <!-- Les dades s'afegiran aquí dinàmicament -->
+        </tbody>
+    </table>
+
+    <script>
+        let currentQuarter = 1;
+        let totalScore = { local: 0, visitant: 0 };
+        let quarters = [];
+
+        function inicialitzarQuarts(numParts) {
+            quarters = [];
+            for (let i = 1; i <= numParts; i++) {
+                quarters.push({
+                    numero: i,
+                    punts: 0,
+                    faltes: 0,
+                    timeouts: 0
+                });
+            }
+            crearBotonsQuarts(numParts);
+            updateStatsDisplay();
+        }
+
+        function crearBotonsQuarts(numParts) {
+            const container = document.getElementById('quarterButtons');
+            container.innerHTML = '';
+            
+            quarters.forEach((quarter, index) => {
+                const button = document.createElement('button');
+                button.className = `quarter-btn ${index === 0 ? 'active-quarter' : ''}`;
+                button.textContent = `${quarter.numero}${this.obtenirOrdinal(quarter.numero)} Part`;
+                button.onclick = () => selectQuarter(quarter.numero);
+                container.appendChild(button);
+            });
+        }
+
+        function obtenirOrdinal(n) {
+            const ordinals = ['r', 'n', 'r', 't'];
+            return n <= 4 ? ordinals[n-1] : 'è';
+        }
+
+        function crearParts() {
+            const numParts = parseInt(document.getElementById('numParts').value) || 4;
+            currentQuarter = 1;
+            inicialitzarQuarts(numParts);
+        }
+
+        function selectQuarter(quarter) {
+            currentQuarter = quarter;
+            document.querySelectorAll('.quarter-btn').forEach((btn, index) => {
+                btn.classList.toggle('active-quarter', (index + 1) === quarter);
+            });
+            updateStatsDisplay();
+        }
+
+        function addPoints(points) {
+            const quarterIndex = currentQuarter - 1;
+            quarters[quarterIndex].punts += points;
+            totalScore.local += points;
+            updateScoreDisplay();
+            updateStatsDisplay();
+        }
+
+        function addStat(statType) {
+            const quarterIndex = currentQuarter - 1;
+            quarters[quarterIndex][statType]++;
+            updateStatsDisplay();
+        }
+
+        function updateScoreDisplay() {
+            document.getElementById('totalScore').textContent = 
+                `${totalScore.local} - ${totalScore.visitant}`;
+        }
+
+        function updateStatsDisplay() {
+            const statsBody = document.getElementById('statsBody');
+            statsBody.innerHTML = '';
+            
+            quarters.forEach((quarter, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${quarter.numero}${obtenirOrdinal(quarter.numero)}</td>
+                    <td>${quarter.punts}</td>
+                    <td>${quarter.faltes}</td>
+                    <td>${quarter.timeouts}</td>
+                `;
+                if (quarter.numero === currentQuarter) {
+                    row.style.backgroundColor = '#e6ffe6';
+                }
+                statsBody.appendChild(row);
+            });
+        }
+
+        // Inicialitzar amb 4 parts per defecte
+        inicialitzarQuarts(4);
+    </script>
+</body>
+</html>
