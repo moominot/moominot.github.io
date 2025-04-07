@@ -180,8 +180,7 @@
         }
 
         .carousel {
-            position: absolute;
-            /* Permet el posicionament absolut per a les animacions */
+           
             transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
         }
 
@@ -391,7 +390,7 @@
         document.querySelectorAll(".navbar-nav .nav-item").forEach(n => {
             n.addEventListener("click", function () {
                 if (carruselActual == "carouselProjectes") {
-                    transicioNodes(carouselProjectes, carouselSeccions, 'cap-abaix')
+                    transicioNodes('carouselProjectes', 'carouselSeccions', 'cap-abaix')
                 }
             })
         })
@@ -577,7 +576,7 @@
 
 
             document.querySelector("#carouselProjectes .carousel-item").classList.add("active")
-            transicioNodes(carouselSeccions, carouselProjectes, 'cap-adalt')
+            transicioNodes('carouselSeccions', 'carouselProjectes', 'cap-adalt')
 
         }
 
@@ -603,7 +602,7 @@
             document.getElementById('seccions').innerHTML += ompleSeccions(seccions.quisom, 'carouselSeccions', 'quisomSeccio')
             document.getElementById('seccions').innerHTML += ompleSeccions(seccions.projectes, '', 'projectesSeccio')
             document.getElementById('seccions').innerHTML += ompleSeccions(seccions.contacte, '', 'contacteSeccio')
-            transicioNodes(carouselProjectes, carouselSeccions, 'cap-abaix')
+            
         }
 
 
