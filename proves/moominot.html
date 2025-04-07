@@ -535,13 +535,14 @@
             return projecteTemplate
         }
         function mostraProjectes() {
-            document.getElementById("carouselSeccions").classList.add("d-none")
-            document.getElementById('carouselProjectes').classList.remove("d-none")
-            document.querySelector("#carouselProjectes .carousel-item").classList.add("active")
-
-
+                 
             document.getElementById('projectes').innerHTML = ''
             document.getElementById('projectes').innerHTML += projectes.map(ompleProjectes).join('')
+            
+            document.getElementById("carouselSeccions").classList.add("d-none")
+            document.querySelector("#carouselProjectes .carousel-item").classList.add("active")
+            document.getElementById('carouselProjectes').classList.remove("d-none")
+            
         }
 
         function ompleSeccions(about, carousel,nomSeccio) {
