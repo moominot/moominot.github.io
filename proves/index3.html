@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Antoni Llull Verd - Arquitectura i disseny</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;1,300&family=Noto+Sans+Symbols+2&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        body {
+            font-family: 'Lato', sans-serif;
+            font-weight: 300;
+            font-style: normal;
+
+        }
+
+        #menu {
+            height: fit-content !important;
+        }
+
+        h5 {
+
+            font-weight: 300;
+
+        }
+
+        .bg-body-tertiary {
+            background-color: #ffffff;
+            opacity: 0.6;
+        }
+
+        .carousel-control-next,
+        .carousel-control-prev {
+            align-items: flex-end;
+            bottom: 9vh;
+        }
+
+        .carousel-control-next-icon {
+            filter: invert(32%) sepia(4%) saturate(5%) hue-rotate(340deg) brightness(90%) contrast(81%);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23fff'%3e%3cpath d='M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2'/%3e%3c/svg%3e")
+        }
+
+        .carousel-control-prev-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23fff'%3e%3cpath d='M2 8a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11A.5.5 0 0 1 2 8'/%3e%3c/svg%3e")
+        }
+
+        .text-green-400 {
+            color: #94bd5eff;
+        }
+
+        .lato-light {
+            font-family: "Lato", sans-serif;
+            font-weight: 300;
+            font-style: normal;
+        }
+
+        .lato-regular {
+            font-family: "Lato", sans-serif;
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        .lato-light-italic {
+            font-family: "Lato", sans-serif;
+            font-weight: 300;
+            font-style: italic;
+        }
+
+        .navbar {
+            --bs-navbar-brand-padding-y: 0.3125rem;
+        }
+
+        .navbar-toggler {
+            border: none;
+            font-size: 1.25rem;
+            padding: var(--bs-navbar-brand-padding-y);
+        }
+
+        .navbar-toggler:focus {
+            outline: none;
+            box-shadow: none;
+        }
+
+        .full-screen-section {
+
+            scroll-margin-top: 100px;
+            display: flex;
+            flex-direction: column;
+
+            justify-content: center;
+            align-items: center;
+            height: 90vh;
+            /* Ocupa tota l'altura de la pantalla */
+            width: 100%;
+            text-align: center;
+            opacity: 1;
+
+        }
+
+
+        .full-screen-section h1 {
+            font-size: 2em;
+            font-weight: 300;
+            margin-bottom: 20px;
+            letter-spacing: -0.02em;
+        }
+
+        .full-screen-section p {
+            font-size: 1.2em;
+            color: #555;
+            max-width: 80%;
+            margin: 0 auto;
+        }
+
+
+        #fullimage {
+            display: none;
+            position: absolute;
+            z-index: 9999;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-size: contain;
+            background-repeat: no-repeat no-repeat;
+            background-position: center center;
+            background-color: #ffffff;
+        }
+
+        .contenidor-imatge {
+            width: 100%;
+            /* Ocupa tot l'ample */
+            height: 70vh;
+            /* Ocupa el 70% de l'altura de la pantalla */
+            display: flex;
+            /* Centra la imatge si cal */
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            /* Amaga qualsevol desbordament */
+        }
+
+        .contenidor-imatge img {
+            width: 100%;
+            /* La imatge ocupa tot l'ample */
+            height: 100%;
+            /* Manté les proporcions */
+            object-fit: cover;
+            /* Opcional: ajusta la imatge per cobrir el contenidor */
+        }
+
+        .modal-header {
+            border-bottom: none;
+        }
+
+        .modal-body {
+
+            padding: 0;
+        }
+
+        .modal-body .contenidor-imatge {
+            height: calc(100vh - 57px);
+            /* Ocupa tota l'altura de la pantalla */
+        }
+
+        a {
+            text-decoration: none;
+            /* Elimina el subratllat */
+            color: inherit;
+            /* Fa que l'enllaç hereti el color del text del seu contenidor */
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-sm sticky-top">
+        <div class="container">
+            <a class="navbar-brand flex-grow-1 " href="#" data-bs-target="#carouselSeccions" data-bs-slide-to="0"><span
+                    class="titol d-none">ANTONI LLULL <span class="text-green-400">VERD</span></span></a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#menu"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class=" navbar-toggler-icon show navbarNav"></span>
+            </button>
+
+            <div class="offcanvas-sm  offcanvas-top" tabindex="-1" id="menu" aria-labelledby="offcanvasResponsiveLabel">
+                <div class="offcanvas-header">
+
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#menu"
+                        aria-label="Close"></button>
+                </div>
+                <div class="offcanvas-body">
+                    <ul class="navbar-nav">
+                        <li class="nav-item" data-bs-target="#carouselSeccions" data-bs-slide-to="1">
+                            <a class="nav-link" href="#" id="aboutMenu">Qui som</a>
+                        </li>
+                        <li class="nav-item" data-bs-target="#carouselSeccions" data-bs-slide-to="2">
+                            <a class="nav-link" href="#" id="contacteMenu">Contacte</a>
+                        </li>
+                        <li class="nav-item" data-bs-target="#carouselSeccions" data-bs-slide-to="3">
+                            <a class="nav-link" aria-current="page" href="#projectes" id="projectesMenu">Projectes</a>
+                        </li>
+
+
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false" id="idioma">
+                                ca
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item lang" href="#" data-bs-target="#carouselSeccions"
+                                        data-bs-slide-to="0">ca</a></li>
+                                <li><a class="dropdown-item lang" href="#" data-bs-target="#carouselSeccions"
+                                        data-bs-slide-to="0">es</a></li>
+                                <li><a class="dropdown-item lang" href="#" data-bs-target="#carouselSeccions"
+                                        data-bs-slide-to="0">en</a></li>
+                                <li><a class="dropdown-item lang" href="#" data-bs-target="#carouselSeccions"
+                                        data-bs-slide-to="0">de</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="contenidor">
+
+        <div id="carouselSeccions" class="carousel  slide">
+            <div class="carousel-inner">
+                <div class="carousel-item active" id="inici">
+                    <section class="full-screen-section" data-bs-target="#carouselSeccions" data-bs-slide="next">
+                        <h1>ANTONI LLULL <span class="text-green-400">VERD</span></h1>
+                        <p>arquitectura i disseny</p>
+                    </section>
+                </div>
+                <div id="projectes">
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#carouselSeccions"
+                    data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#carouselSeccions"
+                    data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="modal" id="fullpage" aria-hidden="true" tabindex="-1">
+            <div class="modal-dialog modal-fullscreen">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <!-- <div class="titol">ANTONI LLULL <span class="text-green-400">VERD</span></div> -->
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="carouselProjecte" class="carousel  slide">
+                            <div class="carousel-inner">
+                                <div class="carousel-item active" id="iniciProjecte">
+                                    <section class="full-screen-section" data-bs-target="#carouselProjecte"
+                                        data-bs-slide="next">
+                                        <h1 id="titolProjecte"></h1>
+                                    </section>
+                                </div>
+                                <div id="carroImatges"></div>
+                                <button class="carousel-control-prev" type="button" data-bs-target="#carouselProjecte"
+                                    data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Previous</span>
+                                </button>
+                                <button class="carousel-control-next" type="button" data-bs-target="#carouselProjecte"
+                                    data-bs-slide="next">
+                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Next</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="fullimage"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+
+    <script>
+        let seccioactual = 0;
+        let seccioanterior = 0;
+        let vistes = [0]; // Array per emmagatzemar les vistes
+        let carruselActual = 'carouselSeccions';
+
+        // Funció per actualitzar la vista i l'historial
+        function actualitzaVista(novaSeccio) {
+            seccioanterior = seccioactual;
+            seccioactual = novaSeccio;
+
+            // Afegeix la nova vista a l'array
+            vistes.push(seccioactual);
+
+            // Actualitza l'historial del navegador
+            history.pushState({ seccio: seccioactual, carruselActual: carruselActual }, "seccio", `#${seccioactual}`);
+        }
+        let menu = {
+            "ca": { "aboutMenu": "Qui som", "contacteMenu": "Contacte", "projectesMenu": "Projectes" },
+            "es": { "aboutMenu": "Quiénes somos", "contacteMenu": "Contacto", "projectesMenu": "Proyectos" },
+            "en": { "aboutMenu": "Who we are", "contacteMenu": "Contact", "projectesMenu": "Projects" },
+            "de": { "aboutMenu": "Wer wir sind", "contacteMenu": "Kontakt", "projectesMenu": "Projekte" }
+        }
+        let idiomes = ["ca", "es", "en", "de"]
+        var userLang = navigator.language || navigator.userLanguage;
+        let idioma = "ca"
+        if (idiomes.includes(userLang)) {
+            idioma = userLang
+            document.getElementById('idioma').innerText = userLang
+
+
+        }
+        document.querySelectorAll('.lang').forEach(item => {
+            item.addEventListener('click', event => {
+                document.getElementById('idioma').innerText = event.target.innerText;
+                idioma = event.target.innerText
+                carregadades()
+            })
+        })
+        // Esdeveniment per gestionar el canvi de diapositiva al carrusel
+        const myCarousel = document.getElementById('carouselSeccions');
+        myCarousel.addEventListener('slide.bs.carousel', event => {
+            console.log(event);
+            //actualitzaVista(event.to); // Actualitza la vista amb la nova secció
+            carruselActual = event.target.id;
+            console.log(vistes);
+            // Amaga o mostra el títol segons la secció
+            if (event.to === 0) {
+                document.querySelector('.titol').classList.add('d-none');
+            } else {
+                document.querySelector('.titol').classList.remove('d-none');
+            }
+        });
+
+
+
+        /*  const dades = fetch('dades.json').then(response => response.json()).then(data => {
+             dades = data
+             carregadades()
+         }) */
+        const dades = {
+            "projectes": [
+                {
+                    "id": 1,
+                    "titol": {
+                        "ca": "Ca sa Padrina",
+                        "es": "Ca sa Padrina",
+                        "en": "Ca sa Padrina",
+                        "de": "Ca sa Padrina"
+                    },
+                    "descripcio": {
+                        "ca": "Reforma integral i piscina d'una casa entre mitgeres. Espais oberts i llum natural són les claus d'aquesta reforma.",
+                        "es": "Reforma integral y piscina de una casa entre medianeras. Espacios abiertos y luz natural son las claves de esta reforma.",
+                        "en": "Comprehensive reform and swimming pool of a house between partitions. Open spaces and natural light are the keys to this reform.",
+                        "de": "Umfassende Reform und Schwimmbad eines Hauses zwischen Trennwänden. Freiräume und natürliches Licht sind der Schlüssel zu dieser Reform."
+                    },
+                    "portada": "https://lh3.googleusercontent.com/pw/AP1GczNkkdMpuHCP7VzENWet-iTt8XMjTWSJTCyNy6Dji6pxeU7GnDxy4elVtAqDJMEazIaaawSRRiJLZlBomhHAOFumznlhxlGoZoQBRlTUdL9VOiQtYY6Fik4VB9QOyUIi__R7mBBZPfgE7kK3nHGbG_j7wA=w1627-h915-s-no-gm?authuser=0",
+                    "imatges": [
+                        "https://lh3.googleusercontent.com/p/AF1QipPmYcocamzvZez49B8tBdItV4n5mGvt-h1RmFrY=s680-w680-h510",
+                        "https://lh3.googleusercontent.com/p/AF1QipPmYcocamzvZez49B8tBdItV4n5mGvt-h1RmFrY=s680-w680-h510",
+                        "https://lh3.googleusercontent.com/p/AF1QipPmYcocamzvZez49B8tBdItV4n5mGvt-h1RmFrY=s680-w680-h510"
+                    ],
+                },
+                {
+                    "id": 2,
+                    "titol": {
+                        "ca": "Sa Cabaneta",
+                        "es": "Sa Cabaneta",
+                        "en": "Sa Cabaneta",
+                        "de": "Sa Cabaneta"
+                    },
+                    "descripcio": {
+                        "ca": "La passió dels client per les làmpades, les escultures, els articles de disseny, el reciclatge i, sobretot, la música marcaren el disseny d'aquesta casa. \n",
+                        "es": "La pasión de los clientes por las lámparas, esculturas, artículos de diseño, reciclaje y, sobre todo, la música marcaron el diseño de esta casa. \n",
+                        "en": "The client's passion for lamps, sculptures, designer items, recycling and, above all, music marked the design of this house. \n",
+                        "de": "Die Leidenschaft des Bauherrn für Lampen, Skulpturen, Designerartikel, Recycling und vor allem Musik prägte die Gestaltung dieses Hauses. \n"
+                    },
+                    "portada": "https://lh3.googleusercontent.com/d/1H3hMOMbiwg0xhdc7kQLuyLaBV44xNShs",
+                    "imatges": [
+                        "https://lh3.googleusercontent.com/d/1pqautQw9rC3z7BrZ_9RbTfwFFLUBEVOs",
+                        "https://lh3.googleusercontent.com/d/1R0S6tV-pCYmsr2R9mYLEz9YFLlToGemz",
+                        "https://lh3.googleusercontent.com/d/1YlOpcRc9qk00Ta1CLuTtpa106LlcFf64",
+                        "https://lh3.googleusercontent.com/d/1FzVVYtLo1Et_7vhYaddBMr8i-5eJnQoQ",
+                        "https://lh3.googleusercontent.com/d/1B26mFjpuojM76P0ZbSjRA7FaCHmFKB4f",
+                        "https://lh3.googleusercontent.com/d/1Oot9feGDAQXd8zoOChdgAp_pE_VVivMh",
+                        "https://lh3.googleusercontent.com/d/1Lq05mu-bLPdY5kipf0GuyUaZ694L7tHh",
+                        "https://lh3.googleusercontent.com/d/1Og7tIYMC3aj6xdxltEm0FKPuK2px-8Qd",
+                        "https://lh3.googleusercontent.com/d/1EfP8fiMVASYaNNmfCf4eyGPSKiNyiYUO",
+                        "https://lh3.googleusercontent.com/d/1r95KIPLpT2RQLqjXU3tXZTQOxY7vkXAs"
+                    ]
+                },
+                {
+                    "id": 3,
+                    "titol": {
+                        "ca": "Cala Vinyes",
+                        "es": "Cala Vinyes",
+                        "en": "Cala Vinyes",
+                        "de": "Cala Vinyes"
+                    },
+                    "descripcio": {
+                        "ca": "Reforma i ampliació d'un xalet dels anys 70 reutilitzant elements en desús. El tancament dels porxos infrautilitzats multiplica l'espai i li dona un nou caràcter a l'edifici\n",
+                        "es": "Reforma y ampliación de un chalé de los años 70 reutilizando elementos en desuso. El cierre de los porches infrautilizados multiplica el espacio y le da un nuevo carácter al edificio\n",
+                        "en": "Renovation and extension of a 1970s villa reusing disused elements. Closing the underused porches multiplies the space and gives the building a new character\n",
+                        "de": "Renovierung und Erweiterung einer Villa aus den 1970er Jahren unter Wiederverwendung stillgelegter Elemente. Durch die Schließung der ungenutzten Veranden wird der Raum vervielfacht und dem Gebäude ein neuer Charakter verliehen\n"
+                    },
+                    "portada": "https://lh3.googleusercontent.com/d/1llYJLKs4NiDOa1UZrFgOndGKsnnTJ9BP",
+                    "imatges": [
+                        "https://lh3.googleusercontent.com/d/1pqautQw9rC3z7BrZ_9RbTfwFFLUBEVOs",
+                        "https://lh3.googleusercontent.com/d/1R0S6tV-pCYmsr2R9mYLEz9YFLlToGemz",
+                        "https://lh3.googleusercontent.com/d/1YlOpcRc9qk00Ta1CLuTtpa106LlcFf64",
+                        "https://lh3.googleusercontent.com/d/1FzVVYtLo1Et_7vhYaddBMr8i-5eJnQoQ",
+                        "https://lh3.googleusercontent.com/d/1B26mFjpuojM76P0ZbSjRA7FaCHmFKB4f",
+                        "https://lh3.googleusercontent.com/d/1Oot9feGDAQXd8zoOChdgAp_pE_VVivMh",
+                        "https://lh3.googleusercontent.com/d/1Lq05mu-bLPdY5kipf0GuyUaZ694L7tHh",
+                        "https://lh3.googleusercontent.com/d/1Og7tIYMC3aj6xdxltEm0FKPuK2px-8Qd",
+                        "https://lh3.googleusercontent.com/d/1EfP8fiMVASYaNNmfCf4eyGPSKiNyiYUO",
+                        "https://lh3.googleusercontent.com/d/1r95KIPLpT2RQLqjXU3tXZTQOxY7vkXAs"
+                    ]
+                }
+            ], "quisom": {
+                "subtitol": {
+                    "ca": "Qui som",
+                    "es": "Quiénes somos",
+                    "en": "Who we are",
+                    "de": "Wer wir sind"
+                },
+                "descripcio": {
+                    "ca": "Som un estudi d'arquitectura i disseny amb més de 20 anys d'experiència.",
+                    "es": "Somos un estudio de arquitectura y diseño con más de 20 años de experiencia.",
+                    "en": "We are an architecture and design studio with more than 20 years of experience.",
+                    "de": "Wir sind ein Architektur- und Designstudio mit mehr als 20 Jahren Erfahrung."
+                }
+            }
+            , "contacte": {
+                "subtitol": {
+                    "ca": "Contacte",
+                    "es": "Contacto",
+                    "en": "Contact",
+                    "de": "Kontakt"
+                },
+                "descripcio": {
+                    "ca": "<a href='whatsapp://send?text=Hola!&phone=34652876059'>+34652876059</a><br><a href='mailto:antonillull@coaib.es'>antonillull@coaib.es</a>",
+                    "es": "<a href='whatsapp://send?text=Hola!&phone=34652876059'>+34652876059</a><br><a href='mailto:antonillull@coaib.es'>antonillull@coaib.es</a>",
+                    "en": "<a href='whatsapp://send?text=Hi!&phone=34652876059'>+34652876059</a><br><a href='mailto:antonillull@coaib.es'>antonillull@coaib.es</a>",
+                    "de": "<a href='whatsapp://send?text=Hallo!&phone=34652876059'>+34652876059</a><br><a href='mailto:antonillull@coaib.es'>antonillull@coaib.es</a>",
+                }
+            }
+        }
+
+        function ompleProjectes(projecte) {
+
+            const projecteTemplate = `
+                <div class="carousel-item">
+                    <section class="full-screen-section" id="projecte-${projecte.id || ''}" onclick="mostra(${projecte.id}) "data-bs-target="#fullpage" data-bs-toggle="modal"data-bs-slide-to="0">
+                        <div class="card border-light mb-3">
+                            <div class="row g-0">
+                                <div class="col-12 contenidor-imatge">
+                                    <img src="${projecte.portada || ''}"
+                                        class="img-fluid" alt="..." >
+                                </div>
+                                <div class="col-12">
+                                    <div class="card-body">
+                                        <h5 class="card-title">${projecte.titol[idioma] || ''}</h5>                                     
+                                        
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </section>
+                </div>
+                `
+            return projecteTemplate
+        }
+
+        function ompleDescricions(about, carousel) {
+            const subtitolTemplate = `
+                
+                <div class="carousel-item">
+                    <section class="full-screen-section" data-bs-target="#${carousel}" data-bs-slide="next">
+                        <h1>${about.subtitol[idioma] || ''}</h1>
+                        <p>${about.descripcio[idioma] || ''}</p>
+                    </section>
+                </div>
+                `
+            return subtitolTemplate
+        }
+
+        document.addEventListener('DOMContentLoaded', carregadades())
+        function carregadades() {
+            for (entrada in menu[idioma]) {
+                document.getElementById(entrada).innerText = menu[idioma][entrada]
+            }
+            document.getElementById('projectes').innerHTML = ''
+            document.getElementById('projectes').innerHTML += ompleDescricions(dades.quisom, 'carouselSeccions')
+            document.getElementById('projectes').innerHTML += ompleDescricions(dades.contacte, '')
+            document.getElementById('projectes').innerHTML += dades.projectes.map(ompleProjectes).join('')
+
+        }
+
+        function mostra(id) {
+            //document.getElementById('fullpage').style.display = 'block'
+            carruselActual = 'carouselProjecte'
+            //actualitzaVista(0)
+            const projecte = dades.projectes.find(projecte => projecte.id === id)
+            console.log(projecte)
+            document.getElementById('titolProjecte').innerText = projecte.titol[idioma]
+            document.getElementById('iniciProjecte').classList.add('active')
+            const carroImatges = document.getElementById('carroImatges')
+            carroImatges.innerHTML = ''
+            projecte.subtitol = { [idioma]: '' }
+            carroImatges.innerHTML += ompleDescricions(projecte, 'carouselProjecte')
+            projecte.imatges.forEach(imatge => {
+                const temp = `
+                <div class="carousel-item">
+                    <section class="full-screen-section  contenidor-imatge">
+                        <img src="${imatge}" class="img-fluid img" alt="...">
+                    </section>  `
+                carroImatges.innerHTML += temp
+            })
+            document.querySelectorAll(".img").forEach(img => {
+                img.addEventListener('click', event => {
+                    document.getElementById('fullimage').style.backgroundImage = `url(${event.target.src})`
+                    document.getElementById('fullimage').style.display = 'block'
+                })
+            })
+        }
+        document.getElementById('fullimage').addEventListener('click', event => {
+            event.target.style.display = 'none'
+        })
+
+        // Esdeveniment per gestionar el botó "enrere" del navegador
+        window.addEventListener('popstate', function (event) {
+            console.log(vistes);
+
+            /*   // Recupera la vista anterior de l'historial
+              let vist = event.state?.seccio || 0;
+              console.log(vist)
+              // Si estem al carrusel de projectes, tanca el modal
+              if (carruselActual === 'carouselProjecte') {
+                  bootstrap.Modal.getInstance(document.getElementById('fullpage')).hide();
+              }
+  
+              // Navega a la vista corresponent al carrusel
+              bootstrap.Carousel.getInstance(document.getElementById(carruselActual)).to(vist);
+              console.log(vistes);
+              // Actualitza la secció actual
+              //seccioactual = vist;
+              vistes.pop();
+              actualitzaVista(vistes.pop());
+              console.log(vistes); */
+        });
+
+
+    </script>
+</body>
+
+</html>
