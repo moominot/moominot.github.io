@@ -175,6 +175,37 @@
             color: inherit;
             /* Fa que l'enllaç hereti el color del text del seu contenidor */
         }
+
+        .carousel {
+            position: absolute;
+            /* Permet el posicionament absolut per a les animacions */
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+        }
+
+        .desapareix-cap-adalt {
+            opacity: 0;
+            transform: translateY(-50px);
+        }
+
+        .desapareix-cap-abaix {
+            opacity: 0;
+            transform: translateY(50px);
+        }
+
+        .apareix-des-adalt {
+            opacity: 0;
+            transform: translateY(-50px);
+        }
+
+        .apareix-des-abaix {
+            opacity: 0;
+            transform: translateY(50px);
+        }
+
+        .apareix-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
 </head>
 
@@ -205,7 +236,8 @@
                             <a class="nav-link" href="#contacteSeccio" id="contacteMenu">Contacte</a>
                         </li>
                         <li class="nav-item" data-bs-target="#carouselSeccions" data-bs-slide-to="2">
-                            <a class="nav-link" aria-current="page" href="#projectesSeccio" id="projectesMenu">Projectes</a>
+                            <a class="nav-link" aria-current="page" href="#projectesSeccio"
+                                id="projectesMenu">Projectes</a>
                         </li>
 
 
@@ -353,10 +385,11 @@
             })
         })
         //mostrar carousel principal
-        document.querySelectorAll(".navbar-nav .nav-item").forEach(n=>{
-            n.addEventListener("click",function(){
-                document.getElementById("carouselSeccions").classList.remove("d-none")
-                document.getElementById('carouselProjectes').classList.add("d-none")
+        document.querySelectorAll(".navbar-nav .nav-item").forEach(n => {
+            n.addEventListener("click", function () {
+                if (carruselActual == "carouselProjectes") {
+                    transicioNodes(carouselProjectes, carouselSeccions, 'cap-abaix')
+                }
             })
         })
         // Esdeveniment per gestionar el canvi de diapositiva al carrusel
@@ -535,17 +568,17 @@
             return projecteTemplate
         }
         function mostraProjectes() {
-                 
+            carruselActual = 'carouselProjectes'
             document.getElementById('projectes').innerHTML = ''
             document.getElementById('projectes').innerHTML += projectes.map(ompleProjectes).join('')
-            
-            document.getElementById("carouselSeccions").classList.add("d-none")
+
+
             document.querySelector("#carouselProjectes .carousel-item").classList.add("active")
-            document.getElementById('carouselProjectes').classList.remove("d-none")
-            
+            transicioNodes(carouselSeccions, carouselProjectes, 'cap-adalt')
+
         }
 
-        function ompleSeccions(about, carousel,nomSeccio) {
+        function ompleSeccions(about, carousel, nomSeccio) {
             const subtitolTemplate = `
                 
                 <div class="carousel-item">
@@ -564,9 +597,10 @@
                 document.getElementById(entrada).innerText = menu[idioma][entrada]
             }
             document.getElementById('seccions').innerHTML = ''
-            document.getElementById('seccions').innerHTML += ompleSeccions(seccions.quisom, 'carouselSeccions','quisomSeccio')
-            document.getElementById('seccions').innerHTML += ompleSeccions(seccions.projectes, '','projectesSeccio')
-            document.getElementById('seccions').innerHTML += ompleSeccions(seccions.contacte, '','contacteSeccio')
+            document.getElementById('seccions').innerHTML += ompleSeccions(seccions.quisom, 'carouselSeccions', 'quisomSeccio')
+            document.getElementById('seccions').innerHTML += ompleSeccions(seccions.projectes, '', 'projectesSeccio')
+            document.getElementById('seccions').innerHTML += ompleSeccions(seccions.contacte, '', 'contacteSeccio')
+            transicioNodes(carouselProjectes, carouselSeccions, 'cap-abaix')
         }
 
 
@@ -622,6 +656,46 @@
               actualitzaVista(vistes.pop());
               console.log(vistes); */
         });
+
+        function transicioNodes(idNodeDesapareix, idNodeApareix, direccio) {
+            const nodeDesapareix = document.getElementById(idNodeDesapareix);
+            const nodeApareix = document.getElementById(idNodeApareix);
+
+            if (!nodeDesapareix || !nodeApareix) {
+                console.error("Un o ambdós nodes no s'han trobat.");
+                return;
+            }
+
+            let classeDesapareix = "";
+            let classeApareix = "";
+
+            if (direccio === "cap-adalt") {
+                classeDesapareix = "desapareix-cap-adalt";
+                classeApareix = "apareix-des-abaix";
+            } else if (direccio === "cap-abaix") {
+                classeDesapareix = "desapareix-cap-abaix";
+                classeApareix = "apareix-des-adalt";
+            } else {
+                console.error("Direcció no vàlida. Utilitza 'cap-adalt' o 'cap-abaix'.");
+                return;
+            }
+
+            nodeDesapareix.classList.add(classeDesapareix);
+
+            setTimeout(() => {
+                nodeApareix.classList.add(classeApareix, "apareix-visible");
+                nodeApareix.style.display = 'block';
+            }, 500);
+
+            setTimeout(() => {
+                nodeDesapareix.style.display = 'none';
+            }, 1000);
+
+            setTimeout(() => {
+                nodeApareix.classList.remove(classeApareix);
+                nodeDesapareix.classList.remove(classeDesapareix);
+            }, 1500);
+        }
 
 
     </script>
