@@ -686,11 +686,11 @@
 
             setTimeout(() => {
                 nodeApareix.classList.add(classeApareix, "apareix-visible");
-                nodeApareix.style.display = 'block';
+                nodeApareix.classList.remove("d-none")
             }, 500);
 
             setTimeout(() => {
-                nodeDesapareix.style.display = 'none';
+                nodeDesapareix.classList.add("d-none")
             }, 1000);
 
             setTimeout(() => {
