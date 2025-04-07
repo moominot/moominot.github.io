@@ -569,12 +569,9 @@
                 `
             return projecteTemplate
         }
-        function mostraProjectes() {
-            carruselActual = 'carouselProjectes'
+        function mostraProjectes() {            
             document.getElementById('projectes').innerHTML = ''
             document.getElementById('projectes').innerHTML += projectes.map(ompleProjectes).join('')
-
-
             document.querySelector("#carouselProjectes .carousel-item").classList.add("active")
             transicioNodes('carouselSeccions', 'carouselProjectes', 'cap-adalt')
 
@@ -660,6 +657,7 @@
         });
 
         function transicioNodes(idNodeDesapareix, idNodeApareix, direccio) {
+            carruselActual = idNodeApareix
             const nodeDesapareix = document.getElementById(idNodeDesapareix);
             const nodeApareix = document.getElementById(idNodeApareix);
 
