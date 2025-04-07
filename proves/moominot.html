@@ -537,6 +537,8 @@
         function mostraProjectes() {
             document.getElementById("carouselSeccions").classList.add("d-none")
             document.getElementById('carouselProjectes').classList.remove("d-none")
+document.getElementById('carouselProjectes').classList.add("d-block")
+
             document.getElementById('projectes').innerHTML = ''
             document.getElementById('projectes').innerHTML += projectes.map(ompleProjectes).join('')
         }
