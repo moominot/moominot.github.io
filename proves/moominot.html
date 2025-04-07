@@ -389,7 +389,8 @@
         //mostrar carousel principal
         document.querySelectorAll(".navbar-nav .nav-item").forEach(n => {
             n.addEventListener("click", function () {
-                if (carruselActual == "carouselProjectes") {
+                console.log(carruselActual)
+                if (carruselActual === "carouselProjectes") {
                     transicioNodes('carouselProjectes', 'carouselSeccions', 'cap-abaix')
                 }
             })
@@ -411,10 +412,147 @@
 
 
 
-        /*  const dades = fetch('dades.json').then(response => response.json()).then(data => {
-             dades = data
-             carregadades()
-         }) */
+       
+
+
+
+        function ompleProjectes(projecte) {
+
+            const projecteTemplate = `
+                <div class="carousel-item">
+                    <section class="full-screen-section" id="projecte-${projecte.id || ''}" onclick="mostra(${projecte.id}) "data-bs-target="#fullpage" data-bs-toggle="modal"data-bs-slide-to="0">
+                        <div class="card border-light mb-3">
+                            <div class="row g-0">
+                                <div class="col-12 contenidor-imatge">
+                                    <img src="${projecte.portada || ''}"
+                                        class="img-fluid" alt="..." >
+                                </div>
+                                <div class="col-12">
+                                    <div class="card-body">
+                                        <h5 class="card-title">${projecte.titol[idioma] || ''}</h5>                                     
+                                        
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </section>
+                </div>
+                `
+            return projecteTemplate
+        }
+        function mostraProjectes() {            
+            document.getElementById('projectes').innerHTML = ''
+            document.getElementById('projectes').innerHTML += projectes.map(ompleProjectes).join('')
+            document.querySelector("#carouselProjectes .carousel-item").classList.add("active")
+            transicioNodes('carouselSeccions', 'carouselProjectes', 'cap-adalt')
+
+        }
+
+        function ompleSeccions(about, carousel, nomSeccio) {
+            const subtitolTemplate = `
+                
+                <div class="carousel-item">
+                    <section class="full-screen-section" data-bs-target="#${carousel}" data-bs-slide="next" id=${nomSeccio}>
+                        <h1>${about.subtitol[idioma] || ''}</h1>
+                        <p>${about.descripcio[idioma] || ''}</p>
+                    </section>
+                </div>
+                `
+            return subtitolTemplate
+        }
+
+        document.addEventListener('DOMContentLoaded', carregadades())
+        function carregadades() {
+            for (entrada in menu[idioma]) {
+                document.getElementById(entrada).innerText = menu[idioma][entrada]
+            }
+            document.getElementById('seccions').innerHTML = ''
+            document.getElementById('seccions').innerHTML += ompleSeccions(seccions.quisom, 'carouselSeccions', 'quisomSeccio')
+            document.getElementById('seccions').innerHTML += ompleSeccions(seccions.projectes, '', 'projectesSeccio')
+            document.getElementById('seccions').innerHTML += ompleSeccions(seccions.contacte, '', 'contacteSeccio')
+            
+        }
+
+
+        function mostra(id) {
+            //document.getElementById('fullpage').style.display = 'block'
+            carruselActual = 'carouselProjecte'
+            //actualitzaVista(0)
+            const projecte = projectes.find(projecte => projecte.id === id)
+            console.log(projecte)
+            document.getElementById('titolProjecte').innerText = projecte.titol[idioma]
+            document.getElementById('iniciProjecte').classList.add('active')
+            const carroImatges = document.getElementById('carroImatges')
+            carroImatges.innerHTML = ''
+            projecte.subtitol = { [idioma]: '' }
+            carroImatges.innerHTML += ompleSeccions(projecte, 'carouselProjecte')
+            projecte.imatges.forEach(imatge => {
+                const temp = `
+                <div class="carousel-item">
+                    <section class="full-screen-section  contenidor-imatge">
+                        <img src="${imatge}" class="img-fluid img" alt="...">
+                    </section>  `
+                carroImatges.innerHTML += temp
+            })
+            document.querySelectorAll(".img").forEach(img => {
+                img.addEventListener('click', event => {
+                    document.getElementById('fullimage').style.backgroundImage = `url(${event.target.src})`
+                    document.getElementById('fullimage').style.display = 'block'
+                })
+            })
+        }
+        document.getElementById('fullimage').addEventListener('click', event => {
+            event.target.style.display = 'none'
+        })
+
+        // Esdeveniment per gestionar el botó "enrere" del navegador
+        window.addEventListener('popstate', function (event) {
+            console.log(vistes);
+
+        });
+
+        function transicioNodes(idNodeDesapareix, idNodeApareix, direccio) {
+            carruselActual = idNodeApareix
+            const nodeDesapareix = document.getElementById(idNodeDesapareix);
+            const nodeApareix = document.getElementById(idNodeApareix);
+
+            if (!nodeDesapareix || !nodeApareix) {
+                console.error("Un o ambdós nodes no s'han trobat.");
+                return;
+            }
+
+            let classeDesapareix = "";
+            let classeApareix = "";
+
+            if (direccio === "cap-adalt") {
+                classeDesapareix = "desapareix-cap-adalt";
+                classeApareix = "apareix-des-abaix";
+            } else if (direccio === "cap-abaix") {
+                classeDesapareix = "desapareix-cap-abaix";
+                classeApareix = "apareix-des-adalt";
+            } else {
+                console.error("Direcció no vàlida. Utilitza 'cap-adalt' o 'cap-abaix'.");
+                return;
+            }
+
+            nodeDesapareix.classList.add(classeDesapareix);
+
+            setTimeout(() => {
+                nodeApareix.classList.add(classeApareix, "apareix-visible");
+                nodeApareix.classList.remove("d-none")
+            }, 500);
+
+            setTimeout(() => {
+                nodeDesapareix.classList.add("d-none")
+            }, 1000);
+
+            setTimeout(() => {
+                nodeApareix.classList.remove(classeApareix);
+                nodeDesapareix.classList.remove(classeDesapareix);
+            }, 1500);
+        }
+
         const projectes = [
             {
                 "id": 1,
@@ -541,163 +679,6 @@
                 }
             }
         }
-
-
-
-        function ompleProjectes(projecte) {
-
-            const projecteTemplate = `
-                <div class="carousel-item">
-                    <section class="full-screen-section" id="projecte-${projecte.id || ''}" onclick="mostra(${projecte.id}) "data-bs-target="#fullpage" data-bs-toggle="modal"data-bs-slide-to="0">
-                        <div class="card border-light mb-3">
-                            <div class="row g-0">
-                                <div class="col-12 contenidor-imatge">
-                                    <img src="${projecte.portada || ''}"
-                                        class="img-fluid" alt="..." >
-                                </div>
-                                <div class="col-12">
-                                    <div class="card-body">
-                                        <h5 class="card-title">${projecte.titol[idioma] || ''}</h5>                                     
-                                        
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                    </section>
-                </div>
-                `
-            return projecteTemplate
-        }
-        function mostraProjectes() {            
-            document.getElementById('projectes').innerHTML = ''
-            document.getElementById('projectes').innerHTML += projectes.map(ompleProjectes).join('')
-            document.querySelector("#carouselProjectes .carousel-item").classList.add("active")
-            transicioNodes('carouselSeccions', 'carouselProjectes', 'cap-adalt')
-
-        }
-
-        function ompleSeccions(about, carousel, nomSeccio) {
-            const subtitolTemplate = `
-                
-                <div class="carousel-item">
-                    <section class="full-screen-section" data-bs-target="#${carousel}" data-bs-slide="next" id=${nomSeccio}>
-                        <h1>${about.subtitol[idioma] || ''}</h1>
-                        <p>${about.descripcio[idioma] || ''}</p>
-                    </section>
-                </div>
-                `
-            return subtitolTemplate
-        }
-
-        document.addEventListener('DOMContentLoaded', carregadades())
-        function carregadades() {
-            for (entrada in menu[idioma]) {
-                document.getElementById(entrada).innerText = menu[idioma][entrada]
-            }
-            document.getElementById('seccions').innerHTML = ''
-            document.getElementById('seccions').innerHTML += ompleSeccions(seccions.quisom, 'carouselSeccions', 'quisomSeccio')
-            document.getElementById('seccions').innerHTML += ompleSeccions(seccions.projectes, '', 'projectesSeccio')
-            document.getElementById('seccions').innerHTML += ompleSeccions(seccions.contacte, '', 'contacteSeccio')
-            
-        }
-
-
-        function mostra(id) {
-            //document.getElementById('fullpage').style.display = 'block'
-            carruselActual = 'carouselProjecte'
-            //actualitzaVista(0)
-            const projecte = projectes.find(projecte => projecte.id === id)
-            console.log(projecte)
-            document.getElementById('titolProjecte').innerText = projecte.titol[idioma]
-            document.getElementById('iniciProjecte').classList.add('active')
-            const carroImatges = document.getElementById('carroImatges')
-            carroImatges.innerHTML = ''
-            projecte.subtitol = { [idioma]: '' }
-            carroImatges.innerHTML += ompleSeccions(projecte, 'carouselProjecte')
-            projecte.imatges.forEach(imatge => {
-                const temp = `
-                <div class="carousel-item">
-                    <section class="full-screen-section  contenidor-imatge">
-                        <img src="${imatge}" class="img-fluid img" alt="...">
-                    </section>  `
-                carroImatges.innerHTML += temp
-            })
-            document.querySelectorAll(".img").forEach(img => {
-                img.addEventListener('click', event => {
-                    document.getElementById('fullimage').style.backgroundImage = `url(${event.target.src})`
-                    document.getElementById('fullimage').style.display = 'block'
-                })
-            })
-        }
-        document.getElementById('fullimage').addEventListener('click', event => {
-            event.target.style.display = 'none'
-        })
-
-        // Esdeveniment per gestionar el botó "enrere" del navegador
-        window.addEventListener('popstate', function (event) {
-            console.log(vistes);
-
-            /*   // Recupera la vista anterior de l'historial
-              let vist = event.state?.seccio || 0;
-              console.log(vist)
-              // Si estem al carrusel de projectes, tanca el modal
-              if (carruselActual === 'carouselProjecte') {
-                  bootstrap.Modal.getInstance(document.getElementById('fullpage')).hide();
-              }
-  
-              // Navega a la vista corresponent al carrusel
-              bootstrap.Carousel.getInstance(document.getElementById(carruselActual)).to(vist);
-              console.log(vistes);
-              // Actualitza la secció actual
-              //seccioactual = vist;
-              vistes.pop();
-              actualitzaVista(vistes.pop());
-              console.log(vistes); */
-        });
-
-        function transicioNodes(idNodeDesapareix, idNodeApareix, direccio) {
-            carruselActual = idNodeApareix
-            const nodeDesapareix = document.getElementById(idNodeDesapareix);
-            const nodeApareix = document.getElementById(idNodeApareix);
-
-            if (!nodeDesapareix || !nodeApareix) {
-                console.error("Un o ambdós nodes no s'han trobat.");
-                return;
-            }
-
-            let classeDesapareix = "";
-            let classeApareix = "";
-
-            if (direccio === "cap-adalt") {
-                classeDesapareix = "desapareix-cap-adalt";
-                classeApareix = "apareix-des-abaix";
-            } else if (direccio === "cap-abaix") {
-                classeDesapareix = "desapareix-cap-abaix";
-                classeApareix = "apareix-des-adalt";
-            } else {
-                console.error("Direcció no vàlida. Utilitza 'cap-adalt' o 'cap-abaix'.");
-                return;
-            }
-
-            nodeDesapareix.classList.add(classeDesapareix);
-
-            setTimeout(() => {
-                nodeApareix.classList.add(classeApareix, "apareix-visible");
-                nodeApareix.classList.remove("d-none")
-            }, 500);
-
-            setTimeout(() => {
-                nodeDesapareix.classList.add("d-none")
-            }, 1000);
-
-            setTimeout(() => {
-                nodeApareix.classList.remove(classeApareix);
-                nodeDesapareix.classList.remove(classeDesapareix);
-            }, 1500);
-        }
-
-
     </script>
 </body>
 
