@@ -512,7 +512,7 @@
         function ompleProjectes(projecte) {
 
             const projecteTemplate = `
-                <div class="carousel-item active">
+                <div class="carousel-item">
                     <section class="full-screen-section" id="projecte-${projecte.id || ''}" onclick="mostra(${projecte.id}) "data-bs-target="#fullpage" data-bs-toggle="modal"data-bs-slide-to="0">
                         <div class="card border-light mb-3">
                             <div class="row g-0">
@@ -537,7 +537,8 @@
         function mostraProjectes() {
             document.getElementById("carouselSeccions").classList.add("d-none")
             document.getElementById('carouselProjectes').classList.remove("d-none")
-document.getElementById('carouselProjectes').classList.add("d-block")
+            document.querySelector("#carouselProjectes .carousel-item").classList.add("active")
+
 
             document.getElementById('projectes').innerHTML = ''
             document.getElementById('projectes').innerHTML += projectes.map(ompleProjectes).join('')
