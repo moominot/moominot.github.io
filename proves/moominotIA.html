@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html lang="ca">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Antoni Llull Verd - Arquitectura i disseny</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;1,300&family=Noto+Sans+Symbols+2&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;1,300&family=Noto+Sans+Symbols+2&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <style>
         body {
             font-family: 'Lato', sans-serif;
@@ -112,7 +116,8 @@
 
         #fullimage {
             display: none;
-            position: fixed; /* Changed to fixed */
+            position: fixed;
+            /* Changed to fixed */
             z-index: 9999;
             top: 0;
             left: 0;
@@ -156,7 +161,7 @@
             color: inherit;
         }
 
-        .carousel {
+        .pantalla {
             transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
         }
 
@@ -189,59 +194,67 @@
         .nav-link:focus,
         .dropdown-item:focus,
         .navbar-toggler:focus {
-            outline: 2px solid #007bff; /* Add a visible outline */
+            outline: 2px solid #007bff;
+            /* Add a visible outline */
             outline-offset: 2px;
         }
 
         /* Ensure images have alt attributes */
         img:not([alt]) {
-            border: 3px solid red; /* Indicate missing alt attributes */
+            border: 3px solid red;
+            /* Indicate missing alt attributes */
         }
     </style>
 </head>
+
 <body>
 
     <nav class="navbar navbar-expand-sm sticky-top">
         <div class="container">
             <a class="navbar-brand flex-grow-1" href="#" data-bs-target="#carouselSeccions" data-bs-slide-to="0">
-                <span class="titol d-none" onclick="tornaSeccions()">ANTONI LLULL <span class="text-green-400">VERD</span></span>
+                <span class="titol d-none" onclick="tornaSeccions()">ANTONI LLULL <span
+                        class="text-green-400">VERD</span></span>
             </a>
 
             <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#menu"
-                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon show navbarNav"></span>
             </button>
 
             <div class="offcanvas-sm offcanvas-top" tabindex="-1" id="menu" aria-labelledby="offcanvasResponsiveLabel">
                 <div class="offcanvas-header">
                     <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#menu"
-                            aria-label="Close"></button>
+                        aria-label="Close"></button>
                 </div>
                 <div class="offcanvas-body">
                     <ul class="navbar-nav">
-                        <li class="nav-item" data-bs-target="#carouselSeccions" data-bs-slide-to="1" onclick="tornaSeccions()">
+                        <li class="nav-item" data-bs-target="#carouselSeccions" data-bs-slide-to="1"
+                            onclick="tornaSeccions()">
                             <a class="nav-link" href="#quisomSeccio" id="aboutMenu">Qui som</a>
                         </li>
-                        <li class="nav-item" data-bs-target="#carouselSeccions" data-bs-slide-to="3" onclick="tornaSeccions()">
+                        <li class="nav-item" data-bs-target="#carouselSeccions" data-bs-slide-to="3"
+                            onclick="tornaSeccions()">
                             <a class="nav-link" href="#contacteSeccio" id="contacteMenu">Contacte</a>
                         </li>
-                        <li class="nav-item" data-bs-target="#carouselSeccions" data-bs-slide-to="2" onclick="tornaSeccions()">
-                            <a class="nav-link" aria-current="page" href="#projectesSeccio" id="projectesMenu">Projectes</a>
+                        <li class="nav-item" data-bs-target="#carouselSeccions" data-bs-slide-to="2"
+                            onclick="tornaSeccions()">
+                            <a class="nav-link" aria-current="page" href="#projectesSeccio"
+                                id="projectesMenu">Projectes</a>
                         </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                               aria-expanded="false" id="idioma">
+                                aria-expanded="false" id="idioma">
                                 ca
                             </a>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item lang" href="#" data-bs-target="#carouselSeccions"
-                                            data-bs-slide-to="0">ca</a></li>
+                                        data-bs-slide-to="0">ca</a></li>
                                 <li><a class="dropdown-item lang" href="#" data-bs-target="#carouselSeccions"
-                                            data-bs-slide-to="0">es</a></li>
+                                        data-bs-slide-to="0">es</a></li>
                                 <li><a class="dropdown-item lang" href="#" data-bs-target="#carouselSeccions"
-                                            data-bs-slide-to="0">en</a></li>
+                                        data-bs-slide-to="0">en</a></li>
                                 <li><a class="dropdown-item lang" href="#" data-bs-target="#carouselSeccions"
-                                            data-bs-slide-to="0">de</a></li>
+                                        data-bs-slide-to="0">de</a></li>
                             </ul>
                         </li>
                     </ul>
@@ -250,46 +263,49 @@
         </div>
     </nav>
     <div class="contenidor">
-        <div id="carouselSeccions" class="carousel slide">
-            <div class="carousel-inner">
-                <div class="carousel-item active" id="inici">
-                    <section class="full-screen-section" data-bs-target="#carouselSeccions" data-bs-slide="next">
-                        <h1>ANTONI LLULL <span class="text-green-400">VERD</span></h1>
-                        <p>arquitectura i disseny</p>
-                    </section>
-                </div>
-                <div id="seccions">
-                </div>
-                <button class="carousel-control-prev" type="button" data-bs-target="#carouselSeccions"
+        <div class="pantalla" id="pantallaSeccions">
+            <div id="carouselSeccions" class="carousel slide">
+                <div class="carousel-inner">
+                    <div class="carousel-item active" id="inici">
+                        <section class="full-screen-section" data-bs-target="#carouselSeccions" data-bs-slide="next">
+                            <h1>ANTONI LLULL <span class="text-green-400">VERD</span></h1>
+                            <p>arquitectura i disseny</p>
+                        </section>
+                    </div>
+                    <div id="seccions">
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselSeccions"
                         data-bs-slide="prev">
-                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Previous</span>
-                </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#carouselSeccions"
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carouselSeccions"
                         data-bs-slide="next">
-                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Next</span>
-                </button>
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
             </div>
         </div>
+        <div class="pantalla"id="pantallaProjectes">
 
-        <div id="carouselProjectes" class="carousel slide d-none">
-            <div class="carousel-inner">
-                <div id="projectes">
-                </div>
-                <button class="carousel-control-prev" type="button" data-bs-target="#carouselProjectes"
+            <div id="carouselProjectes" class="carousel slide d-none">
+                <div class="carousel-inner">
+                    <div id="projectes">
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselProjectes"
                         data-bs-slide="prev">
-                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Previous</span>
-                </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#carouselProjectes"
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carouselProjectes"
                         data-bs-slide="next">
-                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Next</span>
-                </button>
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
             </div>
         </div>
-
         <div class="modal" id="fullpage" aria-hidden="true" tabindex="-1">
             <div class="modal-dialog modal-fullscreen">
                 <div class="modal-content">
@@ -301,18 +317,18 @@
                             <div class="carousel-inner">
                                 <div class="carousel-item active" id="iniciProjecte">
                                     <section class="full-screen-section" data-bs-target="#carouselProjecte"
-                                             data-bs-slide="next">
+                                        data-bs-slide="next">
                                         <h1 id="titolProjecte"></h1>
                                     </section>
                                 </div>
                                 <div id="carroImatges"></div>
                                 <button class="carousel-control-prev" type="button" data-bs-target="#carouselProjecte"
-                                        data-bs-slide="prev">
+                                    data-bs-slide="prev">
                                     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                                     <span class="visually-hidden">Previous</span>
                                 </button>
                                 <button class="carousel-control-next" type="button" data-bs-target="#carouselProjecte"
-                                        data-bs-slide="next">
+                                    data-bs-slide="next">
                                     <span class="carousel-control-next-icon" aria-hidden="true"></span>
                                     <span class="visually-hidden">Next</span>
                                 </button>
@@ -327,9 +343,9 @@
     <div id="fullimage"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-            crossorigin="anonymous"></script>
-            <script src="dades.js"></script>
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+    <script src="dades.js"></script>
     <script>
         let seccioactual = 0;
         let seccioanterior = 0;
@@ -370,7 +386,7 @@
         });
 
         function tornaSeccions() {
-            transicioNodes('carouselProjectes', 'carouselSeccions', 'cap-abaix');
+            transicioNodes('pantallaProjectes', 'pantallaSeccions', 'cap-abaix');
         }
 
         const myCarousel = document.getElementById('carouselSeccions');
@@ -408,7 +424,7 @@
             const projectesDiv = document.getElementById('projectes');
             projectesDiv.innerHTML = projectes.map(ompleProjectes).join('');
             document.querySelector("#carouselProjectes .carousel-item").classList.add("active");
-            transicioNodes('carouselSeccions', 'carouselProjectes', 'cap-adalt');
+            transicioNodes('pantallaSeccions', 'pantallaProjectes', 'cap-adalt');
         }
 
         function ompleSeccions(about, carousel, nomSeccio) {
@@ -471,7 +487,7 @@
         });
 
         window.addEventListener('popstate', function (event) {
-           // console.log(vistes);
+            // console.log(vistes);
         });
 
         function transicioNodes(idNodeDesapareix, idNodeApareix, direccio) {
@@ -516,4 +532,5 @@
         }
     </script>
 </body>
+
 </html>
