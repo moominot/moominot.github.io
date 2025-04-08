@@ -237,7 +237,7 @@
                         <li class="nav-item" data-bs-target="#carouselSeccions" data-bs-slide-to="3" onclick="tornaSeccions()">
                             <a class="nav-link" href="#contacteSeccio" id="contacteMenu">Contacte</a>
                         </li>
-                        <li class="nav-item" data-bs-target="#carouselSeccions" data-bs-slide-to="2" onclick="tornaSeccions()">
+                        <li class="nav-item" data-bs-target="#carouselSeccions" data-bs-slide-to="2" onclick="mostraProjectes()">
                             <a class="nav-link" aria-current="page" href="#projectesSeccio"
                                 id="projectesMenu">Projectes</a>
                         </li>
@@ -532,16 +532,16 @@
             setTimeout(() => {
                 nodeApareix.classList.add(classeApareix, "apareix-visible");
                 nodeApareix.classList.remove("d-none")
-            }, 500);
+            }, 100);
 
             setTimeout(() => {
                 nodeDesapareix.classList.add("d-none")
-            }, 1000);
+            }, 100);
 
             setTimeout(() => {
                 nodeApareix.classList.remove(classeApareix);
                 nodeDesapareix.classList.remove(classeDesapareix);
-            }, 1500);
+            }, 100);
         }        
     </script>
 </body>
