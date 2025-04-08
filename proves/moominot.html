@@ -387,7 +387,7 @@
             })
         })
         //mostrar carousel principal
-        document.querySelectorAll(".navbar-nav .nav-item").forEach(n => {
+        document.querySelectorAll(".navbar-nav .nav-link").forEach(n => {
             n.addEventListener("click", function () {
                 console.log(carruselActual)
                 if (carruselActual === "carouselProjectes") {
@@ -408,13 +408,7 @@
             } else {
                 document.querySelector('.titol').classList.remove('d-none');
             }
-        });
-
-
-
-       
-
-
+        });  
 
         function ompleProjectes(projecte) {
 
