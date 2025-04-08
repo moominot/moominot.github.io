@@ -389,7 +389,7 @@
         //mostrar carousel principal
         document.querySelectorAll(".navbar-nav .nav-link").forEach(n => {
             n.addEventListener("click", function () {
-                console.log(carruselActual)
+                
                 if (carruselActual === "carouselProjectes") {
                     transicioNodes('carouselProjectes', 'carouselSeccions', 'cap-abaix')
                 }
@@ -398,10 +398,10 @@
         // Esdeveniment per gestionar el canvi de diapositiva al carrusel
         const myCarousel = document.getElementById('carouselSeccions');
         myCarousel.addEventListener('slide.bs.carousel', event => {
-            console.log(event);
+            //console.log(event);
             //actualitzaVista(event.to); // Actualitza la vista amb la nova secció
             carruselActual = event.target.id;
-            console.log(vistes);
+            //console.log(vistes);
             // Amaga o mostra el títol segons la secció
             if (event.to === 0) {
                 document.querySelector('.titol').classList.add('d-none');
