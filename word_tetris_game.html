@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>Joc de Paraules Tetris</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 10px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            user-select: none; /* Evitar selecció de text en mòbil */
+            -webkit-touch-callout: none; /* Evitar menú contextual iOS */
+        }
+        
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 100%;
+            width: 100%;
+            max-width: 600px;
+            overflow: hidden;
+        }
+        
+        @media (max-width: 768px) {
+            .game-container {
+                padding: 15px;
+                border-radius: 15px;
+            }
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(12, 1fr);
+            gap: 2px;
+            justify-content: center;
+            margin: 20px auto;
+            background: #34495e;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
+            max-width: 400px;
+            aspect-ratio: 8/12;
+            position: relative;
+        }
+        
+        @media (max-width: 768px) {
+            .game-board {
+                max-width: 320px;
+                margin: 15px auto;
+                padding: 8px;
+            }
+        }
+        
+        .cell {
+            width: 100%;
+            height: 100%;
+            min-height: 35px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(16px, 4vw, 24px);
+            font-weight: bold;
+            color: #fff;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        @media (max-width: 768px) {
+            .cell {
+                min-height: 30px;
+                border-radius: 3px;
+            }
+        }
+        
+        .cell.filled {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            border: 2px solid #fff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transform: translateY(-2px);
+        }
+        
+        .cell.falling {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            animation: pulse 0.5s infinite alternate;
+        }
+        
+        .cell.word-highlight {
+            background: linear-gradient(45deg, #f1c40f, #f39c12) !important;
+            border: 2px solid #fff !important;
+            animation: wordFound 1.5s ease-out;
+            z-index: 10;
+        }
+        
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+        
+        @keyframes wordFound {
+            0% { 
+                transform: scale(1);
+                box-shadow: 0 0 0 rgba(241, 196, 15, 0.7);
+            }
+            25% { 
+                transform: scale(1.15);
+                box-shadow: 0 0 20px rgba(241, 196, 15, 0.7);
+            }
+            50% { 
+                transform: scale(1.1);
+                box-shadow: 0 0 30px rgba(241, 196, 15, 0.5);
+            }
+            75% { 
+                transform: scale(1.05);
+                box-shadow: 0 0 20px rgba(241, 196, 15, 0.3);
+            }
+            100% { 
+                transform: scale(1);
+                box-shadow: 0 0 0 rgba(241, 196, 15, 0);
+            }
+        }
+        
+        .cell.disappearing {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            animation: disappear 0.5s ease-out forwards;
+        }
+        
+        @keyframes disappear {
+            0% { 
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% { 
+                transform: scale(1.2);
+                opacity: 0.7;
+            }
+            100% { 
+                transform: scale(0);
+                opacity: 0;
+            }
+        }
+        
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                margin: 15px 0;
+                gap: 8px;
+            }
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            margin: 0;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: clamp(14px, 3vw, 16px);
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            touch-action: manipulation; /* Millor resposta tàctil */
+            min-width: 100px;
+        }
+        
+        .btn:hover, .btn:active {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .btn:active {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            opacity: 0.8;
+            transform: translateY(0);
+        }
+        
+        @media (max-width: 768px) {
+            .btn {
+                padding: 10px 16px;
+                min-width: 80px;
+            }
+        }
+        
+        .info {
+            background: rgba(52, 73, 94, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .next-letter {
+            font-size: 36px;
+            font-weight: bold;
+            color: #e74c3c;
+            margin: 10px 0;
+        }
+        
+        .words-found {
+            background: rgba(46, 204, 113, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .word-found {
+            display: inline-block;
+            background: #2ecc71;
+            color: white;
+            padding: 5px 10px;
+            margin: 2px;
+            border-radius: 15px;
+            font-size: clamp(12px, 3vw, 14px);
+            animation: newWordFound 0.6s ease-out;
+        }
+        
+        @keyframes newWordFound {
+            0% { 
+                transform: scale(0) rotate(-180deg);
+                opacity: 0;
+            }
+            50% { 
+                transform: scale(1.2) rotate(-90deg);
+                opacity: 0.8;
+            }
+            100% { 
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+        
+        .floating-word {
+            position: absolute;
+            pointer-events: none;
+            font-weight: bold;
+            font-size: clamp(16px, 4vw, 20px);
+            color: #f1c40f;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            animation: floatUp 2s ease-out forwards;
+            z-index: 100;
+        }
+        
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: translateY(-30px) scale(1.2);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-60px) scale(0.8);
+            }
+        }
+        
+        #console {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            max-height: 120px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: clamp(10px, 2.5vw, 12px);
+            text-align: left;
+            display: none; /* Ocult per defecte en mòbil */
+        }
+        
+        @media (min-width: 769px) {
+            #console {
+                display: block;
+                max-height: 150px;
+            }
+        }
+        
+        .show-console {
+            display: block !important;
+        }
+
+        /* Controls més grans i fixes en mòbil */
+        @media (max-width: 600px) {
+            .controls {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100vw;
+                background: rgba(255,255,255,0.95);
+                z-index: 1000;
+                padding: 8px 0 8px 0;
+                border-radius: 0;
+                box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+                gap: 12px;
+            }
+            .btn {
+                font-size: 20px;
+                padding: 18px 0;
+                min-width: 30vw;
+                border-radius: 18px;
+            }
+            .game-container {
+                padding-bottom: 80px; /* Espai per controls */
+            }
+            .info {
+                padding: 10px;
+            }
+            .game-board {
+                max-width: 98vw;
+                min-width: 98vw;
+                aspect-ratio: 8/12;
+                padding: 2vw;
+            }
+        }
+
+        /* Redueix la mida dels controls en mòbil */
+        @media (max-width: 600px) {
+            .controls {
+                padding: 4px 0 4px 0;
+                gap: 6px;
+            }
+            .btn {
+                font-size: 16px;
+                padding: 10px 0;
+                min-width: 24vw;
+                border-radius: 12px;
+            }
+            .game-container {
+                padding-bottom: 40px; /* Espai per controls */
+            }
+        }
+
+        /* Amaga la consola de debug en mòbil */
+        @media (max-width: 600px) {
+            #console {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🎯 Joc de Paraules Tetris</h1>
+        
+        <div class="info">
+            <div>Pròxima lletra: <span class="next-letter" id="nextLetter">A</span></div>
+            <div>Puntuació: <span id="score">0</span></div>
+            <div>
+                Mínim lletres per paraula: 
+                <select id="minWordLengthSelect" onchange="setMinWordLength(this.value)">
+                    <option value="2">2</option>
+                    <option value="3" selected>3</option>
+                    <option value="4">4</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="game-board" id="gameBoard"></div>
+        
+        <!-- Controls principals a la part inferior en mòbil -->
+        <div class="controls" id="mobileControls">
+            <button class="btn" onclick="moveLeft()">←</button>
+            <button class="btn" onclick="dropLetter()">↓</button>
+            <button class="btn" onclick="moveRight()">→</button>
+        </div>
+        
+        <div class="words-found">
+            <h3>Paraules trobades:</h3>
+            <div id="wordsFound"></div>
+        </div>
+        
+        <div id="console"></div>
+    </div>
+<script src="DISC2-Eliot.js"></script>
+    <script>
+       
+        // Configuració del joc
+        const BOARD_WIDTH = 8;
+        const BOARD_HEIGHT = 12;
+        const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        
+        // Variables del joc
+        let board = [];
+        let currentLetter = '';
+        let currentPosition = { x: 4, y: 0 };
+        let nextLetter = '';
+        let score = 0;
+        let gameRunning = false;
+        let gameInterval;
+        let wordsFound = new Set();
+        let minWordLength = 3; // Llargada mínima de paraula
+        
+        // Inicialitzar tauler
+        function initBoard() {
+            board = [];
+            for (let y = 0; y < BOARD_HEIGHT; y++) {
+                board[y] = [];
+                for (let x = 0; x < BOARD_WIDTH; x++) {
+                    board[y][x] = '';
+                }
+            }
+            renderBoard();
+        }
+        
+        // Renderitzar tauler
+        function renderBoard() {
+            const gameBoard = document.getElementById('gameBoard');
+            gameBoard.innerHTML = '';
+            
+            for (let y = 0; y < BOARD_HEIGHT; y++) {
+                for (let x = 0; x < BOARD_WIDTH; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.id = `cell-${x}-${y}`;
+                    
+                    let letter = board[y][x];
+                    if (letter) {
+                        cell.textContent = letter in REVERSE_DIGRAPH_MAP ? REVERSE_DIGRAPH_MAP[letter] : letter;
+                        cell.classList.add('filled');
+                    }
+                    
+                    // Mostrar lletra que cau
+                    if (gameRunning && x === currentPosition.x && y === currentPosition.y) {
+                        let fallingLetter = currentLetter in REVERSE_DIGRAPH_MAP ? REVERSE_DIGRAPH_MAP[currentLetter] : currentLetter;
+                        cell.textContent = fallingLetter;
+                        cell.classList.add('falling');
+                    }
+                    
+                    gameBoard.appendChild(cell);
+                }
+            }
+        }
+        
+        // Nou abecedari català amb dígrafs especials i Ç
+        const CATALAN_LETTERS = [
+            'A','B','C','Ç','D','E','F','G','H','I','J','L','Ł','M','N','Ý','O','P','Q','Ú','R','S','T','V','X','Z'
+        ];
+        // Substitucions de dígrafs per lletres especials
+        const DIGRAPH_MAP = {
+            'L·L': 'Ł',
+            'NY': 'Ý', 
+            'QU': 'Ú'
+        };
+        // Substitucions inverses per mostrar paraules
+        const REVERSE_DIGRAPH_MAP = {
+            'Ł': 'L·L',
+            'Ý': 'NY',
+            'Ú': 'QU'
+        };
+        
+        // Nova funció per generar lletres aleatòries catalanes (incloent Ç i dígrafs)
+        function generateRandomLetter() {
+            // Freqüència aproximada, pots ajustar segons preferència
+            const catalanFreq = 'AAAAAAAAAAAAEEEEEEEEEEEEEIIIIIIIIOOOOOUUUULLLLRRRRRRRRNNNNNNSSSSSSSSTTTTTDDDMMCCCPPBBBGGFVHÇJXZŁÝÚ';
+            return catalanFreq[Math.floor(Math.random() * catalanFreq.length)];
+        }
+        
+        // Començar joc
+        function startGame() {
+            if (gameRunning) return;
+            
+            gameRunning = true;
+            initBoard();
+            score = 0;
+            wordsFound.clear();
+            
+            currentLetter = generateRandomLetter();
+            nextLetter = generateRandomLetter();
+            currentPosition = { x: Math.floor(BOARD_WIDTH / 2), y: 0 };
+            
+            updateUI();
+            
+            gameInterval = setInterval(() => {
+                if (!moveDown()) {
+                    placeLetter();
+                    checkForWords();
+                    spawnNewLetter();
+                }
+                renderBoard();
+            }, 1000);
+            
+            renderBoard();
+        }
+        
+        // Pausar joc
+        function pauseGame() {
+            gameRunning = false;
+            if (gameInterval) {
+                clearInterval(gameInterval);
+            }
+        }
+        
+        // Moure cap avall
+        function moveDown() {
+            if (currentPosition.y < BOARD_HEIGHT - 1 && !board[currentPosition.y + 1][currentPosition.x]) {
+                currentPosition.y++;
+                return true;
+            }
+            return false;
+        }
+        
+        // Moure esquerra
+        function moveLeft() {
+            if (!gameRunning) return;
+            if (currentPosition.x > 0 && !board[currentPosition.y][currentPosition.x - 1]) {
+                currentPosition.x--;
+                renderBoard();
+            }
+        }
+        
+        // Moure dreta
+        function moveRight() {
+            if (!gameRunning) return;
+            if (currentPosition.x < BOARD_WIDTH - 1 && !board[currentPosition.y][currentPosition.x + 1]) {
+                currentPosition.x++;
+                renderBoard();
+            }
+        }
+        
+        // Deixar caure lletra
+        function dropLetter() {
+            if (!gameRunning) return;
+            while (moveDown()) {
+                // Continuar movent cap avall
+            }
+            placeLetter();
+            checkForWords();
+            spawnNewLetter();
+            renderBoard();
+        }
+        
+        // Col·locar lletra al tauler
+        function placeLetter() {
+            board[currentPosition.y][currentPosition.x] = currentLetter;
+            logToConsole(`Lletra '${currentLetter}' col·locada a posició (${currentPosition.x}, ${currentPosition.y})`);
+        }
+        
+        // Generar nova lletra
+        function spawnNewLetter() {
+            currentLetter = nextLetter;
+            nextLetter = generateRandomLetter();
+            currentPosition = { x: Math.floor(BOARD_WIDTH / 2), y: 0 };
+            
+            // Comprovar si el joc ha acabat
+            if (board[0][currentPosition.x]) {
+                pauseGame();
+                alert('Joc acabat! Puntuació final: ' + score);
+            }
+            
+            updateUI();
+        }
+        
+        // Quan mostrem la lletra següent, fem la substitució inversa per mostrar el dígraf real
+        function updateUI() {
+            let displayNext = nextLetter in REVERSE_DIGRAPH_MAP ? REVERSE_DIGRAPH_MAP[nextLetter] : nextLetter;
+            document.getElementById('nextLetter').textContent = displayNext;
+            document.getElementById('score').textContent = score;
+
+            const wordsFoundDiv = document.getElementById('wordsFound');
+            wordsFoundDiv.innerHTML = '';
+            wordsFound.forEach(word => {
+                // Mostra paraules amb dígrafs reals
+                let displayWord = word.replace(/[ŁÝÚ]/g, m => REVERSE_DIGRAPH_MAP[m] || m);
+                const wordSpan = document.createElement('span');
+                wordSpan.className = 'word-found';
+                wordSpan.textContent = displayWord;
+                wordsFoundDiv.appendChild(wordSpan);
+            });
+        }
+        
+        // Comprovar paraules
+        function checkForWords() {
+            logToConsole(`--- Comprovant paraules després de col·locar '${currentLetter}' ---`);
+            
+            // Comprovar paraules horitzontals
+            checkHorizontalWords();
+            
+            // Comprovar paraules verticals
+            checkVerticalWords();
+            
+            // Actualitzar la interfície després d'eliminar paraules
+            setTimeout(() => {
+                renderBoard();
+                updateUI();
+            }, 600); // Esperar que acabin les animacions
+        }
+        
+        // Comprovar paraules horitzontals
+        function checkHorizontalWords() {
+            const row = currentPosition.y;
+            logToConsole(`Comprovant fila ${row}:`);
+            
+            // Obtenir tota la fila
+            let rowString = '';
+            for (let x = 0; x < BOARD_WIDTH; x++) {
+                rowString += board[row][x] || '_';
+            }
+            logToConsole(`Fila completa: ${rowString}`);
+            
+            // Trobar totes les possibles paraules que contenen la nova lletra
+            const newLetterX = currentPosition.x;
+            const validWordsToRemove = [];
+            
+            // Buscar cap a l'esquerra i dreta des de la nova lletra
+            for (let startX = 0; startX <= newLetterX; startX++) {
+                for (let endX = newLetterX; endX < BOARD_WIDTH; endX++) {
+                    if (startX === endX) continue; // Paraules d'una lletra no compten
+                    
+                    let word = '';
+                    let hasGaps = false;
+                    
+                    for (let x = startX; x <= endX; x++) {
+                        if (board[row][x]) {
+                            word += board[row][x];
+                        } else {
+                            hasGaps = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!hasGaps && word.length >= minWordLength) {
+                        logToConsole(`Possible paraula horitzontal: "${word}" (posicions ${startX}-${endX})`);
+                        if (isValidWord(word)) {
+                            wordsFound.add(word);
+                            score += word.length * 10;
+                            logToConsole(`✓ Paraula vàlida trobada: "${word}"`);
+                            validWordsToRemove.push({
+                                word: word,
+                                direction: 'horizontal',
+                                row: row,
+                                startX: startX,
+                                endX: endX
+                            });
+                        }
+                    }
+                }
+            }
+            
+            // Eliminar paraules vàlides del tauler
+            validWordsToRemove.forEach(wordInfo => {
+                removeWordFromBoard(wordInfo);
+            });
+        }
+        
+        // Comprovar paraules verticals
+        function checkVerticalWords() {
+            const col = currentPosition.x;
+            logToConsole(`Comprovant columna ${col}:`);
+            
+            // Obtenir tota la columna
+            let colString = '';
+            for (let y = 0; y < BOARD_HEIGHT; y++) {
+                colString += board[y][col] || '_';
+            }
+            logToConsole(`Columna completa: ${colString}`);
+            
+            // Trobar totes les possibles paraules que contenen la nova lletra
+            const newLetterY = currentPosition.y;
+            const validWordsToRemove = [];
+            
+            // Buscar cap amunt i avall des de la nova lletra
+            for (let startY = 0; startY <= newLetterY; startY++) {
+                for (let endY = newLetterY; endY < BOARD_HEIGHT; endY++) {
+                    if (startY === endY) continue; // Paraules d'una lletra no compten
+                    
+                    let word = '';
+                    let hasGaps = false;
+                    
+                    for (let y = startY; y <= endY; y++) {
+                        if (board[y][col]) {
+                            word += board[y][col];
+                        } else {
+                            hasGaps = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!hasGaps && word.length >= minWordLength) {
+                        logToConsole(`Possible paraula vertical: "${word}" (posicions ${startY}-${endY})`);
+                        if (isValidWord(word)) {
+                            wordsFound.add(word);
+                            score += word.length * 10;
+                            logToConsole(`✓ Paraula vàlida trobada: "${word}"`);
+                            validWordsToRemove.push({
+                                word: word,
+                                direction: 'vertical',
+                                col: col,
+                                startY: startY,
+                                endY: endY
+                            });
+                        }
+                    }
+                }
+            }
+            
+            // Eliminar paraules vàlides del tauler
+            validWordsToRemove.forEach(wordInfo => {
+                removeWordFromBoard(wordInfo);
+            });
+        }
+        
+        // Funció temporal per validar paraules (substituir per llibreria real)
+        function isValidWord(word) {
+            // Aquí NO posis paraules, ja les passaràs després!
+            return DISC.includes(word.toUpperCase());
+            //return false;
+        }
+        
+        // Eliminar paraula del tauler amb animació
+        function removeWordFromBoard(wordInfo) {
+            logToConsole(`🗑️ Eliminant paraula "${wordInfo.word}" del tauler`);
+            
+            // Crear animació flotant per la paraula
+            createFloatingWordAnimation(wordInfo);
+            
+            // Ressaltar les cel·les de la paraula abans d'eliminar-les
+            highlightWordCells(wordInfo);
+            
+            setTimeout(() => {
+                if (wordInfo.direction === 'horizontal') {
+                    // Eliminar paraula horitzontal
+                    for (let x = wordInfo.startX; x <= wordInfo.endX; x++) {
+                        board[wordInfo.row][x] = '';
+                    }
+                } else if (wordInfo.direction === 'vertical') {
+                    // Eliminar paraula vertical
+                    for (let y = wordInfo.startY; y <= wordInfo.endY; y++) {
+                        board[y][wordInfo.col] = '';
+                    }
+                }
+                
+                // Fer caure les lletres de dalt
+                dropLettersAfterRemoval();
+                renderBoard();
+            }, 1000); // Esperar que acabin les animacions
+        }
+        
+        // Ressaltar cel·les de la paraula trobada
+        function highlightWordCells(wordInfo) {
+            if (wordInfo.direction === 'horizontal') {
+                for (let x = wordInfo.startX; x <= wordInfo.endX; x++) {
+                    const cell = document.getElementById(`cell-${x}-${wordInfo.row}`);
+                    if (cell) {
+                        cell.classList.add('word-highlight');
+                    }
+                }
+            } else if (wordInfo.direction === 'vertical') {
+                for (let y = wordInfo.startY; y <= wordInfo.endY; y++) {
+                    const cell = document.getElementById(`cell-${wordInfo.col}-${y}`);
+                    if (cell) {
+                        cell.classList.add('word-highlight');
+                    }
+                }
+            }
+        }
+        
+        // Crear animació de paraula flotant
+        function createFloatingWordAnimation(wordInfo) {
+            const gameBoard = document.getElementById('gameBoard');
+            const boardRect = gameBoard.getBoundingClientRect();
+            
+            let centerX, centerY;
+            
+            if (wordInfo.direction === 'horizontal') {
+                centerX = boardRect.left + (wordInfo.startX + wordInfo.endX) * (boardRect.width / (BOARD_WIDTH * 2));
+                centerY = boardRect.top + wordInfo.row * (boardRect.height / BOARD_HEIGHT);
+            } else {
+                centerX = boardRect.left + wordInfo.col * (boardRect.width / BOARD_WIDTH);
+                centerY = boardRect.top + (wordInfo.startY + wordInfo.endY) * (boardRect.height / (BOARD_HEIGHT * 2));
+            }
+            
+            const floatingWord = document.createElement('div');
+            floatingWord.className = 'floating-word';
+            floatingWord.textContent = wordInfo.word + ' +' + (wordInfo.word.length * 10);
+            floatingWord.style.left = centerX + 'px';
+            floatingWord.style.top = centerY + 'px';
+            
+            document.body.appendChild(floatingWord);
+            
+            setTimeout(() => {
+                document.body.removeChild(floatingWord);
+            }, 2000);
+        }
+        
+        // Fer caure les lletres després d'eliminar paraules
+        function dropLettersAfterRemoval() {
+            let anyLetterDropped = false;
+            for (let x = 0; x < BOARD_WIDTH; x++) {
+                // Recollir totes les lletres de la columna
+                let letters = [];
+                for (let y = 0; y < BOARD_HEIGHT; y++) {
+                    if (board[y][x]) {
+                        letters.push(board[y][x]);
+                        board[y][x] = '';
+                    }
+                }
+                // Col·locar les lletres al fons
+                for (let i = 0; i < letters.length; i++) {
+                    if (board[BOARD_HEIGHT - 1 - i][x] !== letters[letters.length - 1 - i]) {
+                        anyLetterDropped = true;
+                    }
+                    board[BOARD_HEIGHT - 1 - i][x] = letters[letters.length - 1 - i];
+                }
+            }
+            logToConsole(`⬇️ Lletres han caigut després d'eliminar paraules`);
+            renderBoard();
+
+            // Torna a comprovar paraules si han caigut lletres
+            if (anyLetterDropped) {
+                setTimeout(() => {
+                    checkForWords();
+                }, 650); // Espera una mica per animacions
+            }
+        }
+        
+        // Funció per escriure a la consola del joc
+        function logToConsole(message) {
+            const consoleDiv = document.getElementById('console');
+            consoleDiv.innerHTML += message + '<br>';
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+        
+        // Controls tàctils per mòbil
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchStartTime = 0;
+        
+        document.addEventListener('touchstart', (e) => {
+            if (!gameRunning) return;
+            e.preventDefault();
+            
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            touchStartTime = Date.now();
+        });
+        
+        document.addEventListener('touchmove', (e) => {
+            e.preventDefault(); // Evitar scroll
+        });
+        
+        document.addEventListener('touchend', (e) => {
+            if (!gameRunning) return;
+            e.preventDefault();
+            
+            const touch = e.changedTouches[0];
+            const touchEndX = touch.clientX;
+            const touchEndY = touch.clientY;
+            const touchDuration = Date.now() - touchStartTime;
+            
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+            
+            // Tap ràpid = deixar caure
+            if (touchDuration < 200 && Math.abs(deltaX) < 30 && Math.abs(deltaY) < 30) {
+                dropLetter();
+                return;
+            }
+            
+            // Swipe horitzontal
+            if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+                if (deltaX > 0) {
+                    moveRight();
+                } else {
+                    moveLeft();
+                }
+            }
+            // Swipe vertical cap avall
+            else if (deltaY > 50) {
+                dropLetter();
+            }
+        });
+        
+        // Controls del teclat (mantenir per ordinador)
+        document.addEventListener('keydown', (event) => {
+            if (!gameRunning) return;
+            
+            switch(event.key) {
+                case 'ArrowLeft':
+                    event.preventDefault();
+                    moveLeft();
+                    break;
+                case 'ArrowRight':
+                    event.preventDefault();
+                    moveRight();
+                    break;
+                case 'ArrowDown':
+                case ' ':
+                    event.preventDefault();
+                    dropLetter();
+                    break;
+            }
+        });
+        
+        // Evitar doble tap zoom en mòbil
+        document.addEventListener('touchstart', function preventZoom(e) {
+            if (e.touches.length > 1) e.preventDefault();
+        }, { passive: false });
+
+        // Opcional: Fes el joc fullscreen en mòbil
+        function goFullScreen() {
+            const el = document.documentElement;
+            if (el.requestFullscreen) el.requestFullscreen();
+            else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+        }
+
+        // Pots afegir un botó per activar el mode fullscreen si vols:
+        // <button class="btn" onclick="goFullScreen()">Pantalla Completa</button>
+
+        // Inicialitzar joc
+        initBoard();
+        updateUI();
+        
+        // Netejar consola periòdicament
+        setInterval(() => {
+            const consoleDiv = document.getElementById('console');
+            if (consoleDiv.children.length > 50) {
+                consoleDiv.innerHTML = consoleDiv.innerHTML.split('<br>').slice(-30).join('<br>');
+            }
+        }, 5000);
+        
+        function setMinWordLength(val) {
+            minWordLength = parseInt(val);
+        }
+
+        // Afegeix aquest event listener per començar el joc tocant la pantalla
+        document.addEventListener('touchstart', function startOnTouch(e) {
+            if (!gameRunning) {
+                startGame();
+            }
+        }, { once: false });
+
+        // També pots afegir-ho per clic de ratolí si vols:
+        document.addEventListener('mousedown', function startOnClick(e) {
+            if (!gameRunning) {
+                startGame();
+            }
+        });
+    </script>
+</body>
+</html>
