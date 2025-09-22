@@ -58,8 +58,9 @@ observer.observe(targetNode, config);
 
 // --- La funció que vols executar quan hi hagi un canvi ---
 function executaOrdre() {
+  if(targetNode.classList.includes('lock-nav'){
   targetNode.classList.remove('lock-nav')
-  console.log('👉 S\'ha executat l\'ordre a causa d\'un canvi al DOM!');
+  console.log('👉 S\'ha executat l\'ordre a causa d\'un canvi al DOM!');}
   // Per exemple, pots actualitzar un component, enviar dades, etc.
 }
 
