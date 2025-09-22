@@ -8,13 +8,15 @@ if(loc.indexOf("elpais.com")>0){
     artamagat.classList.remove("_dn")
 }else if(loc.indexOf("arabalears.cat")>0||loc.indexOf("ara.cat")>0){
   document.querySelector(".paywall").remove()
-  document.body.classList.remove("closed")
-  var amagat = document.querySelectorAll(".ara-body div")
-      amagat.forEach(div=>{
-        if(div.style.display="none"){
-        div.style.display="block"  
-        div.classList.add("ara-body")}
-      })
+  document.querySelector("main").classList.remove("ara-main--paywall-login-register")
+  //document.body.classList.remove("closed")
+  var amagat = document.querySelector(".ara-body div")
+      
+        if(amagat.style.display="none"){
+        amagat.style.display="block"  
+        amagat.classList.add("ara-body")}
+  document.body.classList.remove('lock-nav')
+     
 }else if(loc.indexOf("ultimahora.es")>0){
   document.querySelector(".unregistered-content").remove()
   document.querySelector(".registered-content").classList.remove("registered-content")
