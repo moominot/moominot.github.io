@@ -16,6 +16,55 @@ if(loc.indexOf("elpais.com")>0){
         amagat.style.display="block"  
         amagat.classList.add("ara-body")}
   document.body.classList.remove('lock-nav')
+  // Selecciona l'element que vols observar
+const targetNode = document.body;
+
+// Opcions de configuració de l'observador
+const config = {
+  childList: true, // Observa si s'afegeixen o s'eliminen nodes fills
+  subtree: true,   // Estén l'observació a tots els descendents de l'element objectiu
+  attributes: true, // Observa canvis en els atributs dels elements
+  characterData: true // Observa canvis en el contingut de text dels nodes
+};
+
+// La funció de 'callback' que s'executarà quan es detecti un canvi
+const callback = (mutationsList, observer) => {
+  for (const mutation of mutationsList) {
+    if (mutation.type === 'childList') {
+      console.log('S\'ha afegit o eliminat un node fill al body o a un dels seus descendents.');
+      // Aquí pots executar la teva ordre o funció
+     
+      
+      executaOrdre()
+    } else if (mutation.type === 'attributes') {
+      console.log(`L'atribut '${mutation.attributeName}' ha estat modificat.`);
+      // Aquí pots executar la teva ordre o funció
+    
+      executaOrdre()
+    } else if (mutation.type === 'characterData') {
+      console.log('El contingut de text d\'un node ha estat modificat.');
+      // Aquí pots executar la teva ordre o funció
+    
+      executaOrdre()
+    }
+  }
+};
+
+// Crea una instància de l'observador amb la funció de 'callback'
+const observer = new MutationObserver(callback);
+
+// Comença a observar l'element objectiu amb la configuració especificada
+observer.observe(targetNode, config);
+
+// --- La funció que vols executar quan hi hagi un canvi ---
+function executaOrdre() {
+  targetNode.classList.remove('lock-nav')
+  console.log('👉 S\'ha executat l\'ordre a causa d\'un canvi al DOM!');
+  // Per exemple, pots actualitzar un component, enviar dades, etc.
+}
+
+// Per aturar l'observació quan ja no la necessitis:
+// observer.disconnect();
      
 }else if(loc.indexOf("ultimahora.es")>0){
   document.querySelector(".unregistered-content").remove()
