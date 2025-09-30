@@ -2,10 +2,11 @@ var loc= window.location.href
 
 if(loc.indexOf("elpais.com")>0){
   document.querySelector("#ctn_freemium_article").remove()
-  var artamagat = document.querySelector(".a_b_wall._dn")
+  //var artamagat = 
+    document.querySelectorAll(".a_b_wall._dn").forEach(artamagat=>{
     artamagat.classList.add("a_c")
     artamagat.classList.remove("a_b_wall")
-    artamagat.classList.remove("_dn")
+    artamagat.classList.remove("_dn")})
 }else if(loc.indexOf("arabalears.cat")>0||loc.indexOf("ara.cat")>0){
   document.querySelector(".paywall").remove()
   document.querySelector("main").classList.remove("ara-main--paywall-login-register")
