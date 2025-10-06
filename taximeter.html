@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Taxímetro Simple - Descargable</title>
+    <style>
+        /* --- ESTILOS CSS --- */
+        body {
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+        }
+
+        .taximetro {
+            background-color: #333;
+            color: #00ff00; /* Color de pantalla 'verde' */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            width: 300px;
+            text-align: center;
+        }
+
+        h1 {
+            margin-top: 0;
+            color: #fff;
+        }
+
+        .pantalla {
+            background-color: #1a1a1a;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: left;
+            font-size: 1.2em;
+        }
+
+        .pantalla p {
+            margin: 5px 0;
+            font-family: 'Courier New', monospace; /* Fuente estilo digital */
+        }
+
+        #total {
+            font-size: 1.8em;
+            font-weight: bold;
+            display: block;
+            margin-top: 10px;
+        }
+
+        .estado {
+            color: yellow;
+            font-style: italic;
+            font-size: 1em;
+        }
+
+        .controles button {
+            padding: 10px 15px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        #iniciarBtn {
+            background-color: #4CAF50; /* Verde */
+            color: white;
+        }
+
+        #iniciarBtn:hover:not(:disabled) {
+            background-color: #45a049;
+        }
+
+        #finalizarBtn {
+            background-color: #f44336; /* Rojo */
+            color: white;
+        }
+
+        #finalizarBtn:hover:not(:disabled) {
+            background-color: #da190b;
+        }
+
+        .controles button:disabled {
+            background-color: #666;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="taximetro">
+        <h1>Taxímetro</h1>
+        <div class="pantalla">
+            <p>Tarifa Base: €<span id="tarifaBase">3.50</span></p>
+            <p>Total Acumulado: <span id="total">€0.00</span></p>
+            <p class="estado" id="estado">Detenido</p>
+        </div>
+        <div class="controles">
+            <button id="iniciarBtn">Iniciar Viaje</button>
+            <button id="finalizarBtn" disabled>Finalizar Viaje</button>
+        </div>
+    </div>
+
+    <script>
+        /* --- CÓDIGO JAVASCRIPT --- */
+        // Referencias a los elementos del DOM
+        const totalElement = document.getElementById('total');
+        const estadoElement = document.getElementById('estado');
+        const iniciarBtn = document.getElementById('iniciarBtn');
+        const finalizarBtn = document.getElementById('finalizarBtn');
+
+        // Configuración del taxímetro
+        const TARIFA_BASE = 3.50; // Tarifa fija inicial
+        const TARIFA_POR_SEGUNDO = 0.01; // Simulación: 1 céntimo por segundo
+
+        let totalAcumulado = 0;
+        let viajeActivo = false;
+        let intervalo; // Variable para guardar el temporizador
+
+        // Función para actualizar el contador
+        function actualizarTaximetro() {
+            if (viajeActivo) {
+                totalAcumulado += TARIFA_POR_SEGUNDO;
+                // Mostrar el total con dos decimales (formato de moneda)
+                totalElement.textContent = `€${totalAcumulado.toFixed(2)}`;
+            }
+        }
+
+        // Evento al hacer click en "Iniciar Viaje"
+        iniciarBtn.addEventListener('click', () => {
+            if (viajeActivo) return;
+
+            viajeActivo = true;
+            totalAcumulado = TARIFA_BASE; // Aplica la tarifa base al iniciar
+            totalElement.textContent = `€${totalAcumulado.toFixed(2)}`;
+            estadoElement.textContent = 'En curso...';
+            estadoElement.style.color = '#00ff00'; // Verde
+
+            // Deshabilita el botón de Iniciar y habilita el de Finalizar
+            iniciarBtn.disabled = true;
+            finalizarBtn.disabled = false;
+
+            // Inicia el intervalo que aumenta el precio cada 1000ms (1 segundo)
+            intervalo = setInterval(actualizarTaximetro, 1000);
+        });
+
+        // Evento al hacer click en "Finalizar Viaje"
+        finalizarBtn.addEventListener('click', () => {
+            if (!viajeActivo) return;
+
+            viajeActivo = false;
+            clearInterval(intervalo); // Detiene el contador
+
+            estadoElement.textContent = 'Finalizado';
+            estadoElement.style.color = 'yellow';
+
+            // Muestra un resumen (opcional)
+            alert(`¡Viaje Finalizado! El total a pagar es: ${totalElement.textContent}`);
+
+            // Habilita el botón de Iniciar y deshabilita el de Finalizar
+            iniciarBtn.disabled = false;
+            finalizarBtn.disabled = true;
+
+            // Reinicia el acumulado para el siguiente viaje
+            totalAcumulado = 0;
+            // totalElement.textContent = '€0.00'; // Opcional: reiniciar la pantalla
+        });
+
+        // Inicialización: configura el precio inicial al cargar la página
+        totalElement.textContent = `€${TARIFA_BASE.toFixed(2)}`;
+        document.getElementById('tarifaBase').textContent = TARIFA_BASE.toFixed(2);
+    </script>
+</body>
+</html>
