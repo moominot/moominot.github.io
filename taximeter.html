@@ -2,90 +2,143 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Taxímetro Simple - Descargable</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taxímetro Avanzado y Responsive</title>
     <style>
         /* --- ESTILOS CSS --- */
-        body {
-            font-family: sans-serif;
+        :root {
+            /* Variables de color */
+            --bg-color: #2c3e50; /* Azul oscuro */
+            --taximeter-color: #34495e; /* Gris azulado */
+            --display-color: #1a1a1a;
+            --font-color: #00ff00; /* Verde digital */
+            --font-color-alt: #f1c40f; /* Amarillo */
+            --btn-start: #2ecc71; /* Verde */
+            --btn-stop: #e74c3c; /* Rojo */
+            --btn-extra: #3498db; /* Azul */
+        }
+
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: white;
+            /* Asegura que el contenido ocupe toda la ventana */
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            background-color: #f0f0f0;
-            margin: 0;
         }
 
         .taximetro {
-            background-color: #333;
-            color: #00ff00; /* Color de pantalla 'verde' */
+            /* Diseño adaptativo para ocupar la pantalla de la tablet (horizontal) */
+            display: flex;
+            flex-direction: column;
+            width: 90%;
+            max-width: 800px;
+            height: 90%;
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-            width: 300px;
+            border-radius: 15px;
+            background-color: var(--taximeter-color);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             text-align: center;
         }
 
         h1 {
             margin-top: 0;
-            color: #fff;
+            color: white;
+            font-size: 2.5em;
+        }
+
+        /* Sección principal de la pantalla y controles */
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
         }
 
         .pantalla {
-            background-color: #1a1a1a;
-            padding: 15px;
-            border-radius: 5px;
+            background-color: var(--display-color);
+            padding: 20px;
+            border-radius: 8px;
             margin-bottom: 20px;
-            text-align: left;
-            font-size: 1.2em;
+            text-align: right;
+            border: 2px solid var(--font-color);
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
         }
 
         .pantalla p {
             margin: 5px 0;
-            font-family: 'Courier New', monospace; /* Fuente estilo digital */
+            font-family: 'Courier New', monospace;
+            color: var(--font-color);
         }
 
         #total {
-            font-size: 1.8em;
+            font-size: 5em; /* Grande para la tablet */
             font-weight: bold;
             display: block;
-            margin-top: 10px;
+            line-height: 1;
         }
 
         .estado {
-            color: yellow;
+            color: var(--font-color-alt);
             font-style: italic;
-            font-size: 1em;
+            font-size: 1.5em;
         }
 
-        .controles button {
-            padding: 10px 15px;
+        .controles, .extras {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap; /* Para que se adapten si hay muchos botones */
+            margin-top: 10px;
+        }
+
+        .controles button, .extras button {
+            padding: 15px 20px;
             margin: 5px;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
-            transition: background-color 0.3s;
+            font-size: 1.1em;
+            transition: background-color 0.3s, opacity 0.3s;
+            flex: 1 1 45%; /* Para que los botones se repartan en el espacio */
+            min-width: 150px;
         }
 
+        /* Estilos específicos de botones */
         #iniciarBtn {
-            background-color: #4CAF50; /* Verde */
+            background-color: var(--btn-start);
             color: white;
-        }
-
-        #iniciarBtn:hover:not(:disabled) {
-            background-color: #45a049;
         }
 
         #finalizarBtn {
-            background-color: #f44336; /* Rojo */
+            background-color: var(--btn-stop);
             color: white;
         }
-
-        #finalizarBtn:hover:not(:disabled) {
-            background-color: #da190b;
+        
+        .extras button {
+            background-color: var(--btn-extra);
+            color: white;
+            flex: 1 1 auto; /* Los extras pueden ser más pequeños */
+            min-width: 100px;
+            font-size: 1em;
         }
 
-        .controles button:disabled {
+        .active-extra {
+            border: 3px solid var(--font-color-alt);
+            box-shadow: 0 0 10px var(--font-color-alt);
+            background-color: #2980b9 !important; /* Un poco más oscuro */
+        }
+
+        button:hover:not(:disabled) {
+            opacity: 0.9;
+        }
+
+        button:disabled {
             background-color: #666;
             cursor: not-allowed;
             opacity: 0.6;
@@ -94,15 +147,25 @@
 </head>
 <body>
     <div class="taximetro">
-        <h1>Taxímetro</h1>
-        <div class="pantalla">
-            <p>Tarifa Base: €<span id="tarifaBase">3.50</span></p>
-            <p>Total Acumulado: <span id="total">€0.00</span></p>
-            <p class="estado" id="estado">Detenido</p>
-        </div>
-        <div class="controles">
-            <button id="iniciarBtn">Iniciar Viaje</button>
-            <button id="finalizarBtn" disabled>Finalizar Viaje</button>
+        <h1>🚕 Taxímetro Avanzado</h1>
+        <div class="main-content">
+            <div class="pantalla">
+                <p>Tarifa Base: €<span id="tarifaBase">3.50</span></p>
+                <p class="estado" id="estado">Detenido</p>
+                <p id="total">€0.00</p>
+            </div>
+
+            <div class="extras">
+                <button id="nocturnaBtn">Tarifa Nocturna</button>
+                <button id="equipajeBtn">Equipaje (+€2.50)</button>
+                <button id="turistaBtn">Tarifa Turista ⚡</button>
+                <button id="amigoBtn">Precio Amigo (-10%)</button>
+            </div>
+
+            <div class="controles">
+                <button id="iniciarBtn">▶️ Iniciar Viaje</button>
+                <button id="finalizarBtn" disabled>⏹️ Finalizar Viaje</button>
+            </div>
         </div>
     </div>
 
@@ -114,36 +177,109 @@
         const iniciarBtn = document.getElementById('iniciarBtn');
         const finalizarBtn = document.getElementById('finalizarBtn');
 
-        // Configuración del taxímetro
-        const TARIFA_BASE = 3.50; // Tarifa fija inicial
-        const TARIFA_POR_SEGUNDO = 0.01; // Simulación: 1 céntimo por segundo
+        // Botones de Extras
+        const nocturnaBtn = document.getElementById('nocturnaBtn');
+        const equipajeBtn = document.getElementById('equipajeBtn');
+        const turistaBtn = document.getElementById('turistaBtn');
+        const amigoBtn = document.getElementById('amigoBtn');
+
+        // Configuración de Tarifas
+        const BASE = 3.50;
+        const TARIFA_NORMAL = 0.01; // €0.01 por segundo
+        const TARIFA_NOCTURNA_MULTIPLICADOR = 1.30; // 30% más
+        const TARIFA_TURISTA_MULTIPLICADOR = 5.0; // 5 veces más RÁPIDO
+        const EXTRA_EQUIPAJE = 2.50;
+        const DESCUENTO_AMIGO = 0.90; // 10% de descuento
 
         let totalAcumulado = 0;
         let viajeActivo = false;
-        let intervalo; // Variable para guardar el temporizador
+        let intervalo;
+        let extras = {
+            nocturna: false,
+            equipaje: false,
+            turista: false,
+            amigo: false
+        };
 
-        // Función para actualizar el contador
+        // Función principal para actualizar el contador
         function actualizarTaximetro() {
-            if (viajeActivo) {
-                totalAcumulado += TARIFA_POR_SEGUNDO;
-                // Mostrar el total con dos decimales (formato de moneda)
-                totalElement.textContent = `€${totalAcumulado.toFixed(2)}`;
+            if (!viajeActivo) return;
+
+            let tarifaActual = TARIFA_NORMAL;
+
+            // 1. Aplicar multiplicador por Tarifa Nocturna
+            if (extras.nocturna) {
+                tarifaActual *= TARIFA_NOCTURNA_MULTIPLICADOR;
+            }
+
+            // 2. Aplicar multiplicador por Tarifa Turista (hace que corra más deprisa)
+            if (extras.turista) {
+                tarifaActual *= TARIFA_TURISTA_MULTIPLICADOR;
+            }
+
+            totalAcumulado += tarifaActual;
+
+            let totalConDescuento = totalAcumulado;
+
+            // 3. Aplicar Descuento Amigo (al total)
+            if (extras.amigo) {
+                totalConDescuento *= DESCUENTO_AMIGO;
+            }
+
+            // Mostrar el total con dos decimales
+            totalElement.textContent = `€${totalConDescuento.toFixed(2)}`;
+        }
+
+        // Función para cambiar el estado de un extra
+        function toggleExtra(extraKey, buttonElement) {
+            if (viajeActivo) return; // No se pueden cambiar las tarifas una vez iniciado
+
+            extras[extraKey] = !extras[extraKey];
+            buttonElement.classList.toggle('active-extra', extras[extraKey]);
+
+            // Caso especial: Turista y Amigo son excluyentes en este ejemplo, no tienen sentido combinados.
+            if (extraKey === 'turista') {
+                if (extras.turista && extras.amigo) {
+                    extras.amigo = false;
+                    amigoBtn.classList.remove('active-extra');
+                }
+            } else if (extraKey === 'amigo') {
+                 if (extras.amigo && extras.turista) {
+                    extras.turista = false;
+                    turistaBtn.classList.remove('active-extra');
+                }
             }
         }
+
+        // Event Listeners para los botones de extras
+        nocturnaBtn.addEventListener('click', () => toggleExtra('nocturna', nocturnaBtn));
+        equipajeBtn.addEventListener('click', () => toggleExtra('equipaje', equipajeBtn));
+        turistaBtn.addEventListener('click', () => toggleExtra('turista', turistaBtn));
+        amigoBtn.addEventListener('click', () => toggleExtra('amigo', amigoBtn));
+
 
         // Evento al hacer click en "Iniciar Viaje"
         iniciarBtn.addEventListener('click', () => {
             if (viajeActivo) return;
 
             viajeActivo = true;
-            totalAcumulado = TARIFA_BASE; // Aplica la tarifa base al iniciar
-            totalElement.textContent = `€${totalAcumulado.toFixed(2)}`;
-            estadoElement.textContent = 'En curso...';
-            estadoElement.style.color = '#00ff00'; // Verde
+            totalAcumulado = BASE; // Aplica la tarifa base al iniciar
 
-            // Deshabilita el botón de Iniciar y habilita el de Finalizar
+            // Aplicar extra de equipaje (solo al inicio)
+            if (extras.equipaje) {
+                totalAcumulado += EXTRA_EQUIPAJE;
+            }
+
+            // Actualizar la pantalla con el coste inicial
+            actualizarTaximetro();
+            
+            estadoElement.textContent = 'EN CURSO...';
+            estadoElement.style.color = '#00ff00';
+
+            // Deshabilita Iniciar/Extras, habilita Finalizar
             iniciarBtn.disabled = true;
             finalizarBtn.disabled = false;
+            document.querySelectorAll('.extras button').forEach(btn => btn.disabled = true);
 
             // Inicia el intervalo que aumenta el precio cada 1000ms (1 segundo)
             intervalo = setInterval(actualizarTaximetro, 1000);
@@ -156,24 +292,40 @@
             viajeActivo = false;
             clearInterval(intervalo); // Detiene el contador
 
-            estadoElement.textContent = 'Finalizado';
+            estadoElement.textContent = 'FINALIZADO';
             estadoElement.style.color = 'yellow';
 
-            // Muestra un resumen (opcional)
-            alert(`¡Viaje Finalizado! El total a pagar es: ${totalElement.textContent}`);
+            // Muestra un resumen
+            alert(`
+                ¡Viaje Finalizado!
+                Total a pagar: ${totalElement.textContent}
+                Extras aplicados:
+                - Nocturna: ${extras.nocturna ? 'SÍ' : 'NO'}
+                - Equipaje: ${extras.equipaje ? 'SÍ' : 'NO'}
+                - Turista: ${extras.turista ? 'SÍ' : 'NO'}
+                - Precio Amigo: ${extras.amigo ? 'SÍ' : 'NO'}
+            `);
 
-            // Habilita el botón de Iniciar y deshabilita el de Finalizar
+            // Habilita Iniciar/Extras, deshabilita Finalizar
             iniciarBtn.disabled = false;
             finalizarBtn.disabled = true;
+            document.querySelectorAll('.extras button').forEach(btn => btn.disabled = false);
 
-            // Reinicia el acumulado para el siguiente viaje
+            // Reinicia la pantalla para el siguiente viaje
             totalAcumulado = 0;
-            // totalElement.textContent = '€0.00'; // Opcional: reiniciar la pantalla
+            totalElement.textContent = `€${BASE.toFixed(2)}`;
+            estadoElement.textContent = 'Detenido';
+            estadoElement.style.color = '#f1c40f'; // Amarillo
+            
+            // Reinicia los extras visualmente
+            document.querySelectorAll('.extras button').forEach(btn => btn.classList.remove('active-extra'));
+            // NO se reinician los extras lógicamente para permitir que se preseleccionen para el siguiente viaje
+            extras = { nocturna: false, equipaje: false, turista: false, amigo: false };
         });
 
         // Inicialización: configura el precio inicial al cargar la página
-        totalElement.textContent = `€${TARIFA_BASE.toFixed(2)}`;
-        document.getElementById('tarifaBase').textContent = TARIFA_BASE.toFixed(2);
+        document.getElementById('tarifaBase').textContent = BASE.toFixed(2);
+        totalElement.textContent = `€${BASE.toFixed(2)}`;
     </script>
 </body>
 </html>
