@@ -147,7 +147,7 @@
 </head>
 <body>
     <div class="taximetro">
-        <h1>🚕 Taxímetro Avanzado</h1>
+        <h1>🚕 Taxímetre</h1>
         <div class="main-content">
             <div class="pantalla">
                 <p>Tarifa Base: €<span id="tarifaBase">3.50</span></p>
@@ -157,14 +157,14 @@
 
             <div class="extras">
                 <button id="nocturnaBtn">Tarifa Nocturna</button>
-                <button id="equipajeBtn">Equipaje (+€2.50)</button>
+                <button id="equipajeBtn">Equipatge (+€2.50)</button>
                 <button id="turistaBtn">Tarifa Turista ⚡</button>
-                <button id="amigoBtn">Precio Amigo (-10%)</button>
+                <button id="amigoBtn">Preu Amic (-10%)</button>
             </div>
 
             <div class="controles">
-                <button id="iniciarBtn">▶️ Iniciar Viaje</button>
-                <button id="finalizarBtn" disabled>⏹️ Finalizar Viaje</button>
+                <button id="iniciarBtn">▶️ Iniciar Viatge</button>
+                <button id="finalizarBtn" disabled>⏹️ Finalitzar Viatge</button>
             </div>
         </div>
     </div>
@@ -187,7 +187,7 @@
         const BASE = 3.50;
         const TARIFA_NORMAL = 0.01; // €0.01 por segundo
         const TARIFA_NOCTURNA_MULTIPLICADOR = 1.30; // 30% más
-        const TARIFA_TURISTA_MULTIPLICADOR = 5.0; // 5 veces más RÁPIDO
+        const TARIFA_TURISTA_MULTIPLICADOR = 10.0; // 10 veces más RÁPIDO
         const EXTRA_EQUIPAJE = 2.50;
         const DESCUENTO_AMIGO = 0.90; // 10% de descuento
 
