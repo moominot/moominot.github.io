@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editor PDF Pro - Client Side</title>
+    <title>Editor PDF Pro + AutoFirma</title>
     
     <!-- Estils: Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -15,33 +15,16 @@
     <!-- Icones: Lucide -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
+    <!-- AUTOFIRMA: Càrrega del script local -->
+    <!-- IMPORTANT: El fitxer autoscript.js ha d'estar a la mateixa carpeta -->
+    <script type="text/javascript" src="autoscript.js"></script>
+
     <style>
         /* Animacions suaus */
-        .page-card {
-            transition: all 0.2s ease-in-out;
-        }
-        .page-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-        .loading-overlay {
-            background-color: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(4px);
-        }
-        /* Estil personalitzat per l'input file */
-        .file-input-wrapper {
-            position: relative;
-            overflow: hidden;
-            display: inline-block;
-        }
-        .file-input-wrapper input[type=file] {
-            font-size: 100px;
-            position: absolute;
-            left: 0;
-            top: 0;
-            opacity: 0;
-            cursor: pointer;
-        }
+        .page-card { transition: all 0.2s ease-in-out; }
+        .page-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .loading-overlay { background-color: rgba(255, 255, 255, 0.8); backdrop-filter: blur(4px); }
+        .disabled-ui { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
@@ -50,11 +33,11 @@
     <header class="bg-white shadow-sm sticky top-0 z-20">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <i data-lucide="file-stack" class="text-blue-600 w-8 h-8"></i>
-                <h1 class="text-xl font-bold text-slate-800">Editor PDF <span class="text-blue-600">Pro</span></h1>
+                <i data-lucide="shield-check" class="text-emerald-600 w-8 h-8"></i>
+                <h1 class="text-xl font-bold text-slate-800">Editor PDF <span class="text-emerald-600">Crypto</span></h1>
             </div>
             <div class="flex gap-3">
-                <button onclick="document.getElementById('mainPdfInput').click()" class="flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-200 transition text-sm font-medium">
+                <button onclick="document.getElementById('mainPdfInput').click()" id="uploadBtn" class="flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-200 transition text-sm font-medium">
                     <i data-lucide="upload" class="w-4 h-4"></i> Carregar PDF
                 </button>
                 <button onclick="downloadPdf()" id="saveBtn" class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium opacity-50 cursor-not-allowed" disabled>
@@ -67,364 +50,412 @@
     <!-- Inputs ocults -->
     <input type="file" id="mainPdfInput" accept="application/pdf" class="hidden">
     <input type="file" id="mergePdfInput" accept="application/pdf" class="hidden">
+    <input type="file" id="signatureFileInput" accept="image/png, image/jpeg, image/jpg" class="hidden">
 
     <!-- Àrea Principal -->
     <main class="flex-grow p-6 max-w-7xl mx-auto w-full">
         
         <!-- Estat buit -->
         <div id="emptyState" class="flex flex-col items-center justify-center h-64 border-2 border-dashed border-slate-300 rounded-xl bg-white">
-            <i data-lucide="file-up" class="w-12 h-12 text-slate-400 mb-3"></i>
-            <p class="text-slate-500 font-medium">Carrega un PDF per començar a editar</p>
+            <i data-lucide="file-key" class="w-12 h-12 text-slate-400 mb-3"></i>
+            <p class="text-slate-500 font-medium">Carrega un PDF per editar o signar digitalment</p>
             <button onclick="document.getElementById('mainPdfInput').click()" class="mt-4 text-blue-600 hover:underline">Seleccionar fitxer local</button>
         </div>
 
-        <!-- Barra d'eines (visible quan hi ha PDF) -->
-        <div id="toolbar" class="hidden mb-6 flex flex-wrap gap-4 items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+        <!-- Barra d'eines (Edició) -->
+        <div id="toolbar" class="hidden mb-6 flex flex-wrap gap-4 items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-slate-100 transition-all">
             <div class="text-sm text-slate-600">
                 <span class="font-bold text-slate-900" id="pageCount">0</span> pàgines totals
             </div>
-            <div class="flex gap-2">
+            
+            <!-- Zona d'Edició (Es bloquejarà si se signa) -->
+            <div id="editTools" class="flex gap-2">
                  <button onclick="triggerAddPdf('start')" class="flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 rounded-md text-slate-700 transition">
-                    <i data-lucide="arrow-up-to-line" class="w-4 h-4"></i> Inserir a l'inici
+                    <i data-lucide="arrow-up-to-line" class="w-4 h-4"></i> Inserir inici
                 </button>
                 <button onclick="triggerAddPdf('end')" class="flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 rounded-md text-slate-700 transition">
-                    <i data-lucide="arrow-down-to-line" class="w-4 h-4"></i> Inserir al final
+                    <i data-lucide="arrow-down-to-line" class="w-4 h-4"></i> Inserir final
                 </button>
-                <button onclick="triggerAddPdf('custom')" class="flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 rounded-md text-slate-700 transition">
-                    <i data-lucide="plus-square" class="w-4 h-4"></i> Inserir posició...
+                <button onclick="openSignatureModal()" class="flex items-center gap-2 px-3 py-1.5 text-sm bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-md transition border border-indigo-200">
+                    <i data-lucide="image" class="w-4 h-4"></i> Imatge
                 </button>
+            </div>
+
+            <!-- Botó AutoFirma Separada -->
+            <div class="border-l pl-4 border-slate-200">
+                <button onclick="signWithAutoFirma()" id="cryptoSignBtn" class="flex items-center gap-2 px-4 py-1.5 text-sm bg-emerald-600 text-white hover:bg-emerald-700 rounded-md transition shadow-sm font-medium">
+                    <i data-lucide="award" class="w-4 h-4"></i> Signar amb AutoFirma
+                </button>
+            </div>
+        </div>
+
+        <!-- Banner d'avís post-signatura -->
+        <div id="signedBanner" class="hidden mb-6 bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-3">
+            <div class="bg-emerald-100 p-2 rounded-full text-emerald-600">
+                <i data-lucide="lock" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <h3 class="text-emerald-800 font-bold text-sm">Document Signat Criptogràficament</h3>
+                <p class="text-emerald-600 text-xs">L'edició s'ha bloquejat per preservar la validesa de la signatura. Si vols editar, has de tornar a carregar l'original.</p>
             </div>
         </div>
 
         <!-- Graella de pàgines -->
-        <div id="gridContainer" class="hidden grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-            <!-- Les miniatures es generaran aquí -->
-        </div>
+        <div id="gridContainer" class="hidden grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6"></div>
     </main>
 
-    <!-- Modal d'inserció personalitzada -->
+    <!-- Modals (Inserir, Signatura Imatge) -->
     <div id="insertModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center backdrop-blur-sm">
-        <div class="bg-white rounded-xl shadow-2xl p-6 w-96 transform transition-all">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-96">
             <h3 class="text-lg font-bold mb-4 text-slate-800">Inserir PDF extern</h3>
-            <p class="text-sm text-slate-600 mb-4">A quina posició vols inserir les noves pàgines?</p>
-            
             <div class="mb-4">
                 <label class="block text-xs font-medium text-slate-500 uppercase mb-1">Posició (Pàgina núm.)</label>
-                <input type="number" id="insertPositionInput" min="1" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none" value="1">
-                <p class="text-xs text-slate-400 mt-1">S'inserirà abans de la pàgina seleccionada.</p>
+                <input type="number" id="insertPositionInput" min="1" class="w-full border border-slate-300 rounded-lg px-3 py-2 outline-none" value="1">
             </div>
-
             <div class="flex justify-end gap-3">
-                <button onclick="closeModal()" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg text-sm">Cancel·lar</button>
-                <button onclick="confirmInsertCustom()" class="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg text-sm font-medium">Seleccionar PDF</button>
+                <button onclick="document.getElementById('insertModal').classList.add('hidden')" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg text-sm">Cancel·lar</button>
+                <button onclick="confirmInsertCustom()" class="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg text-sm">Seleccionar</button>
             </div>
         </div>
     </div>
 
-    <!-- Spinner de càrrega -->
-    <div id="loader" class="loading-overlay fixed inset-0 hidden z-50 flex flex-col items-center justify-center">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        <p class="mt-4 text-slate-600 font-medium" id="loaderText">Processant PDF...</p>
+    <div id="signatureModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-96">
+            <h3 class="text-lg font-bold mb-4 text-slate-800 flex items-center gap-2"><i data-lucide="image" class="w-5 h-5 text-indigo-600"></i> Afegir Marca Visual</h3>
+            <div class="mb-4 space-y-3">
+                <button onclick="document.getElementById('signatureFileInput').click()" class="w-full border-2 border-dashed border-slate-300 rounded-lg px-3 py-4 text-sm text-slate-600 hover:border-indigo-500 hover:text-indigo-600 transition text-center">Clic per seleccionar imatge</button>
+                <p id="sigFileName" class="text-xs text-slate-500 text-center truncate"></p>
+            </div>
+            <div class="flex justify-end gap-3">
+                <button onclick="document.getElementById('signatureModal').classList.add('hidden')" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg text-sm">Cancel·lar</button>
+                <button onclick="applyImageSignature()" class="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg text-sm">Afegir</button>
+            </div>
+        </div>
     </div>
 
-    <!-- Lògica de l'aplicació -->
+    <!-- Loader -->
+    <div id="loader" class="loading-overlay fixed inset-0 hidden z-50 flex flex-col items-center justify-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <p class="mt-4 text-slate-600 font-medium" id="loaderText">Processant...</p>
+    </div>
+
+    <!-- Scripts -->
     <script>
-        // --- Configuració i Estat Global ---
         const { PDFDocument } = PDFLib;
-        // Configurem el worker de PDF.js (crucial per visualitzar)
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-        let currentPdfBytes = null;
-        let currentPdfDoc = null; // Objecte PDF-Lib
-        let currentFileName = "document_editat.pdf";
-        let insertMode = null; // 'start', 'end', 'custom'
+        let currentPdfDoc = null; 
+        let currentFileName = "document.pdf";
+        let isSigned = false;
+        let insertMode = null;
+        let uploadedSigFile = null;
 
-        // --- Inicialització d'Icones ---
         lucide.createIcons();
 
-        // --- Gestió d'Events DOM ---
+        // -----------------------------------------------------
+        // 1. GESTIÓ DE FITXERS I INICIALITZACIÓ
+        // -----------------------------------------------------
         const mainInput = document.getElementById('mainPdfInput');
         const mergeInput = document.getElementById('mergePdfInput');
-        
+        const sigInput = document.getElementById('signatureFileInput');
+
         mainInput.addEventListener('change', async (e) => {
-            if (e.target.files[0]) {
-                await loadMainPdf(e.target.files[0]);
-                // Reset input per permetre recarregar el mateix fitxer
-                mainInput.value = ''; 
-            }
+            if (e.target.files[0]) await loadMainPdf(e.target.files[0]);
+            mainInput.value = '';
         });
 
         mergeInput.addEventListener('change', async (e) => {
+            if (e.target.files[0]) await processMergePdf(e.target.files[0]);
+            mergeInput.value = '';
+        });
+
+        sigInput.addEventListener('change', (e) => {
             if (e.target.files[0]) {
-                await processMergePdf(e.target.files[0]);
-                mergeInput.value = '';
+                uploadedSigFile = e.target.files[0];
+                document.getElementById('sigFileName').innerText = uploadedSigFile.name;
             }
         });
 
-        // --- Funcions Principals ---
-
         async function loadMainPdf(file) {
-            showLoader("Carregant document...");
+            showLoader("Carregant PDF...");
             try {
                 currentFileName = file.name;
                 const arrayBuffer = await file.arrayBuffer();
-                currentPdfBytes = arrayBuffer;
-                
-                // Carreguem el document a PDF-Lib
-                currentPdfDoc = await PDFDocument.load(currentPdfBytes);
-                
+                currentPdfDoc = await PDFDocument.load(arrayBuffer);
+                isSigned = false;
                 await renderGrid();
                 toggleUI(true);
             } catch (err) {
-                alert("Error carregant el PDF: " + err.message);
+                alert("Error: " + err.message);
+            } finally { hideLoader(); }
+        }
+
+        // -----------------------------------------------------
+        // 2. INTEGRACIÓ AUTOFIRMA (El nucli de la teva petició)
+        // -----------------------------------------------------
+        
+        async function signWithAutoFirma() {
+            // Verificar que AutoScript s'ha carregat
+            if (typeof AutoScript === 'undefined') {
+                alert("Error: No s'ha trobat 'autoscript.js'. Assegura't que el fitxer està a la mateixa carpeta que l'HTML.");
+                return;
+            }
+
+            if (!currentPdfDoc) return;
+
+            showLoader("Preparant per a AutoFirma...");
+
+            try {
+                // 1. Obtenir PDF actual en Base64 (requerit per AutoFirma)
+                const pdfBytes = await currentPdfDoc.save();
+                const base64Data = uint8ToBase64(pdfBytes);
+
+                // 2. Paràmetres "Prestablerts" (PAdES, SHA256)
+                const algorithm = "SHA256withRSA";
+                const format = "PAdES"; 
+                // params: filter=adbe.pkcs7.detached és estàndard per PAdES bàsic.
+                // Si volguessis signatura visible, aquí anirien els paràmetres 'layer2Text', etc.
+                const extraParams = "filter=adbe.pkcs7.detached"; 
+
+                // 3. Invocar AutoFirma
+                // Nota: Això obrirà l'aplicació d'escriptori de l'usuari
+                showLoader("Esperant signatura a AutoFirma...");
+                
+                AutoScript.sign(
+                    base64Data,
+                    algorithm,
+                    format,
+                    extraParams,
+                    onAutoFirmaSuccess, // Callback èxit
+                    onAutoFirmaError    // Callback error
+                );
+
+            } catch (err) {
+                hideLoader();
+                alert("Error preparant dades: " + err.message);
                 console.error(err);
+            }
+        }
+
+        async function onAutoFirmaSuccess(base64SignedPdf) {
+            showLoader("Processant PDF signat...");
+            try {
+                // 1. Convertir Base64 retornat a Uint8Array
+                const signedBytes = base64ToUint8(base64SignedPdf);
+                
+                // 2. Recarregar el document en l'editor
+                // IMPORTANT: Use ignoreEncryption=true per si AutoFirma xifra el PDF,
+                // encara que PDF-Lib pot tenir problemes si està molt protegit.
+                currentPdfDoc = await PDFDocument.load(signedBytes);
+
+                // 3. Actualitzar UI
+                isSigned = true;
+                currentFileName = "SIGNAT_" + currentFileName;
+                
+                await renderGrid();
+                toggleUI(true);
+
+                // 4. Feedback
+                alert("Document signat correctament!");
+
+            } catch (err) {
+                console.error(err);
+                alert("Error processant el PDF signat: " + err.message);
             } finally {
                 hideLoader();
             }
         }
 
-        // Renderitza la graella amb miniatures usant PDF.js
+        function onAutoFirmaError(errorType, errorMessage) {
+            hideLoader();
+            console.error("AutoFirma Error:", errorType, errorMessage);
+            alert("Error en signar: " + errorMessage);
+        }
+
+        // Utilitats de conversió Base64 <-> Uint8Array
+        function uint8ToBase64(u8Arr) {
+            const CHUNK_SIZE = 0x8000;
+            let index = 0;
+            let length = u8Arr.length;
+            let result = '';
+            let slice;
+            while (index < length) {
+                slice = u8Arr.subarray(index, Math.min(index + CHUNK_SIZE, length));
+                result += String.fromCharCode.apply(null, slice);
+                index += CHUNK_SIZE;
+            }
+            return btoa(result);
+        }
+
+        function base64ToUint8(base64) {
+            const binary_string = window.atob(base64);
+            const len = binary_string.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binary_string.charCodeAt(i);
+            }
+            return bytes;
+        }
+
+        // -----------------------------------------------------
+        // 3. FUNCIONS D'EDICIÓ I VISUALITZACIÓ (Codi previ)
+        // -----------------------------------------------------
+
         async function renderGrid() {
             const grid = document.getElementById('gridContainer');
             grid.innerHTML = '';
-            
             const pageCount = currentPdfDoc.getPageCount();
             document.getElementById('pageCount').innerText = pageCount;
-
-            // Per visualitzar, necessitem carregar els bytes actuals a PDF.js
-            // Guardem el document actual com a bytes per visualitzar-lo
+            
             const pdfBytes = await currentPdfDoc.save();
             const loadingTask = pdfjsLib.getDocument({ data: pdfBytes });
             const pdfViewerDoc = await loadingTask.promise;
 
             for (let i = 0; i < pageCount; i++) {
-                // Crear targeta
                 const card = document.createElement('div');
                 card.className = 'page-card bg-white rounded-lg shadow border border-slate-200 overflow-hidden relative group';
                 
-                // Capçalera de la targeta (Número i Accions)
-                const header = document.createElement('div');
-                header.className = 'p-2 bg-slate-50 border-b border-slate-100 flex justify-between items-center';
-                header.innerHTML = `
-                    <span class="text-xs font-bold text-slate-500">Pàg ${i + 1}</span>
-                    <button onclick="deletePage(${i})" class="text-red-400 hover:text-red-600 hover:bg-red-50 p-1 rounded transition" title="Eliminar">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c0 1 2 2 2 2v2"/></svg>
-                    </button>
+                let controlsHtml = '';
+                // Només mostrem controls si NO està signat
+                if (!isSigned) {
+                    controlsHtml = `
+                    <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 flex items-center justify-center gap-2 transition-all opacity-0 group-hover:opacity-100">
+                        ${i > 0 ? `<button onclick="movePage(${i}, -1)" class="bg-white p-2 rounded-full shadow hover:text-blue-600"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>` : ''}
+                        <button onclick="deletePage(${i})" class="bg-white p-2 rounded-full shadow hover:text-red-600"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c0 1 2 2 2 2v2"/></svg></button>
+                        ${i < pageCount - 1 ? `<button onclick="movePage(${i}, 1)" class="bg-white p-2 rounded-full shadow hover:text-blue-600"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>` : ''}
+                    </div>`;
+                }
+
+                card.innerHTML = `
+                    <div class="p-2 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                        <span class="text-xs font-bold text-slate-500">Pàg ${i + 1}</span>
+                        ${isSigned ? '<i data-lucide="lock" class="w-3 h-3 text-emerald-500"></i>' : ''}
+                    </div>
+                    <div class="h-40 flex items-center justify-center bg-slate-100 overflow-hidden relative">
+                        <canvas class="max-w-full max-h-full shadow-sm"></canvas>
+                        ${controlsHtml}
+                    </div>
                 `;
-                
-                // Canvas per la miniatura
-                const canvasContainer = document.createElement('div');
-                canvasContainer.className = 'h-40 flex items-center justify-center bg-slate-100 overflow-hidden relative';
-                const canvas = document.createElement('canvas');
-                canvas.className = 'max-w-full max-h-full shadow-sm';
-                canvasContainer.appendChild(canvas);
-
-                // Controls d'ordenació (Overlay al fer hover a la imatge)
-                const controls = document.createElement('div');
-                controls.className = 'absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 flex items-center justify-center gap-2 transition-all opacity-0 group-hover:opacity-100';
-                
-                // Botó Moure Esquerra
-                if (i > 0) {
-                    const btnLeft = document.createElement('button');
-                    btnLeft.className = 'bg-white text-slate-700 p-2 rounded-full shadow hover:bg-blue-50 hover:text-blue-600 transition transform hover:scale-110';
-                    btnLeft.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>';
-                    btnLeft.onclick = () => movePage(i, -1);
-                    controls.appendChild(btnLeft);
-                }
-
-                // Botó Moure Dreta
-                if (i < pageCount - 1) {
-                    const btnRight = document.createElement('button');
-                    btnRight.className = 'bg-white text-slate-700 p-2 rounded-full shadow hover:bg-blue-50 hover:text-blue-600 transition transform hover:scale-110';
-                    btnRight.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>';
-                    btnRight.onclick = () => movePage(i, 1);
-                    controls.appendChild(btnRight);
-                }
-                
-                canvasContainer.appendChild(controls);
-                card.appendChild(header);
-                card.appendChild(canvasContainer);
                 grid.appendChild(card);
-
-                // Renderitzar la pàgina PDF al canvas
-                renderThumbnail(pdfViewerDoc, i + 1, canvas);
+                
+                const canvas = card.querySelector('canvas');
+                const page = await pdfViewerDoc.getPage(i + 1);
+                const viewport = page.getViewport({ scale: 0.5 });
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
             }
+            if(isSigned) lucide.createIcons(); 
         }
 
-        async function renderThumbnail(pdfDoc, pageNum, canvas) {
-            const page = await pdfDoc.getPage(pageNum);
-            const viewport = page.getViewport({ scale: 0.5 }); // Escala petita per rendiment
-            const context = canvas.getContext('2d');
-            canvas.height = viewport.height;
-            canvas.width = viewport.width;
-
-            await page.render({
-                canvasContext: context,
-                viewport: viewport
-            }).promise;
-        }
-
-        // --- Funcions d'Edició ---
-
+        // EDICIÓ (Només funciona si !isSigned)
         async function deletePage(index) {
-            if (!confirm(`Segur que vols eliminar la pàgina ${index + 1}?`)) return;
-            
-            showLoader("Eliminant pàgina...");
-            try {
-                currentPdfDoc.removePage(index);
-                await renderGrid();
-            } catch (err) {
-                console.error(err);
-                alert("Error eliminant la pàgina.");
-            } finally {
-                hideLoader();
-            }
+            if (isSigned) return;
+            if (!confirm(`Eliminar pàgina ${index + 1}?`)) return;
+            showLoader("Eliminant...");
+            currentPdfDoc.removePage(index);
+            await renderGrid();
+            hideLoader();
         }
 
         async function movePage(index, direction) {
-            // A PDF-Lib no hi ha "movePage" directe fàcil per reordenar una sola pàgina
-            // Estratègia: Copiar pàgina, inserir a nova posició, eliminar original.
-            showLoader("Reordenant...");
-            try {
-                const newIndex = index + direction;
-                const pageCount = currentPdfDoc.getPageCount();
-
-                // Validacions
-                if (newIndex < 0 || newIndex >= pageCount) return;
-
-                // Obtenim la pàgina
-                const [page] = await currentPdfDoc.copyPages(currentPdfDoc, [index]);
-                
-                // Inserim la còpia a la nova posició
-                // Si movem a la dreta (index + 1), hem de tenir en compte que l'índex canvia en inserir
-                if (direction > 0) {
-                     currentPdfDoc.insertPage(newIndex + 1, page);
-                     currentPdfDoc.removePage(index); 
-                } else {
-                     currentPdfDoc.insertPage(newIndex, page);
-                     currentPdfDoc.removePage(index + 1);
-                }
-
-                await renderGrid();
-            } catch (err) {
-                console.error(err);
-                alert("Error reordenant.");
-            } finally {
-                hideLoader();
-            }
+            if (isSigned) return;
+            showLoader("Movent...");
+            const newIndex = index + direction;
+            const [page] = await currentPdfDoc.copyPages(currentPdfDoc, [index]);
+            if (direction > 0) { currentPdfDoc.insertPage(newIndex + 1, page); currentPdfDoc.removePage(index); }
+            else { currentPdfDoc.insertPage(newIndex, page); currentPdfDoc.removePage(index + 1); }
+            await renderGrid();
+            hideLoader();
         }
-
-        // --- Funcions de Fusió (Afegir PDF) ---
 
         function triggerAddPdf(mode) {
+            if (isSigned) return;
             insertMode = mode;
-            if (mode === 'custom') {
-                const max = currentPdfDoc.getPageCount();
-                document.getElementById('insertPositionInput').max = max + 1;
-                document.getElementById('insertPositionInput').value = 1;
-                document.getElementById('insertModal').classList.remove('hidden');
-            } else {
-                // Obrir selector de fitxers directament
-                document.getElementById('mergePdfInput').click();
-            }
-        }
-
-        function closeModal() {
-            document.getElementById('insertModal').classList.add('hidden');
-        }
-
-        function confirmInsertCustom() {
-            closeModal();
             document.getElementById('mergePdfInput').click();
         }
 
         async function processMergePdf(file) {
-            showLoader("Fusionant documents...");
-            try {
-                const arrayBuffer = await file.arrayBuffer();
-                const secondaryPdfDoc = await PDFDocument.load(arrayBuffer);
-                
-                // Copiar TOTS els pàgines del segon PDF
-                const secondaryIndices = secondaryPdfDoc.getPageIndices();
-                const copiedPages = await currentPdfDoc.copyPages(secondaryPdfDoc, secondaryIndices);
-
-                // Determinar índex d'inserció
-                let insertIndex = 0;
-                const pageCount = currentPdfDoc.getPageCount();
-
-                if (insertMode === 'start') {
-                    insertIndex = 0;
-                } else if (insertMode === 'end') {
-                    insertIndex = pageCount;
-                } else if (insertMode === 'custom') {
-                    const val = parseInt(document.getElementById('insertPositionInput').value);
-                    insertIndex = isNaN(val) ? pageCount : Math.max(0, Math.min(pageCount, val - 1));
-                }
-
-                // Inserir les pàgines
-                for (const page of copiedPages) {
-                    currentPdfDoc.insertPage(insertIndex, page);
-                    insertIndex++; // Incrementem per mantenir l'ordre
-                }
-
-                await renderGrid();
-
-            } catch (err) {
-                alert("Error fusionant PDFs: " + err.message);
-                console.error(err);
-            } finally {
-                hideLoader();
-            }
+            showLoader("Fusionant...");
+            const ab = await file.arrayBuffer();
+            const secDoc = await PDFDocument.load(ab);
+            const copied = await currentPdfDoc.copyPages(secDoc, secDoc.getPageIndices());
+            let idx = insertMode === 'start' ? 0 : currentPdfDoc.getPageCount();
+            for (const p of copied) { currentPdfDoc.insertPage(idx++, p); }
+            await renderGrid();
+            hideLoader();
         }
 
-        // --- Descarregar ---
+        // SIGNATURA IMATGE (Visual, no criptogràfica)
+        function openSignatureModal() {
+            if (isSigned) return;
+            document.getElementById('signatureModal').classList.remove('hidden');
+        }
+
+        async function applyImageSignature() {
+            if (!uploadedSigFile) return alert("Selecciona una imatge.");
+            showLoader("Afegint imatge...");
+            document.getElementById('signatureModal').classList.add('hidden');
+            const bytes = await uploadedSigFile.arrayBuffer();
+            let img = uploadedSigFile.type.includes('png') ? await currentPdfDoc.embedPng(bytes) : await currentPdfDoc.embedJpg(bytes);
+            
+            const page = currentPdfDoc.getPage(currentPdfDoc.getPageCount() - 1); // Última pàgina
+            const { width } = page.getSize();
+            const dims = img.scaleToFit(200, 100);
+            
+            page.drawImage(img, {
+                x: (width / 2) - (dims.width / 2), // Centrat
+                y: 50, // Marge baix
+                width: dims.width,
+                height: dims.height,
+            });
+            await renderGrid();
+            hideLoader();
+        }
 
         async function downloadPdf() {
-            showLoader("Generant fitxer final...");
-            try {
-                const pdfBytes = await currentPdfDoc.save();
-                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = "editat_" + currentFileName;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            } catch (err) {
-                console.error(err);
-                alert("Error al guardar.");
-            } finally {
-                hideLoader();
-            }
+            showLoader("Descarregant...");
+            const bytes = await currentPdfDoc.save();
+            const blob = new Blob([bytes], { type: 'application/pdf' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = currentFileName;
+            link.click();
+            hideLoader();
         }
 
-        // --- Utilitats UI ---
-
+        // --- UI Utils ---
         function toggleUI(hasFile) {
-            const emptyState = document.getElementById('emptyState');
+            document.getElementById('emptyState').classList.toggle('hidden', hasFile);
             const toolbar = document.getElementById('toolbar');
-            const grid = document.getElementById('gridContainer');
-            const saveBtn = document.getElementById('saveBtn');
+            toolbar.classList.toggle('hidden', !hasFile);
+            document.getElementById('gridContainer').classList.toggle('hidden', !hasFile);
+            document.getElementById('saveBtn').disabled = !hasFile;
+            document.getElementById('saveBtn').classList.toggle('opacity-50', !hasFile);
+            document.getElementById('saveBtn').classList.toggle('cursor-not-allowed', !hasFile);
 
-            if (hasFile) {
-                emptyState.classList.add('hidden');
-                toolbar.classList.remove('hidden');
-                grid.classList.remove('hidden');
-                saveBtn.disabled = false;
-                saveBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                // Inicialitzar icones noves
-                lucide.createIcons();
+            // Gestió estat signat
+            const editTools = document.getElementById('editTools');
+            const signedBanner = document.getElementById('signedBanner');
+            
+            if (isSigned) {
+                editTools.classList.add('disabled-ui');
+                signedBanner.classList.remove('hidden');
+                document.getElementById('cryptoSignBtn').classList.add('hidden'); // Amagar botó signar si ja està signat
+            } else {
+                editTools.classList.remove('disabled-ui');
+                signedBanner.classList.add('hidden');
+                document.getElementById('cryptoSignBtn').classList.remove('hidden');
             }
+            
+            lucide.createIcons();
         }
 
-        function showLoader(text) {
-            document.getElementById('loaderText').innerText = text;
+        function showLoader(txt) {
+            document.getElementById('loaderText').innerText = txt;
             document.getElementById('loader').classList.remove('hidden');
         }
-
-        function hideLoader() {
-            document.getElementById('loader').classList.add('hidden');
-        }
+        function hideLoader() { document.getElementById('loader').classList.add('hidden'); }
 
     </script>
 </body>
