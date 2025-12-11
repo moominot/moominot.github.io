@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor PDF Pro - Client Side</title>
+    
+    <!-- Estils: Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Llibreries: PDF-Lib (Edició) i PDF.js (Visualització) -->
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    
+    <!-- Icones: Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* Animacions suaus */
+        .page-card {
+            transition: all 0.2s ease-in-out;
+        }
+        .page-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .loading-overlay {
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(4px);
+        }
+        /* Estil personalitzat per l'input file */
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        .file-input-wrapper input[type=file] {
+            font-size: 100px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+
+    <!-- Capçalera -->
+    <header class="bg-white shadow-sm sticky top-0 z-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <i data-lucide="file-stack" class="text-blue-600 w-8 h-8"></i>
+                <h1 class="text-xl font-bold text-slate-800">Editor PDF <span class="text-blue-600">Pro</span></h1>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="document.getElementById('mainPdfInput').click()" class="flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-200 transition text-sm font-medium">
+                    <i data-lucide="upload" class="w-4 h-4"></i> Carregar PDF
+                </button>
+                <button onclick="downloadPdf()" id="saveBtn" class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium opacity-50 cursor-not-allowed" disabled>
+                    <i data-lucide="save" class="w-4 h-4"></i> Descarregar
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Inputs ocults -->
+    <input type="file" id="mainPdfInput" accept="application/pdf" class="hidden">
+    <input type="file" id="mergePdfInput" accept="application/pdf" class="hidden">
+
+    <!-- Àrea Principal -->
+    <main class="flex-grow p-6 max-w-7xl mx-auto w-full">
+        
+        <!-- Estat buit -->
+        <div id="emptyState" class="flex flex-col items-center justify-center h-64 border-2 border-dashed border-slate-300 rounded-xl bg-white">
+            <i data-lucide="file-up" class="w-12 h-12 text-slate-400 mb-3"></i>
+            <p class="text-slate-500 font-medium">Carrega un PDF per començar a editar</p>
+            <button onclick="document.getElementById('mainPdfInput').click()" class="mt-4 text-blue-600 hover:underline">Seleccionar fitxer local</button>
+        </div>
+
+        <!-- Barra d'eines (visible quan hi ha PDF) -->
+        <div id="toolbar" class="hidden mb-6 flex flex-wrap gap-4 items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+            <div class="text-sm text-slate-600">
+                <span class="font-bold text-slate-900" id="pageCount">0</span> pàgines totals
+            </div>
+            <div class="flex gap-2">
+                 <button onclick="triggerAddPdf('start')" class="flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 rounded-md text-slate-700 transition">
+                    <i data-lucide="arrow-up-to-line" class="w-4 h-4"></i> Inserir a l'inici
+                </button>
+                <button onclick="triggerAddPdf('end')" class="flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 rounded-md text-slate-700 transition">
+                    <i data-lucide="arrow-down-to-line" class="w-4 h-4"></i> Inserir al final
+                </button>
+                <button onclick="triggerAddPdf('custom')" class="flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 rounded-md text-slate-700 transition">
+                    <i data-lucide="plus-square" class="w-4 h-4"></i> Inserir posició...
+                </button>
+            </div>
+        </div>
+
+        <!-- Graella de pàgines -->
+        <div id="gridContainer" class="hidden grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+            <!-- Les miniatures es generaran aquí -->
+        </div>
+    </main>
+
+    <!-- Modal d'inserció personalitzada -->
+    <div id="insertModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-96 transform transition-all">
+            <h3 class="text-lg font-bold mb-4 text-slate-800">Inserir PDF extern</h3>
+            <p class="text-sm text-slate-600 mb-4">A quina posició vols inserir les noves pàgines?</p>
+            
+            <div class="mb-4">
+                <label class="block text-xs font-medium text-slate-500 uppercase mb-1">Posició (Pàgina núm.)</label>
+                <input type="number" id="insertPositionInput" min="1" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none" value="1">
+                <p class="text-xs text-slate-400 mt-1">S'inserirà abans de la pàgina seleccionada.</p>
+            </div>
+
+            <div class="flex justify-end gap-3">
+                <button onclick="closeModal()" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg text-sm">Cancel·lar</button>
+                <button onclick="confirmInsertCustom()" class="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg text-sm font-medium">Seleccionar PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Spinner de càrrega -->
+    <div id="loader" class="loading-overlay fixed inset-0 hidden z-50 flex flex-col items-center justify-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <p class="mt-4 text-slate-600 font-medium" id="loaderText">Processant PDF...</p>
+    </div>
+
+    <!-- Lògica de l'aplicació -->
+    <script>
+        // --- Configuració i Estat Global ---
+        const { PDFDocument } = PDFLib;
+        // Configurem el worker de PDF.js (crucial per visualitzar)
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        let currentPdfBytes = null;
+        let currentPdfDoc = null; // Objecte PDF-Lib
+        let currentFileName = "document_editat.pdf";
+        let insertMode = null; // 'start', 'end', 'custom'
+
+        // --- Inicialització d'Icones ---
+        lucide.createIcons();
+
+        // --- Gestió d'Events DOM ---
+        const mainInput = document.getElementById('mainPdfInput');
+        const mergeInput = document.getElementById('mergePdfInput');
+        
+        mainInput.addEventListener('change', async (e) => {
+            if (e.target.files[0]) {
+                await loadMainPdf(e.target.files[0]);
+                // Reset input per permetre recarregar el mateix fitxer
+                mainInput.value = ''; 
+            }
+        });
+
+        mergeInput.addEventListener('change', async (e) => {
+            if (e.target.files[0]) {
+                await processMergePdf(e.target.files[0]);
+                mergeInput.value = '';
+            }
+        });
+
+        // --- Funcions Principals ---
+
+        async function loadMainPdf(file) {
+            showLoader("Carregant document...");
+            try {
+                currentFileName = file.name;
+                const arrayBuffer = await file.arrayBuffer();
+                currentPdfBytes = arrayBuffer;
+                
+                // Carreguem el document a PDF-Lib
+                currentPdfDoc = await PDFDocument.load(currentPdfBytes);
+                
+                await renderGrid();
+                toggleUI(true);
+            } catch (err) {
+                alert("Error carregant el PDF: " + err.message);
+                console.error(err);
+            } finally {
+                hideLoader();
+            }
+        }
+
+        // Renderitza la graella amb miniatures usant PDF.js
+        async function renderGrid() {
+            const grid = document.getElementById('gridContainer');
+            grid.innerHTML = '';
+            
+            const pageCount = currentPdfDoc.getPageCount();
+            document.getElementById('pageCount').innerText = pageCount;
+
+            // Per visualitzar, necessitem carregar els bytes actuals a PDF.js
+            // Guardem el document actual com a bytes per visualitzar-lo
+            const pdfBytes = await currentPdfDoc.save();
+            const loadingTask = pdfjsLib.getDocument({ data: pdfBytes });
+            const pdfViewerDoc = await loadingTask.promise;
+
+            for (let i = 0; i < pageCount; i++) {
+                // Crear targeta
+                const card = document.createElement('div');
+                card.className = 'page-card bg-white rounded-lg shadow border border-slate-200 overflow-hidden relative group';
+                
+                // Capçalera de la targeta (Número i Accions)
+                const header = document.createElement('div');
+                header.className = 'p-2 bg-slate-50 border-b border-slate-100 flex justify-between items-center';
+                header.innerHTML = `
+                    <span class="text-xs font-bold text-slate-500">Pàg ${i + 1}</span>
+                    <button onclick="deletePage(${i})" class="text-red-400 hover:text-red-600 hover:bg-red-50 p-1 rounded transition" title="Eliminar">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c0 1 2 2 2 2v2"/></svg>
+                    </button>
+                `;
+                
+                // Canvas per la miniatura
+                const canvasContainer = document.createElement('div');
+                canvasContainer.className = 'h-40 flex items-center justify-center bg-slate-100 overflow-hidden relative';
+                const canvas = document.createElement('canvas');
+                canvas.className = 'max-w-full max-h-full shadow-sm';
+                canvasContainer.appendChild(canvas);
+
+                // Controls d'ordenació (Overlay al fer hover a la imatge)
+                const controls = document.createElement('div');
+                controls.className = 'absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 flex items-center justify-center gap-2 transition-all opacity-0 group-hover:opacity-100';
+                
+                // Botó Moure Esquerra
+                if (i > 0) {
+                    const btnLeft = document.createElement('button');
+                    btnLeft.className = 'bg-white text-slate-700 p-2 rounded-full shadow hover:bg-blue-50 hover:text-blue-600 transition transform hover:scale-110';
+                    btnLeft.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>';
+                    btnLeft.onclick = () => movePage(i, -1);
+                    controls.appendChild(btnLeft);
+                }
+
+                // Botó Moure Dreta
+                if (i < pageCount - 1) {
+                    const btnRight = document.createElement('button');
+                    btnRight.className = 'bg-white text-slate-700 p-2 rounded-full shadow hover:bg-blue-50 hover:text-blue-600 transition transform hover:scale-110';
+                    btnRight.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>';
+                    btnRight.onclick = () => movePage(i, 1);
+                    controls.appendChild(btnRight);
+                }
+                
+                canvasContainer.appendChild(controls);
+                card.appendChild(header);
+                card.appendChild(canvasContainer);
+                grid.appendChild(card);
+
+                // Renderitzar la pàgina PDF al canvas
+                renderThumbnail(pdfViewerDoc, i + 1, canvas);
+            }
+        }
+
+        async function renderThumbnail(pdfDoc, pageNum, canvas) {
+            const page = await pdfDoc.getPage(pageNum);
+            const viewport = page.getViewport({ scale: 0.5 }); // Escala petita per rendiment
+            const context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            await page.render({
+                canvasContext: context,
+                viewport: viewport
+            }).promise;
+        }
+
+        // --- Funcions d'Edició ---
+
+        async function deletePage(index) {
+            if (!confirm(`Segur que vols eliminar la pàgina ${index + 1}?`)) return;
+            
+            showLoader("Eliminant pàgina...");
+            try {
+                currentPdfDoc.removePage(index);
+                await renderGrid();
+            } catch (err) {
+                console.error(err);
+                alert("Error eliminant la pàgina.");
+            } finally {
+                hideLoader();
+            }
+        }
+
+        async function movePage(index, direction) {
+            // A PDF-Lib no hi ha "movePage" directe fàcil per reordenar una sola pàgina
+            // Estratègia: Copiar pàgina, inserir a nova posició, eliminar original.
+            showLoader("Reordenant...");
+            try {
+                const newIndex = index + direction;
+                const pageCount = currentPdfDoc.getPageCount();
+
+                // Validacions
+                if (newIndex < 0 || newIndex >= pageCount) return;
+
+                // Obtenim la pàgina
+                const [page] = await currentPdfDoc.copyPages(currentPdfDoc, [index]);
+                
+                // Inserim la còpia a la nova posició
+                // Si movem a la dreta (index + 1), hem de tenir en compte que l'índex canvia en inserir
+                if (direction > 0) {
+                     currentPdfDoc.insertPage(newIndex + 1, page);
+                     currentPdfDoc.removePage(index); 
+                } else {
+                     currentPdfDoc.insertPage(newIndex, page);
+                     currentPdfDoc.removePage(index + 1);
+                }
+
+                await renderGrid();
+            } catch (err) {
+                console.error(err);
+                alert("Error reordenant.");
+            } finally {
+                hideLoader();
+            }
+        }
+
+        // --- Funcions de Fusió (Afegir PDF) ---
+
+        function triggerAddPdf(mode) {
+            insertMode = mode;
+            if (mode === 'custom') {
+                const max = currentPdfDoc.getPageCount();
+                document.getElementById('insertPositionInput').max = max + 1;
+                document.getElementById('insertPositionInput').value = 1;
+                document.getElementById('insertModal').classList.remove('hidden');
+            } else {
+                // Obrir selector de fitxers directament
+                document.getElementById('mergePdfInput').click();
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('insertModal').classList.add('hidden');
+        }
+
+        function confirmInsertCustom() {
+            closeModal();
+            document.getElementById('mergePdfInput').click();
+        }
+
+        async function processMergePdf(file) {
+            showLoader("Fusionant documents...");
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const secondaryPdfDoc = await PDFDocument.load(arrayBuffer);
+                
+                // Copiar TOTS els pàgines del segon PDF
+                const secondaryIndices = secondaryPdfDoc.getPageIndices();
+                const copiedPages = await currentPdfDoc.copyPages(secondaryPdfDoc, secondaryIndices);
+
+                // Determinar índex d'inserció
+                let insertIndex = 0;
+                const pageCount = currentPdfDoc.getPageCount();
+
+                if (insertMode === 'start') {
+                    insertIndex = 0;
+                } else if (insertMode === 'end') {
+                    insertIndex = pageCount;
+                } else if (insertMode === 'custom') {
+                    const val = parseInt(document.getElementById('insertPositionInput').value);
+                    insertIndex = isNaN(val) ? pageCount : Math.max(0, Math.min(pageCount, val - 1));
+                }
+
+                // Inserir les pàgines
+                for (const page of copiedPages) {
+                    currentPdfDoc.insertPage(insertIndex, page);
+                    insertIndex++; // Incrementem per mantenir l'ordre
+                }
+
+                await renderGrid();
+
+            } catch (err) {
+                alert("Error fusionant PDFs: " + err.message);
+                console.error(err);
+            } finally {
+                hideLoader();
+            }
+        }
+
+        // --- Descarregar ---
+
+        async function downloadPdf() {
+            showLoader("Generant fitxer final...");
+            try {
+                const pdfBytes = await currentPdfDoc.save();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = "editat_" + currentFileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (err) {
+                console.error(err);
+                alert("Error al guardar.");
+            } finally {
+                hideLoader();
+            }
+        }
+
+        // --- Utilitats UI ---
+
+        function toggleUI(hasFile) {
+            const emptyState = document.getElementById('emptyState');
+            const toolbar = document.getElementById('toolbar');
+            const grid = document.getElementById('gridContainer');
+            const saveBtn = document.getElementById('saveBtn');
+
+            if (hasFile) {
+                emptyState.classList.add('hidden');
+                toolbar.classList.remove('hidden');
+                grid.classList.remove('hidden');
+                saveBtn.disabled = false;
+                saveBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                // Inicialitzar icones noves
+                lucide.createIcons();
+            }
+        }
+
+        function showLoader(text) {
+            document.getElementById('loaderText').innerText = text;
+            document.getElementById('loader').classList.remove('hidden');
+        }
+
+        function hideLoader() {
+            document.getElementById('loader').classList.add('hidden');
+        }
+
+    </script>
+</body>
+</html>
