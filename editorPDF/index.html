@@ -244,7 +244,12 @@
     <!-- Scripts -->
     <!-- Carreguem l'autoscript.js. Si falla (404), ho detectem -->
     <script type="text/javascript" src="autoscript.js" onerror="document.getElementById('scriptMissingAlert').classList.remove('hidden')"></script>
+  <script>
+  
+			AutoScript.cargarAppAfirma();
 
+
+  </script>
     <script>
         const { PDFDocument } = PDFLib;
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
