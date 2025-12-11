@@ -27,8 +27,8 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
 
-    <!-- Contenidor AutoScript -->
-    <div id="appletContainer" style="display:none"></div>
+    <!-- Contenidor AutoScript (Invisible però vital) -->
+    <div id="appletContainer" style="width:1px; height:1px; position:absolute; top:-100px;"></div>
 
     <!-- Capçalera -->
     <header class="bg-white shadow-sm sticky top-0 z-20">
@@ -48,12 +48,45 @@
         </div>
     </header>
 
-    <!-- Avís Protocol -->
-    <div id="protocolWarning" class="hidden bg-amber-50 border-b border-amber-200 px-4 py-2">
-        <div class="max-w-7xl mx-auto flex items-center gap-2 text-amber-800 text-sm font-medium">
-            <i data-lucide="alert-triangle" class="w-4 h-4"></i>
-            Avís: Estàs executant en local (file://). AutoFirma requereix un servidor local (http://localhost) per funcionar.
+    <!-- ALERTA DE PROTOCOL FILE:// (Només surt si es prova en local malament) -->
+    <div id="fileProtocolAlert" class="hidden fixed inset-0 z-[100] bg-gray-900 bg-opacity-95 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full p-8 text-center">
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-6">
+                <i data-lucide="alert-octagon" class="h-10 w-10 text-red-600"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Error: Execució Local (file://)</h2>
+            <p class="text-gray-600 mb-6 text-lg">
+                AutoFirma no funciona si obres el fitxer directament des del disc dur per motius de seguretat del navegador.
+            </p>
+            <div class="bg-blue-50 text-blue-800 p-4 rounded-lg text-left text-sm mb-6">
+                <p class="font-bold mb-2">Solució Recomanada:</p>
+                <ul class="list-disc pl-5 space-y-1">
+                    <li>Ja que has decidit usar <strong>GitHub Pages</strong>, puja aquest fitxer allà.</li>
+                    <li>Quan s'executi des de <code>https://el-teu-usuari.github.io/...</code> funcionarà perfectament.</li>
+                </ul>
+            </div>
+            <button onclick="document.getElementById('fileProtocolAlert').classList.add('hidden')" class="mt-6 bg-gray-200 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-300 font-medium">
+                Tancar avís
+            </button>
         </div>
+    </div>
+
+    <!-- Alerta Autoscript no trobat -->
+    <div id="scriptMissingAlert" class="hidden bg-red-50 border-b border-red-200 px-4 py-2">
+        <div class="max-w-7xl mx-auto flex items-center gap-2 text-red-800 text-sm font-medium">
+            <i data-lucide="file-warning" class="w-4 h-4"></i>
+            Error: No s'ha trobat "autoscript.js". Recorda pujar aquest fitxer al teu repositori de GitHub al costat de l'HTML.
+        </div>
+    </div>
+
+    <!-- Estat de Connexió AutoFirma -->
+    <div id="afConnectionStatus" class="bg-slate-100 border-b border-slate-200 px-4 py-1 text-xs flex justify-between items-center">
+        <span class="flex items-center gap-2">
+            Estat AutoFirma: 
+            <span id="afStatusDot" class="w-2 h-2 rounded-full bg-gray-400"></span>
+            <span id="afStatusText" class="text-gray-500">Iniciant...</span>
+        </span>
+        <button onclick="initializeAutoFirma()" class="text-blue-600 hover:underline">Re-intentar connexió</button>
     </div>
 
     <!-- Inputs Ocults -->
@@ -209,7 +242,8 @@
     </div>
 
     <!-- Scripts -->
-    <script type="text/javascript" src="autoscript.js"></script>
+    <!-- Carreguem l'autoscript.js. Si falla (404), ho detectem -->
+    <script type="text/javascript" src="autoscript.js" onerror="document.getElementById('scriptMissingAlert').classList.remove('hidden')"></script>
 
     <script>
         const { PDFDocument } = PDFLib;
@@ -221,6 +255,7 @@
         let isSigned = false;
         let insertMode = null;
         let uploadedSigFile = null;
+        let autoFirmaReady = false; 
 
         // Configuració de Signatura
         let signatureConfig = {
@@ -231,13 +266,59 @@
 
         lucide.createIcons();
         
-        if (window.location.protocol === 'file:') document.getElementById('protocolWarning').classList.remove('hidden');
-
+        // --- 1. DETECCIÓ D'ENTORN ---
         window.onload = function() {
-            if (window.AutoScript && typeof window.AutoScript.cargarApplet === 'function') {
-                try { window.AutoScript.cargarApplet("appletContainer"); } catch (e) {}
+            // Detecció protocol insegur (només per avisar, a GitHub Pages serà https:)
+            if (window.location.protocol === 'file:') {
+                document.getElementById('fileProtocolAlert').classList.remove('hidden');
+            } else {
+                // Si estem en HTTP/HTTPS, intentem connectar
+                initializeAutoFirma();
             }
         };
+
+        // --- 2. INICIALITZACIÓ ROBUSTA D'AUTOFIRMA ---
+        function initializeAutoFirma() {
+            updateAfStatus('loading', 'Connectant...');
+            
+            if (!window.AutoScript) {
+                // Si encara no existeix l'objecte, pot ser que autoscript.js no s'hagi carregat
+                updateAfStatus('error', 'autoscript.js no detectat');
+                return;
+            }
+
+            if (typeof window.AutoScript.cargarApplet === 'function') {
+                try {
+                    window.AutoScript.cargarApplet("appletContainer");
+                    
+                    // Verificació optimista
+                    setTimeout(() => {
+                        autoFirmaReady = true;
+                        updateAfStatus('success', 'Llest (Esperant signatura)');
+                    }, 1500);
+                    
+                } catch (e) {
+                    console.error("Error init AutoFirma:", e);
+                    updateAfStatus('error', 'Error inicialització');
+                }
+            } else {
+                updateAfStatus('error', 'API AutoScript incorrecta');
+            }
+        }
+
+        function updateAfStatus(type, text) {
+            const dot = document.getElementById('afStatusDot');
+            const txt = document.getElementById('afStatusText');
+            txt.innerText = text;
+            
+            if (type === 'loading') {
+                dot.className = 'w-2 h-2 rounded-full bg-yellow-400 animate-pulse';
+            } else if (type === 'success') {
+                dot.className = 'w-2 h-2 rounded-full bg-green-500';
+            } else {
+                dot.className = 'w-2 h-2 rounded-full bg-red-500';
+            }
+        }
 
         // --- EVENTS I GESTIÓ ARXIUS ---
         const mainInput = document.getElementById('mainPdfInput');
@@ -270,7 +351,6 @@
                 currentPdfDoc = await PDFDocument.load(arrayBuffer);
                 isSigned = false;
                 
-                // Reset config signatura
                 signatureConfig = { isDefined: false, pageIndex: -1, rect: null };
                 updateConfigIndicator();
                 
@@ -296,9 +376,8 @@
             const loadingTask = pdfjsLib.getDocument({ data: pdfBytes });
             selectorPdfDoc = await loadingTask.promise;
             
-            // Per defecte anem a l'última o la configurada
             selectorCurrentPage = (signatureConfig.pageIndex >= 0) ? signatureConfig.pageIndex + 1 : selectorPdfDoc.numPages;
-            selectionRect = null; // Reiniciem la selecció temporal
+            selectionRect = null; 
             
             document.getElementById('positionSelectorModal').classList.remove('hidden');
             document.getElementById('signatureModal').classList.add('hidden');
@@ -321,10 +400,8 @@
 
             document.getElementById('selectorPageNum').innerText = `Pàg ${selectorCurrentPage} / ${selectorPdfDoc.numPages}`;
 
-            // Renderitzem el PDF
             await page.render({ canvasContext: context, viewport: viewport }).promise;
             
-            // Si teníem una configuració GUARDADA prèviament per aquesta pàgina, la pintem
             if(signatureConfig.pageIndex === selectorCurrentPage - 1 && signatureConfig.rect && !selectionRect) {
                 const pdfH = parseFloat(canvas.dataset.pdfHeight);
                 const scaleX = canvas.width / parseFloat(canvas.dataset.pdfWidth);
@@ -335,11 +412,9 @@
                 const rectW = signatureConfig.rect.w * scaleX;
                 const rectY = (pdfH - (signatureConfig.rect.y + signatureConfig.rect.h)) * scaleY;
                 
-                // Simulem que és la selecció actual per poder editar-la o confirmar-la
                 selectionRect = { x: rectX, y: rectY, w: rectW, h: rectH };
             }
 
-            // Si hi ha una selecció (nova o recuperada), la dibuixem
             if (selectionRect) {
                 drawRectOnCanvas(context, selectionRect);
                 document.getElementById('selectionHint').classList.add('opacity-0');
@@ -360,7 +435,7 @@
             const newPage = selectorCurrentPage + delta;
             if(newPage >= 1 && newPage <= selectorPdfDoc.numPages) {
                 selectorCurrentPage = newPage;
-                selectionRect = null; // En canviar de pàgina, esborrem la selecció
+                selectionRect = null; 
                 renderSelectorPage();
             }
         }
@@ -386,10 +461,9 @@
             selectionRect.w = currentX - startX;
             selectionRect.h = currentY - startY;
             
-            drawOverlay(); // Dibuix ràpid durant l'arrossegament
+            drawOverlay(); 
         });
 
-        // Un únic listener per al final del drag per evitar conflictes
         canvas.addEventListener('mouseup', handleMouseUp);
         canvas.addEventListener('mouseout', handleMouseUp);
 
@@ -397,9 +471,6 @@
             if (!isDragging) return;
             isDragging = false;
             normalizeRect();
-            
-            // Redibuixem la pàgina completa i després pintem el rectangle final
-            // Això assegura que el rectangle es queda fixat
             renderSelectorPage(); 
         }
 
@@ -410,8 +481,6 @@
         }
 
         function drawOverlay() {
-            // "Hack" de rendiment per al mousemove: Dibuixem només el contorn sobre el que hi ha
-            // sense esborrar. Al 'mouseup' ja farem neteja completa amb renderSelectorPage().
             requestAnimationFrame(() => {
                 const ctx = canvas.getContext('2d');
                 ctx.strokeStyle = 'red';
@@ -426,7 +495,6 @@
                 return;
             }
 
-            // CONVERSIÓ DE COORDENADES (Canvas -> PDF)
             const pdfW = parseFloat(canvas.dataset.pdfWidth);
             const pdfH = parseFloat(canvas.dataset.pdfHeight);
             const scaleX = pdfW / canvas.width;
@@ -436,12 +504,11 @@
             const rectH = selectionRect.h * scaleY;
             const rectX = selectionRect.x * scaleX;
             
-            // Càlcul Y: PDF Y és distància des de baix.
             const rectY = pdfH - (selectionRect.y * scaleY) - rectH;
 
             signatureConfig = {
                 isDefined: true,
-                pageIndex: selectorCurrentPage - 1, // Base 0
+                pageIndex: selectorCurrentPage - 1, 
                 rect: { 
                     x: Math.round(rectX), 
                     y: Math.round(rectY), 
@@ -491,7 +558,7 @@
 
         // --- APLICAR SIGNATURA ---
 
-        // 1. VISUAL (Sense AutoFirma, només PDF-Lib)
+        // 1. VISUAL 
         async function applyImageSignatureVisualOnly() {
             if (!uploadedSigFile) return alert("Selecciona una imatge.");
             showLoader("Afegint imatge...");
@@ -525,9 +592,21 @@
             hideLoader();
         }
 
-        // 2. CRIPTOGRÀFICA (AutoFirma)
+        // 2. CRIPTOGRÀFICA 
         async function signWithAutoFirma() {
+            if (window.location.protocol === 'file:') {
+                alert("Error: No es pot signar des de file://. Publica a GitHub Pages.");
+                return;
+            }
+
             if (!window.AutoScript) return alert("AutoScript no carregat.");
+            
+            if (!autoFirmaReady) {
+                initializeAutoFirma();
+                showLoader("Connectant amb AutoFirma...");
+                await new Promise(r => setTimeout(r, 1000));
+            }
+
             if (!currentPdfDoc) return;
 
             showLoader("Preparant dades...");
@@ -565,13 +644,11 @@
 
                 console.log("AutoFirma Params:", params);
                 
-                if (typeof window.AutoScript.cargarApplet === 'function') window.AutoScript.cargarApplet("appletContainer");
-
                 window.AutoScript.sign(data, "SHA512withRSA", "AUTO", params, onAutoFirmaSuccess, onAutoFirmaError);
 
             } catch (err) {
                 hideLoader();
-                alert("Error: " + err.message);
+                alert("Error preparant signatura: " + err.message);
             }
         }
 
@@ -591,7 +668,7 @@
             finally { hideLoader(); }
         }
 
-        function onAutoFirmaError(type, msg) { hideLoader(); alert("Error AutoFirma:\n" + msg); }
+        function onAutoFirmaError(type, msg) { hideLoader(); alert("Error AutoFirma:\nTipus: " + type + "\nMissatge: " + msg); }
 
         function blobToBase64(blob) {
             return new Promise((resolve, reject) => {
