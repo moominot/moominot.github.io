@@ -172,6 +172,7 @@
             script.onload = () => { console.log("autoscript.js carregat externament"); checkAndInitAutoFirma(); };
             script.onerror = () => { console.log("autoscript.js no trobat externament"); checkAndInitAutoFirma(); };
             document.head.appendChild(script);
+            AutoScript.cargarAppAfirma()
         };
 
         function checkAndInitAutoFirma() {
@@ -208,8 +209,8 @@
         function initializeAutoFirma() {
             updateAfStatus('loading', 'Inicialitzant...');
             if (typeof window.AutoScript.cargarApplet === 'function') {
-                try { AutoScript.cargarAppAfirma();
-                    // window.AutoScript.cargarApplet("appletContainer"); 
+                try {// AutoScript.cargarAppAfirma();
+                     window.AutoScript.cargarApplet("appletContainer"); 
                     } catch (e) {}
             }
             setTimeout(() => {
