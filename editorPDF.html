@@ -25,6 +25,9 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
 
+    <!-- Contenidor per inicialització AutoScript -->
+    <div id="appletContainer" style="display:none"></div>
+
     <!-- Capçalera -->
     <header class="bg-white shadow-sm sticky top-0 z-20">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -43,6 +46,14 @@
         </div>
     </header>
 
+    <!-- Avís de Protocol Local -->
+    <div id="protocolWarning" class="hidden bg-amber-50 border-b border-amber-200 px-4 py-2">
+        <div class="max-w-7xl mx-auto flex items-center gap-2 text-amber-800 text-sm font-medium">
+            <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+            Avís: Estàs executant aquest fitxer directament (file://). AutoFirma requereix un servidor local (http://localhost) per funcionar correctament.
+        </div>
+    </div>
+
     <!-- Inputs ocults -->
     <input type="file" id="mainPdfInput" accept="application/pdf" class="hidden">
     <input type="file" id="mergePdfInput" accept="application/pdf" class="hidden">
@@ -58,13 +69,12 @@
             <button onclick="document.getElementById('mainPdfInput').click()" class="mt-4 text-blue-600 hover:underline">Seleccionar fitxer local</button>
         </div>
 
-        <!-- Barra d'eines (Edició) -->
+        <!-- Barra d'eines -->
         <div id="toolbar" class="hidden mb-6 flex flex-wrap gap-4 items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-slate-100 transition-all">
             <div class="text-sm text-slate-600">
                 <span class="font-bold text-slate-900" id="pageCount">0</span> pàgines totals
             </div>
             
-            <!-- Zona d'Edició (Es bloquejarà si se signa) -->
             <div id="editTools" class="flex gap-2">
                  <button onclick="triggerAddPdf('start')" class="flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 rounded-md text-slate-700 transition">
                     <i data-lucide="arrow-up-to-line" class="w-4 h-4"></i> Inserir inici
@@ -72,12 +82,14 @@
                 <button onclick="triggerAddPdf('end')" class="flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 rounded-md text-slate-700 transition">
                     <i data-lucide="arrow-down-to-line" class="w-4 h-4"></i> Inserir final
                 </button>
-                <button onclick="openSignatureModal()" class="flex items-center gap-2 px-3 py-1.5 text-sm bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-md transition border border-indigo-200">
-                    <i data-lucide="image" class="w-4 h-4"></i> Imatge
+                <!-- Botó per pujar la imatge de rúbrica -->
+                <button onclick="openSignatureModal()" class="flex items-center gap-2 px-3 py-1.5 text-sm bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-md transition border border-indigo-200 relative">
+                    <i data-lucide="image" class="w-4 h-4"></i> 
+                    <span id="rubricStatus">Definir Rúbrica/Imatge</span>
+                    <span id="rubricIndicator" class="hidden absolute top-0 right-0 -mt-1 -mr-1 w-3 h-3 bg-green-500 rounded-full border border-white"></span>
                 </button>
             </div>
 
-            <!-- Botó AutoFirma Separada -->
             <div class="border-l pl-4 border-slate-200">
                 <button onclick="signWithAutoFirma()" id="cryptoSignBtn" class="flex items-center gap-2 px-4 py-1.5 text-sm bg-emerald-600 text-white hover:bg-emerald-700 rounded-md transition shadow-sm font-medium">
                     <i data-lucide="award" class="w-4 h-4"></i> Signar amb AutoFirma
@@ -85,22 +97,22 @@
             </div>
         </div>
 
-        <!-- Banner d'avís post-signatura -->
+        <!-- Banner Signat -->
         <div id="signedBanner" class="hidden mb-6 bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-3">
             <div class="bg-emerald-100 p-2 rounded-full text-emerald-600">
                 <i data-lucide="lock" class="w-5 h-5"></i>
             </div>
             <div>
                 <h3 class="text-emerald-800 font-bold text-sm">Document Signat Criptogràficament</h3>
-                <p class="text-emerald-600 text-xs">L'edició s'ha bloquejat per preservar la validesa de la signatura. Si vols editar, has de tornar a carregar l'original.</p>
+                <p class="text-emerald-600 text-xs">L'edició s'ha bloquejat per preservar la validesa de la signatura.</p>
             </div>
         </div>
 
-        <!-- Graella de pàgines -->
+        <!-- Graella -->
         <div id="gridContainer" class="hidden grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6"></div>
     </main>
 
-    <!-- Modals (Inserir, Signatura Imatge) -->
+    <!-- Modals -->
     <div id="insertModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center backdrop-blur-sm">
         <div class="bg-white rounded-xl shadow-2xl p-6 w-96">
             <h3 class="text-lg font-bold mb-4 text-slate-800">Inserir PDF extern</h3>
@@ -115,16 +127,21 @@
         </div>
     </div>
 
+    <!-- Modal per seleccionar la imatge (Rúbrica) -->
     <div id="signatureModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center backdrop-blur-sm">
         <div class="bg-white rounded-xl shadow-2xl p-6 w-96">
-            <h3 class="text-lg font-bold mb-4 text-slate-800 flex items-center gap-2"><i data-lucide="image" class="w-5 h-5 text-indigo-600"></i> Afegir Marca Visual</h3>
+            <h3 class="text-lg font-bold mb-4 text-slate-800 flex items-center gap-2"><i data-lucide="image" class="w-5 h-5 text-indigo-600"></i> Seleccionar Rúbrica</h3>
+            <p class="text-xs text-slate-500 mb-4">Aquesta imatge s'usarà com a rúbrica visual quan signis amb AutoFirma o per decorar el PDF.</p>
+            
             <div class="mb-4 space-y-3">
                 <button onclick="document.getElementById('signatureFileInput').click()" class="w-full border-2 border-dashed border-slate-300 rounded-lg px-3 py-4 text-sm text-slate-600 hover:border-indigo-500 hover:text-indigo-600 transition text-center">Clic per seleccionar imatge</button>
                 <p id="sigFileName" class="text-xs text-slate-500 text-center truncate"></p>
             </div>
             <div class="flex justify-end gap-3">
-                <button onclick="document.getElementById('signatureModal').classList.add('hidden')" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg text-sm">Cancel·lar</button>
-                <button onclick="applyImageSignature()" class="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg text-sm">Afegir</button>
+                <button onclick="document.getElementById('signatureModal').classList.add('hidden')" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg text-sm">Tancar</button>
+                <!-- Opcional: Aplicar visualment sense signar criptogràficament -->
+                <button onclick="applyImageSignatureVisualOnly()" class="px-4 py-2 bg-slate-200 text-slate-700 hover:bg-slate-300 rounded-lg text-sm">Només inserir imatge</button>
+                <button onclick="confirmRubricSelection()" class="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg text-sm">Guardar per AutoFirma</button>
             </div>
         </div>
     </div>
@@ -136,8 +153,6 @@
     </div>
 
     <!-- Scripts -->
-    <!-- AUTOFIRMA: Càrrega del script local al FINAL del body per assegurar que el DOM està llest -->
-    <!-- IMPORTANT: El fitxer autoscript.js ha d'estar a la mateixa carpeta -->
     <script type="text/javascript" src="autoscript.js"></script>
 
     <script>
@@ -151,10 +166,22 @@
         let uploadedSigFile = null;
 
         lucide.createIcons();
+        
+        if (window.location.protocol === 'file:') {
+            document.getElementById('protocolWarning').classList.remove('hidden');
+        }
 
-        // -----------------------------------------------------
-        // 1. GESTIÓ DE FITXERS I INICIALITZACIÓ
-        // -----------------------------------------------------
+        // Inicialització AutoScript
+        window.onload = function() {
+            if (window.AutoScript && typeof window.AutoScript.cargarApplet === 'function') {
+                try {
+                    window.AutoScript.cargarApplet("appletContainer");
+                    console.log("AutoScript inicialitzat.");
+                } catch (e) { console.warn("Error init AutoScript:", e); }
+            }
+        };
+
+        // --- GESTIÓ DE FITXERS ---
         const mainInput = document.getElementById('mainPdfInput');
         const mergeInput = document.getElementById('mergePdfInput');
         const sigInput = document.getElementById('signatureFileInput');
@@ -185,59 +212,102 @@
                 isSigned = false;
                 await renderGrid();
                 toggleUI(true);
-            } catch (err) {
-                alert("Error: " + err.message);
-            } finally { hideLoader(); }
+            } catch (err) { alert("Error: " + err.message); } 
+            finally { hideLoader(); }
         }
 
-        // -----------------------------------------------------
-        // 2. INTEGRACIÓ AUTOFIRMA (El nucli de la teva petició)
-        // -----------------------------------------------------
-        
-        async function signWithAutoFirma() {
-            // Verificar que AutoScript s'ha incialitzat correctament
-            // Ara comprovem !window.AutoScript per capturar tant undefined com NULL
-            if (!window.AutoScript) {
-                console.error("Estat d'AutoScript:", window.AutoScript);
-                alert("Error Crític: La llibreria AutoScript no s'ha carregat correctament (l'objecte és null o undefined).\n\n" +
-                      "Possibles solucions:\n" +
-                      "1. Assegura't que el fitxer 'autoscript.js' està a la mateixa carpeta que aquest HTML.\n" +
-                      "2. Revisa la consola del navegador (F12) per veure si hi ha errors de sintaxi al fitxer autoscript.js.\n" +
-                      "3. Si estàs obrint això directament des del fitxer (file://), prova d'usar un servidor local.");
+        // --- FUNCIONS SIGNATURA (MODAL I BASE64) ---
+
+        function openSignatureModal() {
+            if (isSigned) return;
+            document.getElementById('signatureModal').classList.remove('hidden');
+        }
+
+        function confirmRubricSelection() {
+            if (!uploadedSigFile) {
+                alert("Si us plau, selecciona un fitxer d'imatge primer.");
                 return;
             }
+            // Marquem visualment que tenim rúbrica
+            document.getElementById('rubricIndicator').classList.remove('hidden');
+            document.getElementById('rubricStatus').innerText = "Rúbrica seleccionada";
+            document.getElementById('signatureModal').classList.add('hidden');
+        }
 
+        // Helper per convertir Blob a Base64 string (sense header data:image...)
+        function blobToBase64(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    // El resultat ve com "data:image/png;base64,.....". Volem només la part després de la coma.
+                    const base64String = reader.result.split(',')[1];
+                    resolve(base64String);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        // --- LÒGICA AUTOFIRMA (Modificada segons la teva petició) ---
+        
+        async function signWithAutoFirma() {
+            if (!window.AutoScript) {
+                alert("Error: AutoScript no carregat.");
+                return;
+            }
             if (!currentPdfDoc) return;
 
-            showLoader("Preparant per a AutoFirma...");
+            showLoader("Preparant dades de signatura...");
 
             try {
-                // 1. Obtenir PDF actual en Base64 (requerit per AutoFirma)
+                // 1. Convertir PDF a Base64
                 const pdfBytes = await currentPdfDoc.save();
-                const base64Data = uint8ToBase64(pdfBytes);
+                const data = uint8ToBase64(pdfBytes);
 
-                // 2. Paràmetres "Prestablerts" (PAdES, SHA256)
-                const algorithm = "SHA256withRSA";
-                const format = "PAdES"; 
-                // params: filter=adbe.pkcs7.detached és estàndard per PAdES bàsic.
-                const extraParams = "filter=adbe.pkcs7.detached"; 
+                // 2. Preparar paràmetres (Text i Rúbrica)
+                // Construïm els paràmetres exactament com al teu exemple
+                let params = "layer2Text=Signat digitalment per $$SUBJECTCN$$ el día $$SIGNDATE=dd/MM/yyyy$$\n" +
+                             "signaturePositionOnPageLowerLeftX=250\n" +
+                             "signaturePositionOnPageLowerLeftY=100\n" +
+                             "signaturePositionOnPageUpperRightX=450\n" +
+                             "signaturePositionOnPageUpperRightY=150\n" +
+                             "signaturePages=-1\n"; // -1 sol ser l'última pàgina a AutoFirma
 
-                // 3. Invocar AutoFirma
-                showLoader("Esperant signatura a AutoFirma...");
+                // Si tenim imatge seleccionada, l'afegim
+                if (uploadedSigFile) {
+                    console.log("Convertint imatge de rúbrica a Base64...");
+                    const imatgeBase64 = await blobToBase64(uploadedSigFile);
+                    params += "signatureRubricImage=" + imatgeBase64;
+                } else {
+                    // Opcional: Avisar si no hi ha imatge, ja que el teu codi original en depenia
+                    if(!confirm("No has seleccionat cap imatge per a la rúbrica (botó 'Definir Rúbrica'). Es signarà només amb el text. Vols continuar?")) {
+                        hideLoader();
+                        return;
+                    }
+                }
+
+                console.log("Paràmetres enviats a AutoFirma:", params);
+
+                // 3. Invocar AutoScript
+                showLoader("Obrint AutoFirma...");
                 
-                // Ara estem segurs que AutoScript no és null
+                if (typeof window.AutoScript.cargarApplet === 'function') {
+                     window.AutoScript.cargarApplet("appletContainer");
+                }
+
+                // Cridem AutoScript.sign amb els teus arguments: SHA512withRSA, AUTO, params
                 window.AutoScript.sign(
-                    base64Data,
-                    algorithm,
-                    format,
-                    extraParams,
-                    onAutoFirmaSuccess, // Callback èxit
-                    onAutoFirmaError    // Callback error
+                    data,
+                    "SHA512withRSA", // El teu requisit
+                    "AUTO",          // Format automàtic (sol detectar PAdES per a PDF)
+                    params,
+                    onAutoFirmaSuccess,
+                    onAutoFirmaError
                 );
 
             } catch (err) {
                 hideLoader();
-                alert("Error durant el procés de signatura: " + err.message);
+                alert("Error preparant la signatura: " + err.message);
                 console.error(err);
             }
         }
@@ -245,26 +315,19 @@
         async function onAutoFirmaSuccess(base64SignedPdf) {
             showLoader("Processant PDF signat...");
             try {
-                // 1. Convertir Base64 retornat a Uint8Array
                 const signedBytes = base64ToUint8(base64SignedPdf);
-                
-                // 2. Recarregar el document en l'editor
-                // Use ignoreEncryption=true per precaució
                 currentPdfDoc = await PDFDocument.load(signedBytes, { ignoreEncryption: true });
-
-                // 3. Actualitzar UI
+                
                 isSigned = true;
                 currentFileName = "SIGNAT_" + currentFileName;
                 
                 await renderGrid();
                 toggleUI(true);
-
-                // 4. Feedback
-                alert("Document signat correctament amb AutoFirma!");
+                alert("Document signat correctament amb AutoFirma (SHA512 + Rúbrica)!");
 
             } catch (err) {
                 console.error(err);
-                alert("Error processant el PDF signat retornat: " + err.message);
+                alert("Error processant el PDF retornat: " + err.message);
             } finally {
                 hideLoader();
             }
@@ -273,10 +336,10 @@
         function onAutoFirmaError(errorType, errorMessage) {
             hideLoader();
             console.error("AutoFirma Error:", errorType, errorMessage);
-            alert("Error retornat per AutoFirma:\nTipus: " + errorType + "\nMissatge: " + errorMessage);
+            alert("Error AutoFirma:\n" + errorMessage);
         }
 
-        // Utilitats de conversió Base64 <-> Uint8Array
+        // --- CONVERSIÓ UTILITATS ---
         function uint8ToBase64(u8Arr) {
             const CHUNK_SIZE = 0x8000;
             let index = 0;
@@ -301,9 +364,7 @@
             return bytes;
         }
 
-        // -----------------------------------------------------
-        // 3. FUNCIONS D'EDICIÓ I VISUALITZACIÓ (Codi previ)
-        // -----------------------------------------------------
+        // --- FUNCIONS UI/EDICIÓ (PDF-LIB) ---
 
         async function renderGrid() {
             const grid = document.getElementById('gridContainer');
@@ -320,7 +381,6 @@
                 card.className = 'page-card bg-white rounded-lg shadow border border-slate-200 overflow-hidden relative group';
                 
                 let controlsHtml = '';
-                // Només mostrem controls si NO està signat
                 if (!isSigned) {
                     controlsHtml = `
                     <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 flex items-center justify-center gap-2 transition-all opacity-0 group-hover:opacity-100">
@@ -352,7 +412,28 @@
             if(isSigned) lucide.createIcons(); 
         }
 
-        // EDICIÓ (Només funciona si !isSigned)
+        // Funció auxiliar: Si l'usuari només vol posar la imatge sense AutoFirma (usant PDF-Lib)
+        async function applyImageSignatureVisualOnly() {
+            if (!uploadedSigFile) return alert("Selecciona una imatge.");
+            showLoader("Afegint imatge (Visual)...");
+            document.getElementById('signatureModal').classList.add('hidden');
+            const bytes = await uploadedSigFile.arrayBuffer();
+            let img = uploadedSigFile.type.includes('png') ? await currentPdfDoc.embedPng(bytes) : await currentPdfDoc.embedJpg(bytes);
+            
+            const page = currentPdfDoc.getPage(currentPdfDoc.getPageCount() - 1);
+            const { width } = page.getSize();
+            const dims = img.scaleToFit(200, 100);
+            
+            page.drawImage(img, {
+                x: (width / 2) - (dims.width / 2),
+                y: 50,
+                width: dims.width,
+                height: dims.height,
+            });
+            await renderGrid();
+            hideLoader();
+        }
+
         async function deletePage(index) {
             if (isSigned) return;
             if (!confirm(`Eliminar pàgina ${index + 1}?`)) return;
@@ -390,33 +471,6 @@
             hideLoader();
         }
 
-        // SIGNATURA IMATGE (Visual, no criptogràfica)
-        function openSignatureModal() {
-            if (isSigned) return;
-            document.getElementById('signatureModal').classList.remove('hidden');
-        }
-
-        async function applyImageSignature() {
-            if (!uploadedSigFile) return alert("Selecciona una imatge.");
-            showLoader("Afegint imatge...");
-            document.getElementById('signatureModal').classList.add('hidden');
-            const bytes = await uploadedSigFile.arrayBuffer();
-            let img = uploadedSigFile.type.includes('png') ? await currentPdfDoc.embedPng(bytes) : await currentPdfDoc.embedJpg(bytes);
-            
-            const page = currentPdfDoc.getPage(currentPdfDoc.getPageCount() - 1); // Última pàgina
-            const { width } = page.getSize();
-            const dims = img.scaleToFit(200, 100);
-            
-            page.drawImage(img, {
-                x: (width / 2) - (dims.width / 2), // Centrat
-                y: 50, // Marge baix
-                width: dims.width,
-                height: dims.height,
-            });
-            await renderGrid();
-            hideLoader();
-        }
-
         async function downloadPdf() {
             showLoader("Descarregant...");
             const bytes = await currentPdfDoc.save();
@@ -428,30 +482,23 @@
             hideLoader();
         }
 
-        // --- UI Utils ---
         function toggleUI(hasFile) {
             document.getElementById('emptyState').classList.toggle('hidden', hasFile);
-            const toolbar = document.getElementById('toolbar');
-            toolbar.classList.toggle('hidden', !hasFile);
+            document.getElementById('toolbar').classList.toggle('hidden', !hasFile);
             document.getElementById('gridContainer').classList.toggle('hidden', !hasFile);
             document.getElementById('saveBtn').disabled = !hasFile;
             document.getElementById('saveBtn').classList.toggle('opacity-50', !hasFile);
             document.getElementById('saveBtn').classList.toggle('cursor-not-allowed', !hasFile);
 
-            // Gestió estat signat
-            const editTools = document.getElementById('editTools');
-            const signedBanner = document.getElementById('signedBanner');
-            
             if (isSigned) {
-                editTools.classList.add('disabled-ui');
-                signedBanner.classList.remove('hidden');
-                document.getElementById('cryptoSignBtn').classList.add('hidden'); // Amagar botó signar si ja està signat
+                document.getElementById('editTools').classList.add('disabled-ui');
+                document.getElementById('signedBanner').classList.remove('hidden');
+                document.getElementById('cryptoSignBtn').classList.add('hidden');
             } else {
-                editTools.classList.remove('disabled-ui');
-                signedBanner.classList.add('hidden');
+                document.getElementById('editTools').classList.remove('disabled-ui');
+                document.getElementById('signedBanner').classList.add('hidden');
                 document.getElementById('cryptoSignBtn').classList.remove('hidden');
             }
-            
             lucide.createIcons();
         }
 
