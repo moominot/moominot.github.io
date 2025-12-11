@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Editor PDF Pro + AutoFirma</title>
+    
+    <!-- Estils: Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Llibreries: PDF-Lib (Edició) i PDF.js (Visualització) -->
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    
+    <!-- Icones: Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- 
+        ========================================================================
+        ZONA D'INTEGRACIÓ DE AUTOSCRIPT.JS
+        ========================================================================
+    -->
+    <script id="inline-autoscript">
+        // ENGANXA EL CODI DE autoscript.js AQUÍ (Opcional)
+    </script>
+
+    <style>
+        .page-card { transition: all 0.2s ease-in-out; }
+        .page-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .loading-overlay { background-color: rgba(255, 255, 255, 0.8); backdrop-filter: blur(4px); }
+        .disabled-ui { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
+        #selectionCanvas { cursor: crosshair; touch-action: none; }
+        
+        /* Animació per als modals */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal-backdrop { animation: fadeIn 0.2s ease-out; }
+        .modal-content { animation: scaleIn 0.2s ease-out; }
+
+        /* Millora scroll mòbil */
+        body { -webkit-tap-highlight-color: transparent; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+
+    <!-- Contenidor AutoScript -->
+    <div id="appletContainer" style="width:1px; height:1px; position:absolute; top:-100px;"></div>
+
+    <!-- MODAL D'EMERGÈNCIA (AUTOSCRIPT) -->
+    <div id="manualScriptLoader" class="hidden fixed inset-0 z-[200] bg-gray-900 bg-opacity-95 flex items-center justify-center p-4 modal-backdrop">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl p-6 flex flex-col h-[80vh] modal-content">
+            <div class="flex items-center gap-3 mb-4 text-amber-600 border-b pb-4">
+                <i data-lucide="file-code" class="w-8 h-8"></i>
+                <div>
+                    <h2 class="text-xl font-bold text-gray-900">Falta la llibreria AutoScript</h2>
+                    <p class="text-sm text-gray-600">No s'ha trobat `autoscript.js` ni s'ha integrat al codi.</p>
+                </div>
+            </div>
+            <p class="mb-2 text-sm text-gray-700 font-medium">Solució Ràpida: Copia el contingut de autoscript.js i enganxa'l aquí:</p>
+            <textarea id="pastedScriptArea" class="flex-grow w-full border border-gray-300 rounded-lg p-3 font-mono text-xs bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none mb-4" placeholder="// Enganxa aquí el codi..."></textarea>
+            <div class="flex justify-end gap-3">
+                <button onclick="document.getElementById('manualScriptLoader').classList.add('hidden')" class="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-lg">Cancel·lar</button>
+                <button onclick="loadPastedScript()" class="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow flex items-center gap-2">
+                    <i data-lucide="play" class="w-4 h-4"></i> Carregar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Capçalera -->
+    <header class="bg-white shadow-sm sticky top-0 z-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <i data-lucide="shield-check" class="text-emerald-600 w-6 h-6 sm:w-8 sm:h-8"></i>
+                <h1 class="text-lg sm:text-xl font-bold text-slate-800">Editor PDF <span class="text-emerald-600">Crypto</span></h1>
+            </div>
+            <div class="flex gap-2 sm:gap-3">
+                <button onclick="document.getElementById('mainPdfInput').click()" id="uploadBtn" class="flex items-center gap-2 bg-blue-100 text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-200 transition text-sm font-medium">
+                    <i data-lucide="upload" class="w-4 h-4"></i> <span class="hidden sm:inline">Carregar</span>
+                </button>
+                <button onclick="downloadPdf()" id="saveBtn" class="flex items-center gap-2 bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium opacity-50 cursor-not-allowed" disabled>
+                    <i data-lucide="save" class="w-4 h-4"></i> <span class="hidden sm:inline">Guardar</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ALERTA DE PROTOCOL FILE:// -->
+    <div id="fileProtocolAlert" class="hidden fixed inset-0 z-[100] bg-gray-900 bg-opacity-95 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 text-center">
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-6">
+                <i data-lucide="alert-octagon" class="h-10 w-10 text-red-600"></i>
+            </div>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">Error: Execució Local</h2>
+            <p class="text-gray-600 mb-6 text-sm">AutoFirma requereix un servidor local o HTTPS.</p>
+            <button onclick="document.getElementById('fileProtocolAlert').classList.add('hidden')" class="bg-gray-200 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-300 font-medium">Tancar</button>
+        </div>
+    </div>
+
+    <!-- Estat AutoFirma (NOMÉS ESCRIPTORI) -->
+    <div id="afConnectionStatus" class="bg-slate-100 border-b border-slate-200 px-4 py-1 text-xs flex justify-between items-center hidden">
+        <span class="flex items-center gap-2">
+            Estat AutoFirma: 
+            <span id="afStatusDot" class="w-2 h-2 rounded-full bg-gray-400"></span>
+            <span id="afStatusText" class="text-gray-500">Iniciant...</span>
+        </span>
+        <button onclick="checkAndInitAutoFirma()" class="text-blue-600 hover:underline">Re-intentar</button>
+    </div>
+
+    <!-- Inputs Ocults -->
+    <input type="file" id="mainPdfInput" accept="application/pdf" class="hidden">
+    <input type="file" id="mergePdfInput" accept="application/pdf" class="hidden">
+    <input type="file" id="signatureFileInput" accept="image/png, image/jpeg, image/jpg" class="hidden">
+
+    <!-- Contingut Principal -->
+    <main class="flex-grow p-4 sm:p-6 max-w-7xl mx-auto w-full">
+        <div id="emptyState" class="flex flex-col items-center justify-center h-64 border-2 border-dashed border-slate-300 rounded-xl bg-white">
+            <i data-lucide="file-key" class="w-12 h-12 text-slate-400 mb-3"></i>
+            <p class="text-slate-500 font-medium">Carrega un PDF</p>
+            <button onclick="document.getElementById('mainPdfInput').click()" class="mt-4 text-blue-600 hover:underline">Seleccionar fitxer</button>
+        </div>
+
+        <div id="toolbar" class="hidden mb-6 flex flex-col sm:flex-row gap-4 sm:items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-slate-100 transition-all">
+            <div class="text-sm text-slate-600 mb-2 sm:mb-0"><span class="font-bold text-slate-900" id="pageCount">0</span> pàgines</div>
+            
+            <div id="editTools" class="flex flex-wrap gap-2">
+                <button onclick="openInsertModal()" class="flex-grow sm:flex-grow-0 flex items-center justify-center gap-2 px-4 py-2 text-sm bg-slate-100 hover:bg-slate-200 text-slate-800 font-medium rounded-md transition shadow-sm border border-slate-200">
+                    <i data-lucide="file-plus-2" class="w-4 h-4 text-blue-600"></i> Afegir PDF
+                </button>
+                
+                <div class="hidden sm:block w-px h-8 bg-slate-200 mx-2"></div>
+                
+                <button onclick="openSignatureModal()" class="flex-grow sm:flex-grow-0 flex items-center justify-center gap-2 px-3 py-1.5 text-sm bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-md transition border border-indigo-200 relative">
+                    <i data-lucide="settings-2" class="w-4 h-4"></i> <span id="rubricStatus">Signatura</span>
+                    <span id="configIndicator" class="hidden absolute top-0 right-0 -mt-1 -mr-1 w-3 h-3 bg-green-500 rounded-full border border-white"></span>
+                </button>
+            </div>
+            
+            <div class="border-t sm:border-t-0 sm:border-l sm:pl-4 border-slate-200 pt-3 sm:pt-0 mt-2 sm:mt-0 flex items-center justify-end">
+                <button onclick="signWithAutoFirma()" id="cryptoSignBtn" class="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 text-sm bg-emerald-600 text-white hover:bg-emerald-700 rounded-md transition shadow-sm font-medium">
+                    <i data-lucide="award" class="w-4 h-4"></i> Signar (AutoFirma)
+                </button>
+                <div id="mobileSignNotice" class="hidden text-xs text-orange-600 flex items-center gap-1 bg-orange-50 px-2 py-1 rounded border border-orange-100">
+                    <i data-lucide="info" class="w-3 h-3"></i> AutoFirma només PC
+                </div>
+            </div>
+        </div>
+
+        <div id="signedBanner" class="hidden mb-6 bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-3">
+            <div class="bg-emerald-100 p-2 rounded-full text-emerald-600"><i data-lucide="lock" class="w-5 h-5"></i></div>
+            <div><h3 class="text-emerald-800 font-bold text-sm">Document Signat</h3><p class="text-emerald-600 text-xs">L'edició està bloquejada.</p></div>
+        </div>
+        
+        <!-- Grid: 1 columna en mòbil molt petit, 2 en mòbil gran, més en escriptori -->
+        <div id="gridContainer" class="hidden grid grid-cols-1 min-[480px]:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6"></div>
+    </main>
+
+    <!-- VISOR GRAN (PREVIEW MODAL) -->
+    <div id="previewModal" class="hidden fixed inset-0 z-[150] bg-gray-900 bg-opacity-95 flex flex-col justify-between modal-backdrop">
+        <div class="flex items-center justify-between px-4 py-3 text-white bg-gray-800 border-b border-gray-700">
+            <div class="font-medium text-base sm:text-lg truncate mr-2">Visualitzador</div>
+            
+            <!-- EINES DEL VISOR -->
+            <div id="previewToolsContainer" class="flex items-center gap-2">
+                <button onclick="triggerReplacePage(previewIndex)" class="p-2 bg-gray-700 hover:bg-gray-600 rounded text-white transition">
+                    <i data-lucide="file-up" class="w-5 h-5 text-orange-400"></i>
+                </button>
+                <button onclick="startAddText(previewIndex)" class="p-2 bg-gray-700 hover:bg-gray-600 rounded text-white transition">
+                    <i data-lucide="type" class="w-5 h-5 text-indigo-400"></i>
+                </button>
+                <div class="w-px h-6 bg-gray-600 mx-1"></div>
+                <button onclick="closePreview()" class="p-2 hover:bg-gray-700 rounded-full transition-colors text-gray-300 hover:text-white">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+        </div>
+        <div class="flex-grow flex items-center justify-center p-2 sm:p-4 overflow-hidden relative group">
+            <button onclick="changePreviewPage(-1)" class="absolute left-2 sm:left-4 z-10 p-2 sm:p-3 bg-black bg-opacity-50 hover:bg-opacity-75 text-white rounded-full transition-all focus:outline-none">
+                <i data-lucide="chevron-left" class="w-6 h-6 sm:w-8 sm:h-8"></i>
+            </button>
+            <div class="max-w-full max-h-full overflow-auto shadow-2xl rounded">
+                <canvas id="previewCanvas" class="bg-white"></canvas>
+            </div>
+            <button onclick="changePreviewPage(1)" class="absolute right-2 sm:right-4 z-10 p-2 sm:p-3 bg-black bg-opacity-50 hover:bg-opacity-75 text-white rounded-full transition-all focus:outline-none">
+                <i data-lucide="chevron-right" class="w-6 h-6 sm:w-8 sm:h-8"></i>
+            </button>
+        </div>
+        <div class="px-4 py-2 text-center text-xs text-gray-500 bg-gray-800 border-t border-gray-700 flex justify-between items-center">
+             <span><span id="previewPageNum" class="text-white font-bold">1</span> / <span id="previewTotalPages" class="text-white">1</span></span>
+             <span class="hidden sm:inline">Usa les fletxes del teclat per navegar</span>
+        </div>
+    </div>
+
+
+    <!-- Modals Edició (MOBILE FRIENDLY: w-[90%] max-w-md) -->
+    <div id="insertModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center backdrop-blur-sm modal-backdrop px-4">
+        <div class="bg-white rounded-xl shadow-2xl w-[95%] max-w-md p-6 modal-content">
+            <h3 class="text-lg font-bold mb-4 text-slate-800 flex items-center gap-2">
+                <i data-lucide="file-plus" class="w-5 h-5 text-blue-600"></i> Afegir PDF
+            </h3>
+            <div class="mb-4">
+                <label class="block text-xs font-medium text-slate-500 uppercase mb-1">Posició d'inserció</label>
+                <div class="flex items-center gap-2 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <span class="text-sm text-gray-700">Inserir abans de pàg:</span>
+                    <input type="number" id="insertPositionInput" min="1" class="w-20 border border-slate-300 rounded px-2 py-1 outline-none text-center font-bold text-blue-600 focus:ring-2 focus:ring-blue-500" value="1">
+                </div>
+                <p class="text-xs text-gray-400 mt-2 text-center">Escriu '1' per posar al principi.</p>
+            </div>
+            <div class="flex justify-end gap-3 pt-2 border-t border-gray-100">
+                <button onclick="document.getElementById('insertModal').classList.add('hidden')" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-medium">Cancel·lar</button>
+                <button onclick="confirmInsertCustom()" class="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg text-sm font-medium flex items-center gap-2 shadow-sm">
+                    Seleccionar <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EINES DE TEXT -->
+    <div id="textToolsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center backdrop-blur-sm modal-backdrop px-4">
+        <div class="bg-white rounded-xl shadow-2xl w-[95%] max-w-md p-6 modal-content">
+            <h3 class="text-lg font-bold mb-4 text-slate-800 flex items-center gap-2">
+                <i data-lucide="type" class="w-5 h-5 text-indigo-600"></i> Afegir Text
+            </h3>
+            <div class="mb-4">
+                <label class="block text-xs font-medium text-slate-500 uppercase mb-1">Contingut</label>
+                <textarea id="pdfTextInput" class="w-full border border-slate-300 p-2 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" rows="3" placeholder="Escriu el text aquí..."></textarea>
+            </div>
+            <div class="flex flex-wrap gap-4 mb-6">
+                <div>
+                    <label class="block text-xs font-medium text-slate-500 uppercase mb-1">Mida</label>
+                    <input type="number" id="pdfTextSize" value="12" min="6" max="100" class="border border-slate-300 p-2 rounded-lg w-20 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-500 uppercase mb-1">Color</label>
+                    <div class="flex items-center gap-2 h-10">
+                        <input type="color" id="pdfTextColor" value="#000000" class="h-10 w-10 border rounded cursor-pointer p-0.5 bg-white">
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3">
+                <button onclick="document.getElementById('textToolsModal').classList.add('hidden')" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg text-sm">Cancel·lar</button>
+                <button onclick="applyTextToPdf()" class="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg text-sm font-medium">Afegir</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="signatureModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center backdrop-blur-sm px-4">
+        <div class="bg-white rounded-xl shadow-2xl w-[95%] max-w-md p-6 modal-content">
+            <h3 class="text-lg font-bold mb-4 text-slate-800 flex items-center gap-2"><i data-lucide="settings-2" class="w-5 h-5 text-indigo-600"></i> Configuració</h3>
+            <div class="mb-4"><label class="block text-xs font-bold text-slate-500 uppercase mb-2">1. Imatge / Rúbrica</label><div class="flex items-center gap-2"><button onclick="document.getElementById('signatureFileInput').click()" class="flex-grow border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 text-left truncate"><i data-lucide="image" class="w-4 h-4 inline mr-2"></i><span id="sigFileName">Seleccionar imatge...</span></button></div></div>
+            <div class="mb-6"><label class="block text-xs font-bold text-slate-500 uppercase mb-2">2. Posició i Pàgina</label><div class="p-3 bg-slate-50 rounded-lg border border-slate-200"><div class="flex justify-between items-center mb-2"><span class="text-sm text-slate-700 font-medium" id="posSummary">Pàgina: Última (Defecte)</span></div><button onclick="openPositionSelector()" class="w-full bg-indigo-100 text-indigo-700 px-3 py-2 rounded text-sm hover:bg-indigo-200 font-medium flex justify-center items-center gap-2"><i data-lucide="scan-line" class="w-4 h-4"></i> Definir Àrea Visualment</button></div></div>
+            <div class="flex justify-end gap-2 border-t pt-4">
+                <button onclick="document.getElementById('signatureModal').classList.add('hidden')" class="px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg text-sm">Tancar</button>
+                <button onclick="applyImageSignatureVisualOnly()" class="px-3 py-2 bg-slate-200 text-slate-700 hover:bg-slate-300 rounded-lg text-sm">Visual</button>
+                <button onclick="saveSignatureConfig()" id="saveConfigBtn" class="px-3 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg text-sm">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="positionSelectorModal" class="fixed inset-0 bg-gray-900 hidden z-[60] flex flex-col modal-backdrop">
+        <div class="bg-white p-2 sm:p-4 flex items-center justify-between shadow-md">
+            <h3 class="font-bold text-gray-800 flex items-center gap-2 text-sm sm:text-base"><i data-lucide="scan-line" class="text-indigo-600"></i> Àrea</h3>
+            <div class="flex items-center gap-2 sm:gap-4">
+                <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+                    <button onclick="changeSelectorPage(-1)" class="p-1 hover:bg-white rounded"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                    <span id="selectorPageNum" class="text-xs sm:text-sm font-mono w-12 text-center">Pàg 1</span>
+                    <button onclick="changeSelectorPage(1)" class="p-1 hover:bg-white rounded"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                </div>
+                <button onclick="confirmPosition()" class="bg-indigo-600 text-white px-3 sm:px-6 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-bold hover:bg-indigo-700 shadow-lg">Confirmar</button>
+                <button onclick="closePositionSelector()" class="text-gray-500 hover:text-gray-800"><i data-lucide="x" class="w-5 h-5 sm:w-6 sm:h-6"></i></button>
+            </div>
+        </div>
+        <div class="flex-grow overflow-auto bg-gray-800 flex justify-center p-4 sm:p-8 cursor-crosshair relative touch-none" id="canvasScrollArea">
+            <div class="relative shadow-2xl">
+                <canvas id="selectionCanvas" class="bg-white"></canvas>
+                <div id="selectionHint" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black bg-opacity-75 text-white p-4 rounded-lg pointer-events-none transition-opacity text-center text-sm">Arrossega per dibuixar el rectangle</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals Alerta/Confirmació -->
+    <div id="customAlertModal" class="hidden fixed inset-0 z-[300] bg-gray-900 bg-opacity-50 flex items-center justify-center backdrop-blur-sm p-4 modal-backdrop">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 modal-content">
+            <div class="text-center mb-4">
+                <div id="customAlertIconContainer" class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4"><i id="customAlertIcon" data-lucide="info" class="h-6 w-6 text-blue-600"></i></div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Informació</h3>
+                <p id="customAlertText" class="text-sm text-gray-500">Missatge</p>
+            </div>
+            <button onclick="closeCustomAlert()" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium transition-colors">Acceptar</button>
+        </div>
+    </div>
+    <div id="customConfirmModal" class="hidden fixed inset-0 z-[300] bg-gray-900 bg-opacity-50 flex items-center justify-center backdrop-blur-sm p-4 modal-backdrop">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 modal-content">
+            <div class="text-center mb-4">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-amber-100 mb-4"><i data-lucide="help-circle" class="h-6 w-6 text-amber-600"></i></div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Confirmació</h3>
+                <p id="customConfirmText" class="text-sm text-gray-500">Estàs segur?</p>
+            </div>
+            <div class="flex gap-3">
+                <button id="confirmCancelBtn" class="flex-1 bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 font-medium transition-colors">Cancel·lar</button>
+                <button id="confirmOkBtn" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium transition-colors">Acceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="loader" class="loading-overlay fixed inset-0 hidden z-50 flex flex-col items-center justify-center"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div><p class="mt-4 text-slate-600 font-medium" id="loaderText">Processant...</p></div>
+
+    <script type="text/javascript" src="autoscript.js" onerror="document.getElementById('manualScriptLoader').classList.remove('hidden')"></script>
+    <script>
+        const { PDFDocument, StandardFonts, rgb } = PDFLib; 
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        
+        let currentPdfDoc=null, currentFileName="document.pdf", isSigned=false, uploadedSigFile=null, autoFirmaReady=false;
+        let signedPdfBytes=null; 
+        let selectionMode = 'signature';
+        let tempTextRect = null; 
+        let operationMode = 'insert'; 
+        let operationIndex = 0;
+        let previewIndex = 0;
+        let previewPdfDoc = null; 
+        let signatureConfig={isDefined:false,pageIndex:-1,rect:null};
+        
+        lucide.createIcons();
+
+        // --- DETECCIÓ MÒBIL ---
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+
+        // --- SETUP ---
+        window.onload = function() {
+            if (window.location.protocol === 'file:') document.getElementById('fileProtocolAlert').classList.remove('hidden');
+            
+            // Si és mòbil, amaguem l'estat d'AutoFirma i no l'inicialitzem
+            if (isMobileDevice()) {
+                console.log("Mode Mòbil: AutoFirma desactivat");
+                // No fem init de AutoFirma
+            } else {
+                document.getElementById('afConnectionStatus').classList.remove('hidden');
+                checkAndInitAutoFirma();
+            }
+
+            document.addEventListener('keydown', (e) => {
+                const modal = document.getElementById('previewModal');
+                if (!modal.classList.contains('hidden')) {
+                    if (e.key === 'Escape') closePreview();
+                    if (e.key === 'ArrowLeft') changePreviewPage(-1);
+                    if (e.key === 'ArrowRight') changePreviewPage(1);
+                }
+            });
+            
+            // TOUCH SUPPORT PER AL CANVAS DE SELECCIÓ
+            const selCanvas = document.getElementById('selectionCanvas');
+            selCanvas.addEventListener("touchstart", touchHandler, true);
+            selCanvas.addEventListener("touchmove", touchHandler, true);
+            selCanvas.addEventListener("touchend", touchHandler, true);
+        };
+        
+        // Mapejador d'events tàctils a ratolí
+        function touchHandler(event) {
+            var touches = event.changedTouches, first = touches[0], type = "";
+            switch(event.type) {
+                case "touchstart": type = "mousedown"; break;
+                case "touchmove":  type = "mousemove"; break;
+                case "touchend":   type = "mouseup";   break;
+                default: return;
+            }
+            var simulatedEvent = new MouseEvent(type, {
+                bubbles: true, cancelable: true, view: window,
+                clientX: first.clientX, clientY: first.clientY
+            });
+            first.target.dispatchEvent(simulatedEvent);
+            if(event.type === 'touchmove') event.preventDefault();
+        }
+
+        // --- MODALS ---
+        function customAlert(msg, type='info') {
+            const modal = document.getElementById('customAlertModal');
+            document.getElementById('customAlertText').innerText = msg;
+            const icon = document.getElementById('customAlertIcon');
+            const cont = document.getElementById('customAlertIconContainer');
+            
+            if(type==='error'){ cont.className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4"; icon.className="h-6 w-6 text-red-600"; icon.setAttribute('data-lucide','alert-circle'); }
+            else if(type==='success'){ cont.className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-emerald-100 mb-4"; icon.className="h-6 w-6 text-emerald-600"; icon.setAttribute('data-lucide','check-circle'); }
+            else { cont.className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4"; icon.className="h-6 w-6 text-blue-600"; icon.setAttribute('data-lucide','info'); }
+            
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+        function closeCustomAlert() { document.getElementById('customAlertModal').classList.add('hidden'); }
+        function customConfirm(msg) {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('customConfirmModal');
+                document.getElementById('customConfirmText').innerText = msg;
+                modal.classList.remove('hidden');
+                const cancelBtn=document.getElementById('confirmCancelBtn'), okBtn=document.getElementById('confirmOkBtn');
+                const newCancel=cancelBtn.cloneNode(true), newOk=okBtn.cloneNode(true);
+                cancelBtn.parentNode.replaceChild(newCancel,cancelBtn); okBtn.parentNode.replaceChild(newOk,okBtn);
+                newCancel.addEventListener('click',()=>{modal.classList.add('hidden');resolve(false);});
+                newOk.addEventListener('click',()=>{modal.classList.add('hidden');resolve(true);});
+            });
+        }
+
+        // --- AUTOFIRMA ---
+        function checkAndInitAutoFirma() {
+            if (isMobileDevice()) return; // Sortir si és mòbil
+            if (typeof window.AutoScript !== 'undefined') initializeAutoFirma();
+            else { updateAfStatus('error', 'Llibreria no trobada'); document.getElementById('manualScriptLoader').classList.remove('hidden'); }
+        }
+        function loadPastedScript() {
+            const code = document.getElementById('pastedScriptArea').value;
+            if(!code.trim()) return customAlert("El camp està buit", 'error');
+            try { window.eval(code); if (typeof window.AutoScript!=='undefined'){ document.getElementById('manualScriptLoader').classList.add('hidden'); initializeAutoFirma(); customAlert("Codi carregat!", 'success'); } else customAlert("Codi incorrecte", 'error'); } 
+            catch(e){ customAlert("Error: " + e.message, 'error'); }
+        }
+        function initializeAutoFirma() {
+            updateAfStatus('loading', 'Inicialitzant...');
+            try {
+                if (typeof window.AutoScript.cargarAppAfirma==='function') window.AutoScript.cargarAppAfirma();
+                else if (typeof window.AutoScript.cargarApplet==='function') window.AutoScript.cargarApplet("appletContainer");
+                setTimeout(()=>{autoFirmaReady=true;updateAfStatus('success','Llest');},1000);
+            } catch(e){console.error(e);updateAfStatus('error','Error init');}
+        }
+        function updateAfStatus(type, text) {
+            const dot=document.getElementById('afStatusDot'), txt=document.getElementById('afStatusText');
+            txt.innerText = text;
+            if(type==='loading') dot.className='w-2 h-2 rounded-full bg-yellow-400 animate-pulse';
+            else if(type==='success') dot.className='w-2 h-2 rounded-full bg-green-500';
+            else dot.className='w-2 h-2 rounded-full bg-red-500';
+        }
+
+        // --- APP LOGIC ---
+        const mainInput=document.getElementById('mainPdfInput'), mergeInput=document.getElementById('mergePdfInput'), sigInput=document.getElementById('signatureFileInput');
+        mainInput.addEventListener('change',async e=>{if(e.target.files[0])await loadMainPdf(e.target.files[0]);mainInput.value=''});
+        mergeInput.addEventListener('change',async e=>{if(e.target.files[0])await processMergePdf(e.target.files[0]);mergeInput.value=''});
+        sigInput.addEventListener('change',e=>{if(e.target.files[0]){uploadedSigFile=e.target.files[0];document.getElementById('sigFileName').innerText=uploadedSigFile.name;document.getElementById('sigFileName').classList.add('text-indigo-600','font-medium')}});
+
+        async function loadMainPdf(f){showLoader("Carregant...");try{currentFileName=f.name;const ab=await f.arrayBuffer();currentPdfDoc=await PDFDocument.load(ab);isSigned=false;signedPdfBytes=null;signatureConfig={isDefined:false,pageIndex:-1,rect:null};updateConfigIndicator();await renderGrid();toggleUI(true)}catch(e){customAlert("Error:"+e.message, 'error')}finally{hideLoader()}}
+
+        // --- INSERCIÓ / SUBSTITUCIÓ ---
+        function openInsertModal() {
+            if(isSigned) return;
+            const input = document.getElementById('insertPositionInput');
+            const defaultPos = currentPdfDoc.getPageCount() + 1;
+            input.max = defaultPos; input.value = defaultPos;
+            document.getElementById('insertModal').classList.remove('hidden');
+            input.select();
+        }
+        function confirmInsertCustom() {
+            const val = parseInt(document.getElementById('insertPositionInput').value);
+            if(val < 1 || val > currentPdfDoc.getPageCount() + 1) return customAlert("Posició no vàlida", 'error');
+            operationMode = 'insert'; operationIndex = val - 1;
+            document.getElementById('insertModal').classList.add('hidden');
+            mergeInput.click();
+        }
+        async function triggerReplacePage(index) {
+            if(window.event) window.event.stopPropagation();
+            if(isSigned) return;
+            if (await customConfirm(`Substituir pàgina ${index + 1}?`)) {
+                operationMode = 'replace'; operationIndex = index;
+                mergeInput.click();
+            }
+        }
+        async function processMergePdf(f){
+            showLoader("Processant...");
+            try {
+                const s = await PDFDocument.load(await f.arrayBuffer());
+                const c = await currentPdfDoc.copyPages(s, s.getPageIndices());
+                if (operationMode === 'replace') {
+                    for (let i = c.length - 1; i >= 0; i--) currentPdfDoc.insertPage(operationIndex, c[i]);
+                    currentPdfDoc.removePage(operationIndex + c.length);
+                } else {
+                    let idx = operationIndex;
+                    for(const p of c) { currentPdfDoc.insertPage(idx, p); idx++; }
+                }
+                await renderGrid();
+                await refreshPreviewState();
+            } catch (e) { customAlert("Error: " + e.message, 'error'); } finally { hideLoader(); }
+        }
+
+        async function deletePage(i){
+            if(window.event) window.event.stopPropagation();
+            if(!isSigned && await customConfirm(`Esborrar pàgina ${i+1}?`)){ showLoader("..."); currentPdfDoc.removePage(i); await renderGrid(); await refreshPreviewState(); hideLoader(); }
+        }
+        async function movePage(i,d){
+            if(window.event) window.event.stopPropagation();
+            if(!isSigned){showLoader("...");const[p]=await currentPdfDoc.copyPages(currentPdfDoc,[i]);d>0?currentPdfDoc.insertPage(i+d+1,p):currentPdfDoc.insertPage(i+d,p);d>0?currentPdfDoc.removePage(i):currentPdfDoc.removePage(i+1);await renderGrid();hideLoader()}
+        }
+
+        // --- PREVIEW ---
+        async function openPreview(index) {
+            if(!currentPdfDoc) return;
+            showLoader("Obrint...");
+            try {
+                const pdfBytes = await currentPdfDoc.save();
+                previewPdfDoc = await pdfjsLib.getDocument({data: pdfBytes}).promise;
+                previewIndex = index;
+                document.getElementById('previewTotalPages').innerText = previewPdfDoc.numPages;
+                const tools = document.getElementById('previewToolsContainer');
+                if(isSigned) tools.classList.add('opacity-50', 'pointer-events-none'); else tools.classList.remove('opacity-50', 'pointer-events-none');
+                document.getElementById('previewModal').classList.remove('hidden');
+                await renderPreviewPage();
+            } catch(e) { customAlert("Error: " + e.message, 'error'); } finally { hideLoader(); }
+        }
+        async function refreshPreviewState() {
+            if(document.getElementById('previewModal').classList.contains('hidden')) return;
+            const pdfBytes = await currentPdfDoc.save();
+            previewPdfDoc = await pdfjsLib.getDocument({data: pdfBytes}).promise;
+            document.getElementById('previewTotalPages').innerText = previewPdfDoc.numPages;
+            if(previewIndex >= previewPdfDoc.numPages) previewIndex = previewPdfDoc.numPages - 1;
+            if(previewIndex < 0) { closePreview(); return; }
+            await renderPreviewPage();
+        }
+        async function renderPreviewPage() {
+            if(!previewPdfDoc) return;
+            const pageNum = previewIndex + 1;
+            document.getElementById('previewPageNum').innerText = pageNum;
+            const page = await previewPdfDoc.getPage(pageNum);
+            const canvas = document.getElementById('previewCanvas');
+            const context = canvas.getContext('2d');
+            const viewport = page.getViewport({scale: isMobileDevice() ? 0.8 : 1.5}); // Menys zoom en mòbil per cabre millor
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            await page.render({canvasContext: context, viewport: viewport}).promise;
+        }
+        function changePreviewPage(delta) {
+            const newIndex = previewIndex + delta;
+            if (newIndex >= 0 && newIndex < previewPdfDoc.numPages) { previewIndex = newIndex; renderPreviewPage(); }
+        }
+        function closePreview() { document.getElementById('previewModal').classList.add('hidden'); previewPdfDoc = null; }
+
+        // --- TOOLS ---
+        function startAddText(pageIndex) {
+            if(window.event) window.event.stopPropagation();
+            if(isSigned) return;
+            selectionMode = 'text'; selectorCurrentPage = pageIndex + 1; selectionRect = null;
+            if(!document.getElementById('previewModal').classList.contains('hidden')) document.getElementById('previewModal').classList.add('hidden');
+            openPositionSelector(pageIndex);
+        }
+        async function applyTextToPdf() {
+            const text = document.getElementById('pdfTextInput').value;
+            if(!text.trim()) return customAlert("Escriu text.", "error");
+            const size = parseInt(document.getElementById('pdfTextSize').value) || 12;
+            const colorHex = document.getElementById('pdfTextColor').value;
+            const r = parseInt(colorHex.substr(1,2), 16) / 255; const g = parseInt(colorHex.substr(3,2), 16) / 255; const b = parseInt(colorHex.substr(5,2), 16) / 255;
+            document.getElementById('textToolsModal').classList.add('hidden'); showLoader("Afegint...");
+            try {
+                const font = await currentPdfDoc.embedFont(StandardFonts.Helvetica); 
+                const page = currentPdfDoc.getPage(selectorCurrentPage - 1); 
+                const textY = tempTextRect.y + tempTextRect.h - size;
+                page.drawText(text, { x: tempTextRect.x, y: textY, size: size, font: font, color: rgb(r, g, b), maxWidth: tempTextRect.w });
+                await renderGrid();
+            } catch(e) { customAlert("Error: " + e.message, "error"); } finally { hideLoader(); selectionMode = 'signature'; }
+        }
+
+        // --- SELECTOR CANVAS ---
+        let selectorPdfDoc=null, selectorCurrentPage=1, selectionRect=null, isDragging=false, startX, startY;
+        const selCanvas = document.getElementById('selectionCanvas');
+        async function openPositionSelector(forcePageIndex = null){
+            if(!currentPdfDoc)return;
+            showLoader("Selector...");
+            const b=await currentPdfDoc.save();
+            selectorPdfDoc=await pdfjsLib.getDocument({data:b}).promise;
+            if (forcePageIndex !== null) selectorCurrentPage = forcePageIndex + 1;
+            else selectorCurrentPage=(signatureConfig.pageIndex>=0)?signatureConfig.pageIndex+1:selectorPdfDoc.numPages;
+            selectionRect=null;
+            document.getElementById('positionSelectorModal').classList.remove('hidden');
+            document.getElementById('signatureModal').classList.add('hidden');
+            await renderSelectorPage();
+            hideLoader();
+        }
+        async function renderSelectorPage(){const p=await selectorPdfDoc.getPage(selectorCurrentPage);const ctx=selCanvas.getContext('2d');const vp=p.getViewport({scale:isMobileDevice()?0.6:1.5});selCanvas.height=vp.height;selCanvas.width=vp.width;selCanvas.dataset.pdfW=p.getViewport({scale:1}).width;selCanvas.dataset.pdfH=p.getViewport({scale:1}).height;document.getElementById('selectorPageNum').innerText=`Pàg ${selectorCurrentPage}`;await p.render({canvasContext:ctx,viewport:vp}).promise;if(selectionMode==='signature' && signatureConfig.pageIndex===selectorCurrentPage-1&&signatureConfig.rect&&!selectionRect){const ph=parseFloat(selCanvas.dataset.pdfH),sx=selCanvas.width/parseFloat(selCanvas.dataset.pdfW),sy=selCanvas.height/ph;selectionRect={x:signatureConfig.rect.x*sx,y:(ph-(signatureConfig.rect.y+signatureConfig.rect.h))*sy,w:signatureConfig.rect.w*sx,h:signatureConfig.rect.h*sy}}if(selectionRect){drawRect(ctx,selectionRect);document.getElementById('selectionHint').classList.add('opacity-0')}else{document.getElementById('selectionHint').classList.remove('opacity-0')}}
+        function drawRect(ctx,r){ctx.strokeStyle=selectionMode==='text'?'blue':'red';ctx.lineWidth=3;ctx.strokeRect(r.x,r.y,r.w,r.h);ctx.fillStyle=selectionMode==='text'?'rgba(0,0,255,0.2)':'rgba(255,0,0,0.2)';ctx.fillRect(r.x,r.y,r.w,r.h)}
+        function changeSelectorPage(d){const n=selectorCurrentPage+d;if(n>=1&&n<=selectorPdfDoc.numPages){selectorCurrentPage=n;selectionRect=null;renderSelectorPage()}}
+        selCanvas.addEventListener('mousedown',e=>{const r=selCanvas.getBoundingClientRect();startX=e.clientX-r.left;startY=e.clientY-r.top;isDragging=true;selectionRect={x:startX,y:startY,w:0,h:0};document.getElementById('selectionHint').classList.add('opacity-0')});
+        selCanvas.addEventListener('mousemove',e=>{if(!isDragging)return;const r=selCanvas.getBoundingClientRect();selectionRect.w=(e.clientX-r.left)-startX;selectionRect.h=(e.clientY-r.top)-startY;requestAnimationFrame(()=>{const ctx=selCanvas.getContext('2d');ctx.strokeStyle=selectionMode==='text'?'blue':'red';ctx.lineWidth=2;ctx.strokeRect(selectionRect.x,selectionRect.y,selectionRect.w,selectionRect.h)})});
+        selCanvas.addEventListener('mouseup',()=>{if(isDragging){isDragging=false;normalizeRect();renderSelectorPage()}});
+        selCanvas.addEventListener('mouseout',()=>{if(isDragging){isDragging=false;normalizeRect();renderSelectorPage()}});
+        function normalizeRect(){if(!selectionRect)return;if(selectionRect.w<0){selectionRect.x+=selectionRect.w;selectionRect.w=Math.abs(selectionRect.w)}if(selectionRect.h<0){selectionRect.y+=selectionRect.h;selectionRect.h=Math.abs(selectionRect.h)}}
+        function confirmPosition(){
+            if(!selectionRect||selectionRect.w<5)return customAlert("Dibuixa un rectangle", 'error');
+            const pw=parseFloat(selCanvas.dataset.pdfW),ph=parseFloat(selCanvas.dataset.pdfH),sx=pw/selCanvas.width,sy=ph/selCanvas.height;
+            const rw=selectionRect.w*sx,rh=selectionRect.h*sy,rx=selectionRect.x*sx,ry=ph-(selectionRect.y*sy)-rh;
+            const calculatedRect = {x:Math.round(rx),y:Math.round(ry),w:Math.round(rw),h:Math.round(rh)};
+            if (selectionMode === 'text') { tempTextRect = calculatedRect; closePositionSelector(); document.getElementById('textToolsModal').classList.remove('hidden'); document.getElementById('pdfTextInput').focus(); } 
+            else { signatureConfig={isDefined:true,pageIndex:selectorCurrentPage-1,rect:calculatedRect}; closePositionSelector(); document.getElementById('signatureModal').classList.remove('hidden'); document.getElementById('posSummary').innerHTML=`<span class="text-emerald-600 font-bold">Àrea Ok!</span> Pàg ${selectorCurrentPage}`; }
+        }
+        function closePositionSelector(){ document.getElementById('positionSelectorModal').classList.add('hidden'); if (selectionMode === 'signature') { document.getElementById('signatureModal').classList.remove('hidden'); } }
+        function saveSignatureConfig(){document.getElementById('signatureModal').classList.add('hidden');updateConfigIndicator()}
+        function updateConfigIndicator(){const ind=document.getElementById('configIndicator'),st=document.getElementById('rubricStatus');if(signatureConfig.isDefined||uploadedSigFile){ind.classList.remove('hidden');st.innerText="Signatura Llista";st.classList.add('font-bold','text-indigo-800')}else{ind.classList.add('hidden');st.innerText="Signatura";st.classList.remove('font-bold','text-indigo-800')}}
+        function openSignatureModal(){ if(isSigned)return; selectionMode = 'signature'; document.getElementById('signatureModal').classList.remove('hidden'); }
+        async function applyImageSignatureVisualOnly(){
+            if(!uploadedSigFile)return customAlert("Tria imatge", 'error');showLoader("Afegint...");document.getElementById('signatureModal').classList.add('hidden');
+            const b=await uploadedSigFile.arrayBuffer();let img=uploadedSigFile.type.includes('png')?await currentPdfDoc.embedPng(b):await currentPdfDoc.embedJpg(b);
+            let pIdx=currentPdfDoc.getPageCount()-1,x,y,w,h;
+            if(signatureConfig.isDefined){pIdx=signatureConfig.pageIndex;x=signatureConfig.rect.x;y=signatureConfig.rect.y;w=signatureConfig.rect.w;h=signatureConfig.rect.h}
+            else{const p=currentPdfDoc.getPage(pIdx),d=img.scaleToFit(200,100);w=d.width;h=d.height;x=(p.getWidth()/2)-(w/2);y=50}
+            currentPdfDoc.getPage(pIdx).drawImage(img,{x,y,width:w,height:h});await renderGrid();hideLoader();
+        }
+        
+        async function signWithAutoFirma(){
+            // Check Mòbil
+            if (isMobileDevice()) {
+                return customAlert("AutoFirma no està disponible en mòbils. Usa un ordinador.", "error");
+            }
+            if(window.location.protocol==='file:')return customAlert("Protocol file:// no suportat.", 'error');
+            if(typeof window.AutoScript==='undefined')return customAlert("Falta AutoScript.", 'error');
+            if(!autoFirmaReady){initializeAutoFirma();showLoader("Connectant...");await new Promise(r=>setTimeout(r,1000))}
+            if(!currentPdfDoc)return;showLoader("Preparant...");
+            try{
+                const pdfB=await currentPdfDoc.save(),data=uint8ToBase64(pdfB);
+                let pN=-1,llx=250,lly=100,urx=450,ury=150;
+                if(signatureConfig.isDefined){pN=signatureConfig.pageIndex+1;llx=signatureConfig.rect.x;lly=signatureConfig.rect.y;urx=llx+signatureConfig.rect.w;ury=lly+signatureConfig.rect.h}
+                let params=`layer2Text=Signat digitalment per $$SUBJECTCN$$ el dia $$SIGNDATE=dd/MM/yyyy$$\nsignaturePositionOnPageLowerLeftX=${llx}\nsignaturePositionOnPageLowerLeftY=${lly}\nsignaturePositionOnPageUpperRightX=${urx}\nsignaturePositionOnPageUpperRightY=${ury}\nsignaturePages=${pN}\n`;
+                if(uploadedSigFile){params+="signatureRubricImage="+await blobToBase64(uploadedSigFile)}
+                else if(!await customConfirm("Signar sense imatge visual?")) {hideLoader();return}
+                window.AutoScript.sign(data,"SHA512withRSA","AUTO",params,onSuccess,onError);
+            }catch(e){hideLoader();customAlert(e.message, 'error')}
+        }
+        async function onSuccess(b64){
+            showLoader("Processant...");
+            try{
+                const b=base64ToUint8(b64);
+                signedPdfBytes = b; 
+                currentPdfDoc=await PDFDocument.load(b,{ignoreEncryption:true});
+                isSigned=true;
+                currentFileName="SIGNAT_"+currentFileName;
+                await renderGrid();
+                toggleUI(true);
+                customAlert("Signat correctament!", 'success');
+            }catch(e){ customAlert(e.message, 'error'); }finally{ hideLoader(); }
+        }
+        function onError(t,m){hideLoader();customAlert("Error: "+m, 'error')}
+        function blobToBase64(b){return new Promise((r,j)=>{const fr=new FileReader();fr.onloadend=()=>r(fr.result.split(',')[1]);fr.onerror=j;fr.readAsDataURL(b)})}
+        function uint8ToBase64(u){let r='';for(let i=0;i<u.length;i+=0x8000)r+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(r)}
+        function base64ToUint8(b){const s=window.atob(b),l=s.length,y=new Uint8Array(l);for(let i=0;i<l;i++)y[i]=s.charCodeAt(i);return y}
+
+        async function renderGrid(){const g=document.getElementById('gridContainer');g.innerHTML='';const c=currentPdfDoc.getPageCount();document.getElementById('pageCount').innerText=c;const d=await pdfjsLib.getDocument({data:await currentPdfDoc.save()}).promise;for(let i=0;i<c;i++){const cd=document.createElement('div');cd.className='page-card bg-white rounded-lg shadow border border-slate-200 overflow-hidden relative group';
+            let ctrls=!isSigned?`
+            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 flex items-center justify-center gap-2 transition-all opacity-0 group-hover:opacity-100 z-10">
+                <button onclick="triggerReplacePage(${i})" title="Substituir Pàgina" class="bg-white p-2 rounded-full shadow hover:text-orange-600 transition-colors">
+                    <i data-lucide="file-up" class="w-4 h-4"></i>
+                </button>
+                <button onclick="startAddText(${i})" title="Afegir Text" class="bg-white p-2 rounded-full shadow hover:text-indigo-600 transition-colors">
+                    <i data-lucide="type" class="w-4 h-4"></i>
+                </button>
+                <div class="hidden sm:block w-px h-6 bg-gray-300 mx-1"></div>
+                ${i>0?`<button onclick="movePage(${i},-1)" class="bg-white p-2 rounded-full shadow hover:text-blue-600"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>`:''}
+                <button onclick="deletePage(${i})" class="bg-white p-2 rounded-full shadow hover:text-red-600"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c0 1 2 2 2 2v2"/></svg></button>
+                ${i<c-1?`<button onclick="movePage(${i},1)" class="bg-white p-2 rounded-full shadow hover:text-blue-600"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>`:''}
+            </div>`:'';
+            cd.innerHTML=`<div class="p-2 bg-slate-50 border-b border-slate-100 flex justify-between items-center"><span class="text-xs font-bold text-slate-500">Pàg ${i+1}</span>${isSigned?'<i data-lucide="lock" class="w-3 h-3 text-emerald-500"></i>':''}</div>
+            <div class="h-32 sm:h-40 flex items-center justify-center bg-slate-100 overflow-hidden relative cursor-pointer" onclick="openPreview(${i})">
+                <canvas class="max-w-full max-h-full shadow-sm"></canvas>${ctrls}
+            </div>`;
+            g.appendChild(cd);const cv=cd.querySelector('canvas'),p=await d.getPage(i+1),vp=p.getViewport({scale:0.5});cv.height=vp.height;cv.width=vp.width;await p.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise}if(isSigned)lucide.createIcons()}
+        
+        async function downloadPdf(){
+            showLoader("Descarregant...");
+            let data; if(isSigned && signedPdfBytes) data = signedPdfBytes; else data = await currentPdfDoc.save();
+            const b=new Blob([data],{type:'application/pdf'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=currentFileName;a.click();hideLoader()
+        }
+
+        function toggleUI(h){
+            document.getElementById('emptyState').classList.toggle('hidden',h);
+            document.getElementById('toolbar').classList.toggle('hidden',!h);
+            document.getElementById('gridContainer').classList.toggle('hidden',!h);
+            document.getElementById('saveBtn').disabled=!h;
+            document.getElementById('saveBtn').classList.toggle('opacity-50',!h);
+            
+            const isMobile = isMobileDevice();
+            
+            if(isSigned){
+                document.getElementById('editTools').classList.add('disabled-ui');
+                document.getElementById('signedBanner').classList.remove('hidden');
+                document.getElementById('cryptoSignBtn').classList.add('hidden');
+                document.getElementById('mobileSignNotice').classList.add('hidden');
+            } else {
+                document.getElementById('editTools').classList.remove('disabled-ui');
+                document.getElementById('signedBanner').classList.add('hidden');
+                
+                // Mòbil vs Escriptori
+                if (isMobile) {
+                    document.getElementById('cryptoSignBtn').classList.add('hidden');
+                    document.getElementById('mobileSignNotice').classList.remove('hidden');
+                    document.getElementById('saveConfigBtn').classList.add('hidden'); // Amagar guardar config per AF en mòbil
+                } else {
+                    document.getElementById('cryptoSignBtn').classList.remove('hidden');
+                    document.getElementById('mobileSignNotice').classList.add('hidden');
+                    document.getElementById('saveConfigBtn').classList.remove('hidden');
+                }
+            }
+            lucide.createIcons();
+        }
+        function showLoader(t){document.getElementById('loaderText').innerText=t;document.getElementById('loader').classList.remove('hidden')}
+        function hideLoader(){document.getElementById('loader').classList.add('hidden')}
+    </script>
+</body>
+</html>
