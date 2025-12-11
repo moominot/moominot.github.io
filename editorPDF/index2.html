@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editor PDF Pro + AutoFirma (Híbrid)</title>
+    <title>Editor PDF Pro + AutoFirma</title>
     
     <!-- Estils: Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Llibreries: PDF-Lib i PDF.js -->
+    <!-- Llibreries: PDF-Lib (Edició) i PDF.js (Visualització) -->
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     
@@ -25,7 +25,6 @@
     -->
     <script id="inline-autoscript">
         // ENGANXA EL CODI DE autoscript.js AQUÍ (Opcional)
-        // Si no ho fas, el programa t'ho demanarà via interfície gràfica.
     </script>
 
     <style>
@@ -38,7 +37,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
 
-    <!-- Contenidor AutoScript -->
+    <!-- Contenidor AutoScript (Invisible però vital) -->
     <div id="appletContainer" style="width:1px; height:1px; position:absolute; top:-100px;"></div>
 
     <!-- MODAL D'EMERGÈNCIA PER CARREGAR AUTOSCRIPT -->
@@ -83,12 +82,24 @@
         </div>
     </header>
 
+    <!-- ALERTA DE PROTOCOL FILE:// -->
+    <div id="fileProtocolAlert" class="hidden fixed inset-0 z-[100] bg-gray-900 bg-opacity-95 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full p-8 text-center">
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-6">
+                <i data-lucide="alert-octagon" class="h-10 w-10 text-red-600"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Error: Execució Local (file://)</h2>
+            <p class="text-gray-600 mb-6 text-lg">AutoFirma requereix un servidor local o HTTPS (GitHub Pages).</p>
+            <button onclick="document.getElementById('fileProtocolAlert').classList.add('hidden')" class="mt-6 bg-gray-200 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-300 font-medium">Tancar avís</button>
+        </div>
+    </div>
+
     <!-- Estat AutoFirma -->
     <div id="afConnectionStatus" class="bg-slate-100 border-b border-slate-200 px-4 py-1 text-xs flex justify-between items-center">
         <span class="flex items-center gap-2">
             Estat AutoFirma: 
             <span id="afStatusDot" class="w-2 h-2 rounded-full bg-gray-400"></span>
-            <span id="afStatusText" class="text-gray-500">Comprovant llibreria...</span>
+            <span id="afStatusText" class="text-gray-500">Iniciant...</span>
         </span>
         <button onclick="checkAndInitAutoFirma()" class="text-blue-600 hover:underline">Re-intentar connexió</button>
     </div>
@@ -156,30 +167,29 @@
     <div id="loader" class="loading-overlay fixed inset-0 hidden z-50 flex flex-col items-center justify-center"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div><p class="mt-4 text-slate-600 font-medium" id="loaderText">Processant...</p></div>
 
     <!-- Script de Càrrega Fallback -->
+    <script type="text/javascript" src="autoscript.js" onerror="document.getElementById('manualScriptLoader').classList.remove('hidden')"></script>
     <script>
         const { PDFDocument } = PDFLib;
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-        // Afegim 'signedPdfBytes' per emmagatzemar el blob original
-        let currentPdfDoc=null, currentFileName="document.pdf", isSigned=false, insertMode=null, uploadedSigFile=null, autoFirmaReady=false, signedPdfBytes=null; 
+        
+        // ESTAT GLOBAL
+        let currentPdfDoc=null, currentFileName="document.pdf", isSigned=false, insertMode=null, uploadedSigFile=null, autoFirmaReady=false;
+        // VARIABLE CRÍTICA PER MANTENIR LA SIGNATURA VÀLIDA
+        let signedPdfBytes=null; 
+        
         let signatureConfig={isDefined:false,pageIndex:-1,rect:null};
         lucide.createIcons();
 
         // --- SISTEMA DE CÀRREGA HÍBRID ---
         window.onload = function() {
-            // Intentem carregar l'script extern per si de cas
-            const script = document.createElement('script');
-            script.src = 'autoscript.js';
-            script.onload = () => { console.log("autoscript.js carregat externament"); checkAndInitAutoFirma(); };
-            script.onerror = () => { console.log("autoscript.js no trobat externament"); checkAndInitAutoFirma(); };
-            document.head.appendChild(script);
+            if (window.location.protocol === 'file:') document.getElementById('fileProtocolAlert').classList.remove('hidden');
+            checkAndInitAutoFirma();
         };
 
         function checkAndInitAutoFirma() {
-            // 1. Comprovar si ja existeix (per enganxat inline o càrrega externa)
             if (typeof window.AutoScript !== 'undefined') {
                 initializeAutoFirma();
             } else {
-                // 2. Si no existeix, mostrar Modal per enganxar-lo
                 updateAfStatus('error', 'Llibreria no trobada');
                 document.getElementById('manualScriptLoader').classList.remove('hidden');
             }
@@ -188,32 +198,36 @@
         function loadPastedScript() {
             const code = document.getElementById('pastedScriptArea').value;
             if(!code.trim()) return alert("El camp està buit");
-            
             try {
-                // Avaluem el codi enganxat al context global
                 window.eval(code);
-                
                 if (typeof window.AutoScript !== 'undefined') {
                     document.getElementById('manualScriptLoader').classList.add('hidden');
                     initializeAutoFirma();
                     alert("Codi carregat correctament! AutoFirma habilitat.");
                 } else {
-                    alert("El codi enganxat no sembla contenir 'AutoScript'. Verifica el text.");
+                    alert("El codi no conté 'AutoScript'.");
                 }
-            } catch(e) {
-                alert("Error al processar el codi enganxat: " + e.message);
-            }
+            } catch(e) { alert("Error al processar codi: " + e.message); }
         }
 
         function initializeAutoFirma() {
             updateAfStatus('loading', 'Inicialitzant...');
-            if (typeof window.AutoScript.cargarApplet === 'function') {
-                try { window.AutoScript.cargarApplet("appletContainer"); } catch (e) {}
+            try {
+                // INTEGRACIÓ SEGURA: Cridem les funcions només si existeixen
+                if (typeof window.AutoScript.cargarAppAfirma === 'function') {
+                    window.AutoScript.cargarAppAfirma();
+                } else if (typeof window.AutoScript.cargarApplet === 'function') {
+                    window.AutoScript.cargarApplet("appletContainer");
+                }
+                
+                setTimeout(() => {
+                    autoFirmaReady = true;
+                    updateAfStatus('success', 'Llest');
+                }, 1000);
+            } catch (e) {
+                console.error(e);
+                updateAfStatus('error', 'Error init');
             }
-            setTimeout(() => {
-                autoFirmaReady = true;
-                updateAfStatus('success', 'Llest');
-            }, 1000);
         }
 
         function updateAfStatus(type, text) {
@@ -287,17 +301,14 @@
             showLoader("Processant...");
             try{
                 const b=base64ToUint8(b64);
-                // GUARDA ELS BYTES ORIGINALS: Això és clau per no trencar la signatura
+                // GUARDA BYTES ORIGINALS PER NO TRENCAR SIGNATURA
                 signedPdfBytes = b; 
-                
-                // Carrega a PDF-Lib NOMÉS per visualitzar (ignorant que està trencat criptogràficament en memòria)
                 currentPdfDoc=await PDFDocument.load(b,{ignoreEncryption:true});
-                
                 isSigned=true;
                 currentFileName="SIGNAT_"+currentFileName;
                 await renderGrid();
                 toggleUI(true);
-                alert("Signat correctament! (La descàrrega mantindrà la signatura vàlida)");
+                alert("Signat correctament! (Ara pots descarregar el PDF vàlid)");
             }catch(e){
                 alert(e.message);
             }finally{
@@ -319,11 +330,10 @@
         async function downloadPdf(){
             showLoader("Descarregant...");
             let data;
-            // SI ESTÀ SIGNAT, USEM ELS BYTES ORIGINALS D'AUTOFIRMA
+            // SI ESTÀ SIGNAT, USEM ELS BYTES ORIGINALS
             if(isSigned && signedPdfBytes) {
                 data = signedPdfBytes;
             } else {
-                // SI NO, GUARDEM EL PDF EDITAT
                 data = await currentPdfDoc.save();
             }
             const b=new Blob([data],{type:'application/pdf'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=currentFileName;a.click();hideLoader()
