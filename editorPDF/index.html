@@ -287,22 +287,25 @@
                 return;
             }
 
-            if (typeof window.AutoScript.cargarApplet === 'function') {
-                try {
-                    window.AutoScript.cargarApplet("appletContainer");
-                    
-                    // Verificació optimista
-                    setTimeout(() => {
-                        autoFirmaReady = true;
-                        updateAfStatus('success', 'Llest (Esperant signatura)');
-                    }, 1500);
-                    
-                } catch (e) {
-                    console.error("Error init AutoFirma:", e);
-                    updateAfStatus('error', 'Error inicialització');
+            // MODIFICACIÓ CLAU: Comprovem si existeix 'sign', que és l'important.
+            // 'cargarApplet' és legacy i pot no existir en versions noves/miniapplet.
+            if (typeof window.AutoScript.sign === 'function') {
+                
+                // Si existeix cargarApplet, el cridem per precaució (legacy support)
+                if (typeof window.AutoScript.cargarApplet === 'function') {
+                    try {
+                        window.AutoScript.cargarApplet("appletContainer");
+                    } catch (e) {
+                        console.warn("cargarApplet ha fallat o no és necessari:", e);
+                    }
                 }
+
+                // Assumim que està llest perquè tenim la funció de signatura
+                autoFirmaReady = true;
+                updateAfStatus('success', 'Llest (Esperant signatura)');
+                
             } else {
-                updateAfStatus('error', 'API AutoScript incorrecta');
+                updateAfStatus('error', 'API AutoScript incorrecta (Falta .sign)');
             }
         }
 
