@@ -159,7 +159,8 @@
     <script>
         const { PDFDocument } = PDFLib;
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-        let currentPdfDoc=null, currentFileName="document.pdf", isSigned=false, insertMode=null, uploadedSigFile=null, autoFirmaReady=false; 
+        // Afegim 'signedPdfBytes' per emmagatzemar el blob original
+        let currentPdfDoc=null, currentFileName="document.pdf", isSigned=false, insertMode=null, uploadedSigFile=null, autoFirmaReady=false, signedPdfBytes=null; 
         let signatureConfig={isDefined:false,pageIndex:-1,rect:null};
         lucide.createIcons();
 
@@ -207,7 +208,9 @@
         function initializeAutoFirma() {
             updateAfStatus('loading', 'Inicialitzant...');
             if (typeof window.AutoScript.cargarApplet === 'function') {
-                try { window.AutoScript.cargarApplet("appletContainer"); } catch (e) {}
+                try { AutoScript.cargarAppAfirma();
+                    // window.AutoScript.cargarApplet("appletContainer"); 
+                    } catch (e) {}
             }
             setTimeout(() => {
                 autoFirmaReady = true;
@@ -230,7 +233,7 @@
         mergeInput.addEventListener('change',async e=>{if(e.target.files[0])await processMergePdf(e.target.files[0]);mergeInput.value=''});
         sigInput.addEventListener('change',e=>{if(e.target.files[0]){uploadedSigFile=e.target.files[0];document.getElementById('sigFileName').innerText=uploadedSigFile.name;document.getElementById('sigFileName').classList.add('text-indigo-600','font-medium')}});
 
-        async function loadMainPdf(f){showLoader("Carregant...");try{currentFileName=f.name;const ab=await f.arrayBuffer();currentPdfDoc=await PDFDocument.load(ab);isSigned=false;signatureConfig={isDefined:false,pageIndex:-1,rect:null};updateConfigIndicator();await renderGrid();toggleUI(true)}catch(e){alert("Error:"+e.message)}finally{hideLoader()}}
+        async function loadMainPdf(f){showLoader("Carregant...");try{currentFileName=f.name;const ab=await f.arrayBuffer();currentPdfDoc=await PDFDocument.load(ab);isSigned=false;signedPdfBytes=null;signatureConfig={isDefined:false,pageIndex:-1,rect:null};updateConfigIndicator();await renderGrid();toggleUI(true)}catch(e){alert("Error:"+e.message)}finally{hideLoader()}}
 
         // Selector Visual
         let selectorPdfDoc=null, selectorCurrentPage=1, selectionRect=null, isDragging=false, startX, startY;
@@ -282,7 +285,27 @@
             }catch(e){hideLoader();alert(e.message)}
         }
 
-        async function onSuccess(b64){showLoader("Processant...");try{const b=base64ToUint8(b64);currentPdfDoc=await PDFDocument.load(b,{ignoreEncryption:true});isSigned=true;currentFileName="SIGNAT_"+currentFileName;await renderGrid();toggleUI(true);alert("Signat!")}catch(e){alert(e.message)}finally{hideLoader()}}
+        async function onSuccess(b64){
+            showLoader("Processant...");
+            try{
+                const b=base64ToUint8(b64);
+                // GUARDA ELS BYTES ORIGINALS: Això és clau per no trencar la signatura
+                signedPdfBytes = b; 
+                
+                // Carrega a PDF-Lib NOMÉS per visualitzar (ignorant que està trencat criptogràficament en memòria)
+                currentPdfDoc=await PDFDocument.load(b,{ignoreEncryption:true});
+                
+                isSigned=true;
+                currentFileName="SIGNAT_"+currentFileName;
+                await renderGrid();
+                toggleUI(true);
+                alert("Signat correctament! (La descàrrega mantindrà la signatura vàlida)");
+            }catch(e){
+                alert(e.message);
+            }finally{
+                hideLoader();
+            }
+        }
         function onError(t,m){hideLoader();alert("Error: "+m)}
         function blobToBase64(b){return new Promise((r,j)=>{const fr=new FileReader();fr.onloadend=()=>r(fr.result.split(',')[1]);fr.onerror=j;fr.readAsDataURL(b)})}
         function uint8ToBase64(u){let r='';for(let i=0;i<u.length;i+=0x8000)r+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(r)}
@@ -294,7 +317,20 @@
         async function movePage(i,d){if(!isSigned){showLoader("...");const[p]=await currentPdfDoc.copyPages(currentPdfDoc,[i]);d>0?currentPdfDoc.insertPage(i+d+1,p):currentPdfDoc.insertPage(i+d,p);d>0?currentPdfDoc.removePage(i):currentPdfDoc.removePage(i+1);await renderGrid();hideLoader()}}
         function triggerAddPdf(m){if(!isSigned){insertMode=m;mergeInput.click()}}
         async function processMergePdf(f){showLoader("Fusionant...");const s=await PDFDocument.load(await f.arrayBuffer()),c=await currentPdfDoc.copyPages(s,s.getPageIndices());let x=insertMode==='start'?0:currentPdfDoc.getPageCount();for(const p of c)currentPdfDoc.insertPage(x++,p);await renderGrid();hideLoader()}
-        async function downloadPdf(){showLoader("...");const b=new Blob([await currentPdfDoc.save()],{type:'application/pdf'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=currentFileName;a.click();hideLoader()}
+        
+        async function downloadPdf(){
+            showLoader("Descarregant...");
+            let data;
+            // SI ESTÀ SIGNAT, USEM ELS BYTES ORIGINALS D'AUTOFIRMA
+            if(isSigned && signedPdfBytes) {
+                data = signedPdfBytes;
+            } else {
+                // SI NO, GUARDEM EL PDF EDITAT
+                data = await currentPdfDoc.save();
+            }
+            const b=new Blob([data],{type:'application/pdf'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=currentFileName;a.click();hideLoader()
+        }
+
         function toggleUI(h){document.getElementById('emptyState').classList.toggle('hidden',h);document.getElementById('toolbar').classList.toggle('hidden',!h);document.getElementById('gridContainer').classList.toggle('hidden',!h);document.getElementById('saveBtn').disabled=!h;document.getElementById('saveBtn').classList.toggle('opacity-50',!h);if(isSigned){document.getElementById('editTools').classList.add('disabled-ui');document.getElementById('signedBanner').classList.remove('hidden');document.getElementById('cryptoSignBtn').classList.add('hidden')}else{document.getElementById('editTools').classList.remove('disabled-ui');document.getElementById('signedBanner').classList.add('hidden');document.getElementById('cryptoSignBtn').classList.remove('hidden')}lucide.createIcons()}
         function showLoader(t){document.getElementById('loaderText').innerText=t;document.getElementById('loader').classList.remove('hidden')}
         function hideLoader(){document.getElementById('loader').classList.add('hidden')}
