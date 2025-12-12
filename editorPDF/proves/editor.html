@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Visor PDF Pro v3.1</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e293b">
+    
+    <!-- Estils -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Llibreries -->
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/forge/1.3.1/forge.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-200 text-slate-800 h-screen flex flex-col overflow-hidden font-sans">
+
+    <div id="appletContainer" style="width:1px; height:1px; position:absolute; top:-100px;"></div>
+
+    <!-- HEADER -->
+    <header class="bg-slate-800 text-white h-14 flex items-center justify-between px-3 shadow-md z-30 shrink-0 relative">
+        <div class="flex items-center gap-3">
+            <button id="toggleSidebarBtn" class="p-2 hover:bg-slate-700 rounded transition" title="Barra Lateral">
+                <i data-lucide="panel-left" class="w-5 h-5"></i>
+            </button>
+            <div class="flex items-center gap-2 mr-4 overflow-hidden">
+                <i data-lucide="file-text" class="text-blue-400 w-5 h-5 flex-shrink-0"></i>
+                <h1 class="font-semibold text-sm sm:text-base truncate max-w-[120px] sm:max-w-xs" id="docTitle">Sense Document</h1>
+            </div>
+            
+            <!-- Eines Ràpides -->
+            <div id="quickTools" class="hidden md:flex items-center gap-1 border-l border-slate-600 pl-3">
+                <button onclick="window.app.openInsertModal()" class="tool-btn">
+                    <i data-lucide="file-plus" class="w-4 h-4"></i> Inserir
+                </button>
+                <button onclick="window.app.activateSelectionMode('text')" class="tool-btn">
+                    <i data-lucide="type" class="w-4 h-4"></i> Text
+                </button>
+                <button onclick="window.app.openSignatureModal()" class="tool-btn relative">
+                    <i data-lucide="settings-2" class="w-4 h-4"></i> Signatura
+                    <span id="configDot" class="hidden absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full"></span>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <!-- Zoom Controls -->
+            <div class="hidden sm:flex items-center bg-slate-700 rounded mr-2">
+                <button onclick="window.app.changeZoom(-0.1)" class="p-1.5 hover:bg-slate-600 rounded-l"><i data-lucide="minus" class="w-3 h-3"></i></button>
+                <span id="zoomDisplay" class="text-xs px-2 font-mono w-12 text-center">100%</span>
+                <button onclick="window.app.changeZoom(0.1)" class="p-1.5 hover:bg-slate-600 rounded-r"><i data-lucide="plus" class="w-3 h-3"></i></button>
+            </div>
+
+            <!-- Settings / View Mode -->
+            <button onclick="window.app.toggleViewMode()" id="viewModeBtn" class="p-2 hover:bg-slate-700 rounded transition text-slate-300" title="Canviar Vista (Contínua/Pàgina)">
+                <i data-lucide="scroll-text" class="w-5 h-5"></i>
+            </button>
+
+            <!-- Verify -->
+            <button onclick="window.app.analyzeSignatures()" id="verifyBtn" class="bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-1.5 rounded text-sm font-medium flex items-center gap-2 transition">
+                <i data-lucide="shield" class="w-4 h-4"></i>
+            </button>
+
+            <div class="w-px h-6 bg-slate-600 mx-1"></div>
+
+            <input type="file" id="mainPdfInput" accept="application/pdf" class="hidden">
+            <button onclick="document.getElementById('mainPdfInput').click()" class="action-btn bg-blue-600 hover:bg-blue-700">
+                <i data-lucide="folder-open" class="w-4 h-4"></i> <span class="hidden sm:inline">Obrir</span>
+            </button>
+            
+            <button onclick="window.app.signWithAutoFirma()" id="signBtn" class="action-btn bg-emerald-600 hover:bg-emerald-700 opacity-50 cursor-not-allowed" disabled>
+                <i data-lucide="pen-tool" class="w-4 h-4"></i> <span class="hidden sm:inline">Signar</span>
+            </button>
+            
+            <button onclick="window.app.downloadPdf()" id="saveBtn" class="action-btn bg-slate-700 hover:bg-slate-600 opacity-50 cursor-not-allowed" disabled>
+                <i data-lucide="save" class="w-4 h-4"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- AREA DE TREBALL -->
+    <div class="flex-1 flex overflow-hidden relative">
+        
+        <!-- SIDEBAR -->
+        <aside id="sidebar" class="bg-slate-100 border-r border-slate-300 flex flex-col transition-all duration-300 overflow-hidden w-64">
+            
+            <!-- CAPÇALERA SIDEBAR DINÀMICA -->
+            <div id="sidebarHeaderDefault" class="p-3 border-b border-slate-200 bg-slate-50 flex justify-between items-center text-xs font-bold text-slate-500 uppercase tracking-wide shrink-0">
+                <span>Pàgines (<span id="pageCount">0</span>)</span>
+            </div>
+
+            <!-- CAPÇALERA MULTI-SELECCIÓ -->
+            <div id="sidebarHeaderSelection" class="hidden p-2 border-b border-blue-200 bg-blue-50 flex items-center justify-between shrink-0">
+                <span class="text-xs font-bold text-blue-700"><span id="selectedCount">0</span> sel.</span>
+                <div class="flex gap-1">
+                    <button onclick="window.app.moveSelected(-1)" class="p-1.5 bg-white border border-blue-200 rounded hover:bg-blue-100 text-blue-700" title="Moure Amunt"><i data-lucide="arrow-up" class="w-3 h-3"></i></button>
+                    <button onclick="window.app.moveSelected(1)" class="p-1.5 bg-white border border-blue-200 rounded hover:bg-blue-100 text-blue-700" title="Moure Avall"><i data-lucide="arrow-down" class="w-3 h-3"></i></button>
+                    <button onclick="window.app.deleteSelected()" class="p-1.5 bg-white border border-red-200 rounded hover:bg-red-50 text-red-600" title="Esborrar Seleccionades"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+                    <button onclick="window.app.clearSelection()" class="p-1.5 hover:bg-slate-200 rounded text-slate-500"><i data-lucide="x" class="w-3 h-3"></i></button>
+                </div>
+            </div>
+
+            <div id="thumbnailsContainer" class="flex-1 overflow-y-auto p-4 space-y-4 text-center select-none">
+                <div class="text-slate-400 text-sm mt-10 italic">Obre un document</div>
+            </div>
+            
+            <!-- Llegenda d'ajuda -->
+            <div class="p-2 text-[10px] text-center text-slate-400 border-t bg-slate-50">
+                Ctrl+Click per selecció múltiple<br>Shift+Click per rang
+            </div>
+        </aside>
+
+        <!-- MAIN VIEW -->
+        <main class="flex-1 bg-slate-500 relative flex flex-col overflow-hidden" id="mainArea">
+            <!-- Navegació Flotant -->
+            <div id="pageNavControls" class="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-slate-800/90 backdrop-blur text-white px-4 py-2 rounded-full shadow-xl z-20 flex items-center gap-4 transition-opacity duration-300 opacity-0 pointer-events-none">
+                <button onclick="window.app.changePage(-1)" class="hover:text-blue-400"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>
+                <span class="text-sm font-mono"><span id="currentPageNum">0</span> / <span id="totalPageNum">0</span></span>
+                <button onclick="window.app.changePage(1)" class="hover:text-blue-400"><i data-lucide="chevron-right" class="w-6 h-6"></i></button>
+            </div>
+
+            <!-- Scroll Container -->
+            <div id="mainScroll" class="flex-1 overflow-auto flex justify-center p-4 sm:p-8 relative">
+                <div id="pagesWrapper" class="flex flex-col items-center gap-4 transition-transform duration-200 origin-top">
+                    <!-- Canvas -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODALS & OVERLAYS -->
+    
+    <!-- Insert Modal -->
+    <input type="file" id="mergePdfInput" accept="application/pdf" class="hidden">
+    <div id="insertModal" class="modal hidden">
+        <div class="modal-content max-w-sm">
+            <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><i data-lucide="file-plus" class="text-blue-600"></i> Inserir PDF</h3>
+            <div class="mb-4">
+                <label class="block text-xs font-medium text-slate-500 uppercase mb-2">Ubicació</label>
+                <div class="flex gap-2">
+                    <label class="flex-1 border rounded p-2 flex items-center gap-2 cursor-pointer hover:bg-slate-50">
+                        <input type="radio" name="insertPos" value="before" checked> Abans pàg actual
+                    </label>
+                    <label class="flex-1 border rounded p-2 flex items-center gap-2 cursor-pointer hover:bg-slate-50">
+                        <input type="radio" name="insertPos" value="after"> Després
+                    </label>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2">
+                <button onclick="document.getElementById('insertModal').classList.add('hidden')" class="btn-secondary">Cancel·lar</button>
+                <button onclick="window.app.triggerMerge()" class="btn-primary">Seleccionar Fitxer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Text Modal -->
+    <div id="textToolsModal" class="modal hidden">
+        <div class="modal-content max-w-sm">
+            <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><i data-lucide="type" class="text-indigo-600"></i> Afegir Text</h3>
+            <textarea id="pdfTextInput" class="w-full border p-2 rounded mb-4" rows="3" placeholder="Escriu..."></textarea>
+            <div class="flex gap-4 mb-4">
+                <input type="number" id="pdfTextSize" value="12" class="border p-2 rounded w-20">
+                <input type="color" id="pdfTextColor" value="#000000" class="h-10 w-10 cursor-pointer">
+            </div>
+            <div class="flex justify-end gap-2">
+                <button onclick="document.getElementById('textToolsModal').classList.add('hidden')" class="btn-secondary">Tancar</button>
+                <button onclick="window.app.applyTextToPdf()" class="btn-primary">Afegir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Signature Config Modal -->
+    <div id="signatureModal" class="modal hidden">
+        <div class="modal-content max-w-md">
+            <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><i data-lucide="settings-2" class="text-indigo-600"></i> Configuració</h3>
+            
+            <div class="mb-4">
+                <label class="label-tiny">Imatge (Rúbrica)</label>
+                <input type="file" id="signatureFileInput" accept="image/png, image/jpeg" class="hidden">
+                <button onclick="document.getElementById('signatureFileInput').click()" class="w-full border p-2 rounded text-left flex items-center gap-2 text-sm hover:bg-slate-50">
+                    <i data-lucide="image" class="w-4 h-4"></i> <span id="sigFileName">Seleccionar...</span>
+                </button>
+            </div>
+            
+            <div class="mb-6">
+                <label class="label-tiny">Posició</label>
+                <div class="bg-slate-50 p-3 rounded border">
+                    <div id="posSummary" class="text-sm mb-2 font-medium">Pàgina Actual</div>
+                    <button onclick="window.app.activateSelectionMode('signature')" class="w-full bg-indigo-100 text-indigo-700 py-2 rounded text-sm font-medium hover:bg-indigo-200">
+                        Definir Àrea
+                    </button>
+                </div>
+            </div>
+            
+            <div class="flex justify-end gap-2 border-t pt-4">
+                <button onclick="document.getElementById('signatureModal').classList.add('hidden')" class="btn-secondary">Tancar</button>
+                <button onclick="window.app.applyImageSignatureVisualOnly()" class="bg-slate-200 text-slate-700 px-3 py-2 rounded text-sm font-medium hover:bg-slate-300">Estampar</button>
+                <button onclick="document.getElementById('signatureModal').classList.add('hidden')" class="btn-primary">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Verification Modal -->
+    <div id="verificationModal" class="modal hidden">
+        <div class="modal-content max-w-lg">
+            <div class="flex justify-between mb-4 border-b pb-2">
+                <h3 class="font-bold flex gap-2"><i data-lucide="shield-check" class="text-green-600"></i> Signatures</h3>
+                <button onclick="document.getElementById('verificationModal').classList.add('hidden')"><i data-lucide="x"></i></button>
+            </div>
+            <div id="signaturesList" class="space-y-2 max-h-60 overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <!-- Selection Overlay -->
+    <div id="selectionOverlay" class="fixed inset-0 z-50 bg-gray-900 hidden flex flex-col">
+        <div class="bg-white p-3 flex justify-between items-center shadow shrink-0">
+            <h3 class="font-bold flex gap-2"><i data-lucide="scan-line" class="text-indigo-600"></i> Dibuixa Rectangle</h3>
+            <div class="flex gap-2">
+                <button onclick="window.app.confirmSelection()" class="btn-primary">Confirmar</button>
+                <button onclick="window.app.closeSelectionMode()" class="text-gray-500 hover:text-black"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+        </div>
+        <div class="flex-1 overflow-auto bg-gray-800 flex justify-center p-8 relative cursor-crosshair touch-none">
+            <div class="relative shadow-2xl">
+                <canvas id="selectionBgCanvas" class="absolute inset-0 pointer-events-none"></canvas>
+                <canvas id="selectionCanvas" class="relative z-10"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loader & Alerts -->
+    <div id="loader" class="fixed inset-0 z-[100] bg-white/90 backdrop-blur hidden flex flex-col items-center justify-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <p class="mt-4 font-medium text-slate-600" id="loaderText">Processant...</p>
+    </div>
+    
+    <div id="customAlertModal" class="modal hidden">
+        <div class="modal-content text-center max-w-sm">
+            <div class="mx-auto h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center mb-4"><i data-lucide="info" class="text-blue-600"></i></div>
+            <p id="alertMsg" class="mb-4">Alert</p>
+            <button onclick="document.getElementById('customAlertModal').classList.add('hidden')" class="btn-primary w-full">D'acord</button>
+        </div>
+    </div>
+
+    <script src="autoscript.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
+
+
