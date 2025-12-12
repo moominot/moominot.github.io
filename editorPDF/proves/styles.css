@@ -1,0 +1,78 @@
+/* Reset bàsic scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #f1f5f9; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* Classes d'Utilitat UI */
+.tool-btn {
+    @apply flex items-center gap-2 px-3 py-1.5 hover:bg-slate-700 rounded text-xs transition;
+}
+.action-btn {
+    @apply text-white px-3 py-1.5 rounded text-sm font-medium flex items-center gap-2 transition shadow;
+}
+.btn-primary {
+    @apply bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-blue-700 transition;
+}
+.btn-secondary {
+    @apply bg-slate-100 text-slate-700 px-4 py-2 rounded text-sm font-medium hover:bg-slate-200 transition;
+}
+.label-tiny {
+    @apply block text-xs font-bold text-slate-500 uppercase mb-2;
+}
+
+/* Modal Base */
+.modal {
+    @apply fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm px-4 animate-fade-in;
+}
+.modal-content {
+    @apply bg-white rounded-xl shadow-2xl p-6 w-full animate-scale-in;
+}
+
+/* Sidebar i Transicions */
+#sidebar.closed {
+    width: 0;
+    border: none;
+}
+
+.thumbnail-card {
+    transition: all 0.2s;
+    border: 3px solid transparent; 
+}
+/* Pàgina Actual */
+.thumbnail-card.active-page {
+    border-color: #64748b; /* Gris fosc */
+}
+/* Pàgina Seleccionada (Multi) */
+.thumbnail-card.selected {
+    border-color: #3b82f6; /* Blau */
+    background-color: #dbeafe;
+    transform: scale(0.98);
+}
+.thumbnail-card.selected::after {
+    content: '✓';
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: #3b82f6;
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Animations */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.animate-fade-in { animation: fadeIn 0.2s ease-out; }
+.animate-scale-in { animation: scaleIn 0.2s ease-out; }
+
+/* Estat deshabilitat */
+.disabled-ui { opacity: 0.6; pointer-events: none; filter: grayscale(100%); }
+
+
