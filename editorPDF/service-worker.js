@@ -3,7 +3,7 @@ const CACHE_NAME = 'editor-pdf-v1';
 
 // Llista de recursos essencials per guardar
 const ASSETS_TO_CACHE = [
-  './editor_autofirma_hybrid.html',
+  './webapp.html',
   './manifest.json',
   './autoscript.js',
   // Llibreries externes (CDN) necessàries per funcionar offline
