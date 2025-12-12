@@ -1,5 +1,5 @@
 // Nom de la caché (canvia la versió "v1" a "v2", etc. quan facis canvis importants)
-const CACHE_NAME = 'editor-pdf-v1';
+const CACHE_NAME = 'editor-pdf-v2';
 
 // Llista de recursos essencials per guardar
 const ASSETS_TO_CACHE = [
@@ -11,7 +11,9 @@ const ASSETS_TO_CACHE = [
   'https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
-  'https://unpkg.com/lucide@latest'
+  'https://unpkg.com/lucide@latest',
+  // Llibreria Forge (Afegida per a l'anàlisi de signatures)
+  'https://cdnjs.cloudflare.com/ajax/libs/forge/1.3.1/forge.min.js'
 ];
 
 // 1. Esdeveniment d'Instal·lació: Descarrega i guarda els fitxers
