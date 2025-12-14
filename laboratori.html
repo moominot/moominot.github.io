@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Liquid Sort - Pro</title>
+    <style>
+        :root {
+            --bg-color: #212121; /* Fons quasi negre per contrast */
+            --header-bg: rgba(255,255,255,0.1);
+            --text-color: #f5f5f5;
+            --accent: #00e676; /* Verd neó */
+            
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            margin: 0;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            touch-action: none;
+            user-select: none;
+        }
+
+        /* CAPÇALERA */
+        header {
+            flex: 0 0 auto;
+            padding: 15px;
+            background-color: var(--header-bg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+        }
+
+        .level-badge {
+            background: #333;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            border: 1px solid #555;
+        }
+
+        .header-btns { display: flex; gap: 10px; }
+        
+        .btn-icon {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            border-radius: 8px;
+            width: 42px; height: 42px;
+            font-size: 1.4rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-icon:active { background: rgba(255,255,255,0.3); }
+
+        /* JOC */
+        .game-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px 12px;
+            width: 100%;
+            max-width: 500px;
+            justify-items: center;
+        }
+
+        /* BOTELLES */
+        .bottle-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            cursor: pointer;
+            height: 150px;
+            width: 100%;
+            position: relative;
+        }
+
+        .bottle-container.selected .bottle {
+            transform: translateY(-20px);
+            border-color: var(--accent);
+            box-shadow: 0 0 20px rgba(0, 230, 118, 0.4);
+        }
+
+        .bottle {
+            width: 50px;
+            height: 120px;
+            border: 3px solid var(--glass-border);
+            border-top: none;
+            border-radius: 0 0 16px 16px;
+            background: var(--glass-bg);
+            display: flex;
+            flex-direction: column-reverse;
+            overflow: hidden;
+            position: relative;
+            transition: transform 0.2s;
+        }
+
+        .liquid {
+            width: 100%;
+            height: 25%;
+            transition: height 0.2s;
+            box-sizing: border-box;
+            /* Línia blanca fina per separar colors */
+            border-top: 1px solid rgba(255,255,255,0.3); 
+        }
+
+        .cap {
+            width: 40px;
+            height: 10px;
+            background: var(--accent);
+            margin-bottom: 6px;
+            border-radius: 4px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s;
+        }
+        .cap.visible { opacity: 1; transform: translateY(0); }
+
+        /* MODALS (Menú, Victòria, Bloqueig) */
+        #menu-overlay, #win-modal, #deadlock-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        #win-modal, #deadlock-modal { display: none; }
+        #win-modal.show, #deadlock-modal.show { display: flex; }
+
+        .modal-box {
+            text-align: center;
+            width: 85%;
+            max-width: 320px;
+            background: #333;
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid #555;
+            box-shadow: 0 10px 40px black;
+        }
+
+        .btn-main {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 10px;
+            margin-top: 20px;
+            cursor: pointer;
+            width: 100%;
+            text-transform: uppercase;
+        }
+        
+        .btn-danger {
+            background: #ff5252;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 10px;
+            margin-top: 20px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        /* Error Anim */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-5px); }
+            40% { transform: translateX(5px); }
+            60% { transform: translateX(-5px); }
+            80% { transform: translateX(5px); }
+        }
+        .shake { animation: shake 0.3s; }
+    </style>
+</head>
+<body>
+
+    <!-- MENÚ -->
+    <div id="menu-overlay">
+        <div class="modal-box">
+            <h1 style="font-size:3rem; margin:0">🧪</h1>
+            <h2>Liquid Sort</h2>
+            <p style="color:#aaa">Colors vius & Bloqueig detectat</p>
+            <button class="btn-main" onclick="startGame()">Jugar Nivell <span id="start-lvl">1</span></button>
+        </div>
+    </div>
+
+    <!-- DEADLOCK / GAME OVER -->
+    <div id="deadlock-modal">
+        <div class="modal-box">
+            <h1 style="margin:0; font-size:3rem">🚫</h1>
+            <h2 style="color:#ff5252; margin:10px 0;">Bloquejat!</h2>
+            <p>No hi ha més moviments possibles.</p>
+            <button class="btn-danger" onclick="restartLevel()">Reiniciar Nivell</button>
+        </div>
+    </div>
+
+    <!-- UI -->
+    <header>
+        <div class="level-badge">NIVELL <span id="current-level">1</span></div>
+        <div class="header-btns">
+            <button class="btn-icon" onclick="toggleFull()">⛶</button>
+            <button class="btn-icon" onclick="restartLevel()">🔄</button>
+        </div>
+    </header>
+
+    <div class="game-area">
+        <div id="board" class="board"></div>
+    </div>
+
+    <!-- WIN -->
+    <div id="win-modal">
+        <div class="modal-box">
+            <h2 style="color:var(--accent); font-size:2rem; margin:0">Victòria! 🎉</h2>
+            <button class="btn-main" onclick="nextLevel()">Següent Nivell ▶</button>
+        </div>
+    </div>
+
+<script>
+    // NOUS COLORS D'ALT CONTRAST (Res de pastels)
+    const COLORS = [
+        '#FF0000', // Vermell Pur
+        '#0040FF', // Blau Elèctric
+        '#00E676', // Verd Neó
+        '#FFFF00', // Groc Pur
+        '#D500F9', // Violeta Intens
+        '#00E5FF', // Cian
+        '#FF6D00', // Taronja
+        '#C2185B', // Magenta Fosc
+        '#795548', // Marró
+        '#607D8B', // Gris Blavós (fàcil de distingir del fons)
+        '#76FF03', // Verd Llima
+        '#304FFE'  // Blau Índigo
+    ];
+
+    const GRID_SIZE = 16;
+    const CAPACITY = 4;
+    const EMPTY_BOTTLES = 2; 
+
+    let level = 1;
+    let bottles = [];
+    let selected = null;
+
+    window.onload = () => {
+        let saved = localStorage.getItem('liquidProLevel');
+        if(saved) level = parseInt(saved);
+        updateText();
+    };
+
+    function updateText() {
+        document.getElementById('start-lvl').innerText = level;
+        document.getElementById('current-level').innerText = level;
+    }
+
+    function toggleFull() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(e=>{});
+        } else {
+            document.exitFullscreen();
+        }
+    }
+
+    function startGame() {
+        document.getElementById('menu-overlay').style.display = 'none';
+        generateLevel();
+    }
+
+    function nextLevel() {
+        level++;
+        localStorage.setItem('liquidProLevel', level);
+        updateText();
+        document.getElementById('win-modal').classList.remove('show');
+        generateLevel();
+    }
+
+    function restartLevel() {
+        document.getElementById('deadlock-modal').classList.remove('show');
+        generateLevel();
+    }
+
+    // --- GENERACIÓ NIVELL (Lògica Matemàtica) ---
+    function generateLevel() {
+        document.getElementById('win-modal').classList.remove('show');
+        selected = null;
+
+        let numColors;
+        if (level === 1) numColors = 6;
+        else if (level <= 5) numColors = 8;
+        else numColors = 12;
+
+        const filledBottlesCount = GRID_SIZE - EMPTY_BOTTLES; 
+        
+        // Repartiment Enter (múltiples de 4)
+        let bottlesPerColor = new Array(numColors).fill(0);
+        for(let i=0; i<numColors; i++) bottlesPerColor[i] = 1;
+        
+        let remaining = filledBottlesCount - numColors;
+        while(remaining > 0) {
+            let r = Math.floor(Math.random() * numColors);
+            bottlesPerColor[r]++;
+            remaining--;
+        }
+
+        // Crear líquid
+        let pool = [];
+        for(let i=0; i<numColors; i++) {
+            let color = COLORS[i];
+            let count = bottlesPerColor[i];
+            for(let k=0; k < count * CAPACITY; k++) pool.push(color);
+        }
+
+        // Barrejar
+        for (let i = pool.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [pool[i], pool[j]] = [pool[j], pool[i]];
+        }
+
+        // Omplir
+        let newBottles = [];
+        let pIdx = 0;
+        for (let i = 0; i < filledBottlesCount; i++) {
+            let b = [];
+            for(let k=0; k<CAPACITY; k++) {
+                b.push(pool[pIdx++]);
+            }
+            newBottles.push(b);
+        }
+
+        sanitizeBoard(newBottles, filledBottlesCount);
+
+        newBottles.push([]);
+        newBottles.push([]);
+        newBottles.sort(() => Math.random() - 0.5);
+
+        bottles = newBottles;
+        render();
+        // Check inicial per si de cas
+        checkDeadlock();
+    }
+
+    function sanitizeBoard(bottlesArr, count) {
+        let clean = false;
+        let attempts = 0;
+        while(!clean && attempts < 100) {
+            clean = true;
+            attempts++;
+            for(let i=0; i<count; i++) {
+                let b = bottlesArr[i];
+                let isFull = (b.length === 4 && b.every(c => c === b[0]));
+                let isBlock = (b.length === 4 && b[1] === b[2] && b[2] === b[3]);
+
+                if(isFull || isBlock) {
+                    clean = false;
+                    let target = Math.floor(Math.random() * count);
+                    if(target === i) target = (target + 1) % count;
+                    let temp = b[3];
+                    b[3] = bottlesArr[target][3];
+                    bottlesArr[target][3] = temp;
+                }
+            }
+        }
+    }
+
+    function render() {
+        const board = document.getElementById('board');
+        board.innerHTML = '';
+        
+        bottles.forEach((bottle, i) => {
+            let wrap = document.createElement('div');
+            wrap.className = 'bottle-container ' + (selected === i ? 'selected' : '');
+            wrap.onclick = (e) => { e.preventDefault(); clickBottle(i); };
+
+            let cap = document.createElement('div');
+            cap.className = 'cap ' + (isComplete(bottle) ? 'visible' : '');
+
+            let glass = document.createElement('div');
+            glass.className = 'bottle';
+            glass.id = 'b-'+i;
+
+            bottle.forEach(color => {
+                let liq = document.createElement('div');
+                liq.className = 'liquid';
+                liq.style.backgroundColor = color;
+                glass.appendChild(liq);
+            });
+
+            wrap.appendChild(cap);
+            wrap.appendChild(glass);
+            board.appendChild(wrap);
+        });
+    }
+
+    function clickBottle(i) {
+        if (isComplete(bottles[i])) return;
+
+        if (selected === null) {
+            if (bottles[i].length > 0) {
+                selected = i;
+                render();
+            }
+        } else {
+            if (selected === i) {
+                selected = null;
+                render();
+            } else {
+                moveLiquid(selected, i);
+            }
+        }
+    }
+
+    function moveLiquid(from, to) {
+        let src = bottles[from];
+        let dst = bottles[to];
+        let color = src[src.length - 1];
+
+        // 1. Calcular bloc
+        let chunk = 0;
+        for (let i = src.length - 1; i >= 0; i--) {
+            if (src[i] === color) chunk++;
+            else break;
+        }
+
+        // 2. Validar
+        let space = CAPACITY - dst.length;
+        let validColor = (dst.length === 0 || dst[dst.length - 1] === color);
+
+        if (validColor && space >= chunk) {
+            for(let k=0; k<chunk; k++) dst.push(src.pop());
+            selected = null;
+            render();
+            
+            // Verificar victòria o bloqueig després del moviment
+            setTimeout(() => {
+                if(checkWin()) return;
+                checkDeadlock();
+            }, 200);
+
+        } else {
+            let el = document.getElementById('b-'+to);
+            el.classList.add('shake');
+            setTimeout(()=>el.classList.remove('shake'), 300);
+            selected = null;
+            render();
+        }
+    }
+
+    // --- DETECCIÓ DE BLOQUEIG (DEADLOCK) ---
+    function checkDeadlock() {
+        // Recorrem totes les botelles per veure si es pot fer ALMENYS UN moviment
+        for (let i = 0; i < bottles.length; i++) {
+            // Si la botella origen està buida o completa, no pot moure res
+            if (bottles[i].length === 0 || isComplete(bottles[i])) continue;
+
+            // Mirem què tenim a dalt
+            let srcColor = bottles[i][bottles[i].length - 1];
+            let chunk = 0;
+            for (let k = bottles[i].length - 1; k >= 0; k--) {
+                if (bottles[i][k] === srcColor) chunk++;
+                else break;
+            }
+
+            // Mirem si hi ha algun destí possible
+            for (let j = 0; j < bottles.length; j++) {
+                if (i === j) continue;
+                
+                let dst = bottles[j];
+                let space = CAPACITY - dst.length;
+                let validColor = (dst.length === 0 || dst[dst.length - 1] === srcColor);
+
+                // Si trobem un sol moviment vàlid, NO estem bloquejats
+                if (validColor && space >= chunk) {
+                    return false; 
+                }
+            }
+        }
+        
+        // Si arribem aquí, no s'ha trobat cap moviment
+        document.getElementById('deadlock-modal').classList.add('show');
+        return true;
+    }
+
+    function isComplete(b) {
+        return b.length === CAPACITY && b.every(c => c === b[0]);
+    }
+
+    function checkWin() {
+        if (bottles.every(b => b.length === 0 || isComplete(b))) {
+            document.getElementById('win-modal').classList.add('show');
+            return true;
+        }
+        return false;
+    }
+
+    startGame();
+
+</script>
+</body>
+</html>
