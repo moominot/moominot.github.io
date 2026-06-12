@@ -42,18 +42,20 @@
       var tipText  = tipMatch ? tipMatch[1].trim() : row.useText;
       var cVal     = tipMatch ? 'C='+tipMatch[2]  : row.useVal;
       return '<tr>' +
-       /* '<td><span class="tm">'+escH(tipText)+'</span><span class="tc">'+escH(cVal)+'</span></td>' + */
-        '<td>'+escH(cVal)+'</td>' +
         '<td>'+escH(row.desc)+'</td>' +
-        '<td>'+escH(row.porch)+'</td>' +
-        '<td class="num">'+escH(row.reform||'—')+'</td>' +
-        '<td class="num">'+escH(row.unitPrice)+'</td>' +
         '<td class="num">'+escH(row.area)+'</td>' +
+       /* '<td><span class="tm">'+escH(tipText)+'</span><span class="tc">'+escH(cVal)+'</span></td>' + */
+        '<td class="num">'+escH(cVal)+'</td>' +
+         '<td class="num">'+escH(row.unitPrice)+'</td>' +
+        '<td class="num">'+escH(row.porch)+'</td>' +
+        '<td class="num">'+escH(row.reform||'0')*100+'%</td>' +
+       
+        
         '<td class="num">'+fmt(row.total)+'</td>' +
       '</tr>';
     }).join('');
 
-    var colgroup = '<colgroup><col style="width:6%"><col style="width:35%"><col style="width:11%"><col style="width:6%"><col style="width:8%"><col style="width:5%"><col style="width:13%"></colgroup>';
+    var colgroup = '<colgroup><col style="width:25%"><col style="width:12%"><col style="width:10%"><col style="width:14%"><col style="width:14%"><col style="width:10%"><col style="width:15%"></colgroup>';
 
     var overlay = document.createElement('div');
     overlay.id = 'pem-print-overlay';
@@ -72,6 +74,7 @@
       '#pem-print-overlay #hdr{display:flex;align-items:center;gap:14px;padding-bottom:10px;margin-bottom:18px;}' +
       '#pem-print-overlay #hdr img{height:42px;width:auto}' +
       '#pem-print-overlay #hdr p{font-size:9.5pt;color:#444}' +
+      '#pem-print-overlay h2{font-size:9.5pt;color:#444;text-transform:uppercase;letter-spacing:.03em}' +
 
       /* Seccions: títol sense línia, només espaiat */
       '#pem-print-overlay .section{margin-bottom:18px}' +
@@ -114,21 +117,25 @@
       '</div>' +
       '<div id="hdr">' +
       '<img src="https://coaib.org/images/logoFondoBlanco.png" alt="COAIB">' +
-      '<h2>Pressupost d\'Execució Material — Mètode Simplificat</h2>' +
       '</div>' +
+      '<h2>Pressupost d\'Execució Material — Mètode Simplificat</h2>' +
+      
       '<div class="section"><div class="stitle">1. Mòdul del mes</div><div class="mgrid">' +
       '<div class="mitem"><span class="lbl">Any</span><span class="val">'+escH(any)+'</span></div>' +
       '<div class="mitem"><span class="lbl">Mes</span><span class="val">'+escH(mes)+'</span></div>' +
       '<div class="mitem modul"><span class="lbl">Mòdul</span><span class="val">'+escH(modul)+'</span></div>' +
       '</div></div>' +
+       
+      
       '<div class="section"><div class="stitle">Coeficients globals</div><div class="cgrid">' +
       '<div class="citem"><span class="lbl">Coef. qualitat (Q)</span><span class="val">'+escH(qualText)+'</span></div>' +
       '<div class="citem"><span class="lbl">Coef. moderador (M)</span><span class="val">'+escH(areaText)+'</span></div>' +
       '</div></div>' +
-      '<div class="section"><div class="stitle">2. Càlcul del PEM</div>' +
+     '<div class="section"><div class="stitle">2. Càlcul del PEM</div>' +
+     /* '<div class="section">PEM = Σ(superfície en m² x Q x M x C) x mòdul del mes</div>'+ */
       '<table>'+colgroup+'<thead><tr>' +
-      '<th>Ús / Tipologia</th><th>Descripció</th><th>Porxo/Pèrg.</th>' +
-      '<th class="num">Ref.</th><th class="num">Preu (€/m²)</th><th class="num">Sup. (m²)</th><th class="num">Total (€)</th>' +
+      '<th>Descripció</th><th class="num">Sup. (m²)</th><th class="num">Coef. C</th><th class="num">Preu (€/m²)</th>' +
+      '<th class="num">Porxo/Pèrg.</th><th class="num">Obra %</th><th class="num">Total (€)</th>' +
       '</tr></thead><tbody>'+rowsHTML+'</tbody></table>' +
       '<div id="pem-total"><span class="lbl">PEM total &nbsp;</span><span class="val">'+fmt(pemTotal)+' €</span></div>' +
       '</div></div>';
