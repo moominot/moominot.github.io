@@ -109,16 +109,19 @@
       var obraPct  = (parseFloat(row.reform||'0')*100).toFixed(0)+'%';
       return '<tr>' +
         '<td>'+escH(row.desc)+'</td>' +
-        '<td class="num">'+escH(row.area)+'</td>' +
+       
         '<td class="num">'+escH(cVal)+'</td>' +
-        '<td class="num">'+escH(row.unitPrice)+'</td>' +
+        
         '<td class="num">'+escH(row.porch)+'</td>' +
         '<td class="num">'+obraPct+'</td>' +
+        
+        '<td class="num">'+escH(row.unitPrice)+'</td>' +
+         '<td class="num">'+escH(row.area)+'</td>' +
         '<td class="num">'+fmt(row.total)+'</td>' +
       '</tr>';
     }).join('');
 
-    var colgroup = '<colgroup><col style="width:25%"><col style="width:12%"><col style="width:10%"><col style="width:14%"><col style="width:14%"><col style="width:10%"><col style="width:15%"></colgroup>';
+    var colgroup = '<colgroup><col style="width:25%"><col style="width:10%"><col style="width:14%"><col style="width:10%"><col style="width:14%"><col style="width:12%"><col style="width:15%"></colgroup>';
 
     var overlay = document.createElement('div');
     overlay.id = 'pem-print-overlay';
@@ -145,9 +148,10 @@
       '#pem-print-overlay .citem .lbl{font-size:7.5pt;color:#888;text-transform:uppercase;display:block}' +
       '#pem-print-overlay .citem .val{font-size:9.5pt;font-weight:bold;line-height:1.2}' +
       '#pem-print-overlay table{border-collapse:collapse;width:100%;table-layout:fixed}' +
-      '#pem-print-overlay table th{padding:2px 4px 4px;font-size:7.5pt;font-weight:bold;color:#666;vertical-align:bottom;border-bottom:1px solid #999;text-align:left;line-height:1.15;text-transform:uppercase;letter-spacing:.03em}' +
+      '#pem-print-overlay table th{padding:2px 4px 4px;font-size:7.5pt;font-weight:bold;color:#666;vertical-align:bottom;border:1px solid #999;text-align:left;line-height:1.15;text-transform:uppercase;letter-spacing:.03em}' +
       '#pem-print-overlay table th.num{text-align:right}' +
-      '#pem-print-overlay table td{padding:5px 4px;vertical-align:top;font-size:9pt;line-height:1.2;word-break:break-word}' +
+      '#pem-print-overlay table th.center{text-align:center}' +
+      '#pem-print-overlay table td{padding:5px 4px;vertical-align:top;font-size:9pt;line-height:1.5;word-break:break-word}' +
       '#pem-print-overlay tbody tr:not(:last-child) td{border-bottom:1px solid #eee}' +
       '#pem-print-overlay .num{text-align:right;font-variant-numeric:tabular-nums}' +
       '#pem-print-overlay #pem-total{margin-top:8px;text-align:right;padding-top:6px;border-top:1px solid #999}' +
@@ -176,9 +180,14 @@
       '<div class="citem"><span class="lbl">Coef. moderador (M)</span><span class="val">'+escH(areaText)+'</span></div>' +
       '</div></div>' +
       '<div class="section"><div class="stitle">2. Càlcul del PEM</div>' +
-      '<table>'+colgroup+'<thead><tr>' +
-      '<th>Descripció</th><th class="num">Sup. (m²)</th><th class="num">Coef. C</th><th class="num">Preu (€/m²)</th>' +
-      '<th class="num">Porxo/Pèrg.</th><th class="num">Obra %</th><th class="num">Total (€)</th>' +
+      '<table>'+colgroup +
+      '<thead><tr>' +
+      '<td></tdh><th colspan=3 class="center">Coeficients particulars</th>' +
+      '<td></td><td></td><td></td>' +
+      '</tr></thead>' +
+      '<thead><tr>' +
+      '<th>Descripció</th><th class="num">Coef. C</th>' +
+      '<th class="num">Porxo/Pèrg.</th><th class="num">Obra %</th><th class="num">Preu (€/m²)</th><th class="num">Sup. (m²)</th><th class="num">Total (€)</th>' +
       '</tr></thead><tbody>'+rowsHTML+'</tbody></table>' +
       '<div id="pem-total"><span class="lbl">PEM total &nbsp;</span><span class="val">'+fmt(pemTotal)+' €</span></div>' +
       '</div></div>';
