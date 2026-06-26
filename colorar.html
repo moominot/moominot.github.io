@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Joc de Colorar</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      z-index: 10;
+    }
+
+    header h1 {
+      font-size: 1.3rem;
+      color: #333;
+      font-weight: 700;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      flex: 1;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+    .btn-primary { background: #4f8ef7; color: #fff; }
+    .btn-primary:hover { background: #3a75e0; }
+    .btn-secondary { background: #e8edf3; color: #444; }
+    .btn-secondary:hover { background: #d8dfe8; }
+    .btn-danger { background: #ff6b6b; color: #fff; }
+    .btn-danger:hover { background: #e85555; }
+
+    .tool-sep { width: 1px; height: 28px; background: #dde; margin: 0 4px; }
+
+    /* Size control */
+    .size-label { font-size: 0.8rem; color: #666; }
+    #brushSize { width: 80px; }
+
+    /* Palette */
+    .palette {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .color-swatch {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      cursor: pointer;
+      transition: transform 0.1s, border-color 0.1s;
+    }
+    .color-swatch:hover { transform: scale(1.15); }
+    .color-swatch.selected { border-color: #333; transform: scale(1.2); }
+
+    .color-swatch.eraser {
+      background: #fff;
+      border: 3px solid #ccc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    #customColor {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 3px solid #aaa;
+      cursor: pointer;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    /* Main area */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      gap: 16px;
+    }
+
+    /* Drop zone */
+    #dropZone {
+      width: 100%;
+      max-width: 700px;
+      border: 3px dashed #b0bec5;
+      border-radius: 16px;
+      background: #fff;
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    #dropZone.drag-over { border-color: #4f8ef7; background: #eef3ff; }
+    #dropZone .drop-icon { font-size: 3rem; margin-bottom: 10px; }
+    #dropZone p { color: #666; font-size: 0.95rem; line-height: 1.6; }
+    #dropZone strong { color: #4f8ef7; }
+    #fileInput { display: none; }
+
+    /* Canvas wrapper */
+    #canvasWrapper {
+      display: none;
+      position: relative;
+      max-width: 100%;
+      overflow: auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    }
+
+    #drawingCanvas {
+      display: block;
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    /* Loading overlay */
+    #loadingOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(255,255,255,0.85);
+      z-index: 100;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      font-size: 1.1rem;
+      color: #444;
+    }
+    #loadingOverlay.active { display: flex; }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 5px solid #e0e7ff;
+      border-top-color: #4f8ef7;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Undo/redo count badge */
+    .badge {
+      display: inline-block;
+      background: #4f8ef7;
+      color: #fff;
+      border-radius: 10px;
+      padding: 1px 6px;
+      font-size: 0.7rem;
+      margin-left: 4px;
+    }
+
+    /* Info bar */
+    #infoBar {
+      font-size: 0.8rem;
+      color: #888;
+      text-align: center;
+    }
+
+    /* Threshold control */
+    .threshold-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: #555;
+    }
+    #threshold { width: 70px; }
+
+    /* Tolerance */
+    .tol-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: #555;
+    }
+    #tolerance { width: 70px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🎨 Colorar</h1>
+  <div class="toolbar">
+    <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">📂 Obrir imatge</button>
+    <input type="file" id="fileInput" accept="image/*">
+    <button class="btn btn-secondary" id="btnUndo" onclick="undo()" title="Desfer (Ctrl+Z)">↩ Desfer</button>
+    <button class="btn btn-secondary" id="btnRedo" onclick="redo()" title="Refer (Ctrl+Y)">↪ Refer</button>
+    <button class="btn btn-danger" onclick="clearColors()">🗑 Esborrar colors</button>
+    <button class="btn btn-secondary" onclick="downloadImage()">⬇ Desar</button>
+    <div class="tool-sep"></div>
+    <div class="tol-wrap">
+      <span>Tolerància:</span>
+      <input type="range" id="tolerance" min="0" max="128" value="32">
+      <span id="toleranceVal">32</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- Palette -->
+  <div class="palette" id="palette">
+    <!-- Colors filled by JS -->
+    <div class="tool-sep"></div>
+    <label title="Color personalitzat">
+      <input type="color" id="customColor" value="#ff0000" onchange="selectCustomColor(this.value)">
+    </label>
+    <div class="color-swatch eraser selected" id="eraserSwatch" onclick="selectEraser()" title="Goma d'esborrar">✕</div>
+  </div>
+
+  <div id="infoBar">Puja o enganxa una imatge per començar a colorar</div>
+
+  <!-- Drop zone -->
+  <div id="dropZone" onclick="document.getElementById('fileInput').click()">
+    <div class="drop-icon">🖼️</div>
+    <p>
+      <strong>Clica aquí</strong> per seleccionar una imatge<br>
+      o <strong>arrossega</strong> un fitxer fins aquí<br>
+      o <strong>enganxa (Ctrl+V)</strong> una imatge del portaretalls
+    </p>
+  </div>
+
+  <!-- Canvas -->
+  <div id="canvasWrapper">
+    <canvas id="drawingCanvas"></canvas>
+  </div>
+</main>
+
+<div id="loadingOverlay">
+  <div class="spinner"></div>
+  <span id="loadingMsg">Processant imatge...</span>
+</div>
+
+<script>
+// ─── Palette colors ──────────────────────────────────────────────────────────
+const PALETTE = [
+  '#FF0000','#FF6600','#FFAA00','#FFD700','#00C000',
+  '#00AAFF','#0044CC','#8800CC','#FF00AA','#FF69B4',
+  '#A0522D','#808080','#000000','#FFFFFF',
+];
+
+let selectedColor = null; // null = eraser
+let tolerance = 32;
+
+// ─── State ───────────────────────────────────────────────────────────────────
+const canvas = document.getElementById('drawingCanvas');
+const ctx    = canvas.getContext('2d', { willReadFrequently: true });
+
+// We maintain two layers:
+//  - linesImageData: the original B&W lines (pixels that are "ink")
+//  - colorLayer: ImageData where we paint colors
+let linesImageData = null; // ImageData of processed lines
+let colorLayer     = null; // ImageData (RGBA) for colors
+let undoStack      = [];
+let redoStack      = [];
+
+// ─── Build palette UI ────────────────────────────────────────────────────────
+function buildPalette() {
+  const pal = document.getElementById('palette');
+  PALETTE.forEach(c => {
+    const sw = document.createElement('div');
+    sw.className = 'color-swatch';
+    sw.style.background = c;
+    sw.title = c;
+    sw.onclick = () => selectColor(c, sw);
+    pal.insertBefore(sw, pal.querySelector('.tool-sep'));
+  });
+}
+
+function selectColor(color, swatchEl) {
+  selectedColor = color;
+  document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+  if (swatchEl) swatchEl.classList.add('selected');
+}
+
+function selectCustomColor(color) {
+  selectedColor = color;
+  document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+}
+
+function selectEraser() {
+  selectedColor = null;
+  document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+  document.getElementById('eraserSwatch').classList.add('selected');
+}
+
+// ─── Tolerance slider ────────────────────────────────────────────────────────
+document.getElementById('tolerance').addEventListener('input', function() {
+  tolerance = +this.value;
+  document.getElementById('toleranceVal').textContent = tolerance;
+});
+
+// ─── File input / drag / paste ───────────────────────────────────────────────
+document.getElementById('fileInput').addEventListener('change', e => {
+  if (e.target.files[0]) loadFile(e.target.files[0]);
+});
+
+const dropZone = document.getElementById('dropZone');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) loadFile(file);
+});
+
+document.addEventListener('paste', e => {
+  const items = e.clipboardData?.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      loadFile(item.getAsFile());
+      break;
+    }
+  }
+});
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); undo(); }
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key === 'z'))) { e.preventDefault(); redo(); }
+});
+
+// ─── Load & process image ────────────────────────────────────────────────────
+function loadFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => loadImageFromURL(e.target.result);
+  reader.readAsDataURL(file);
+}
+
+function loadImageFromURL(url) {
+  showLoading('Carregant imatge...');
+  const img = new Image();
+  img.onload = () => {
+    // Limit max size for performance
+    const MAX = 1400;
+    let w = img.naturalWidth;
+    let h = img.naturalHeight;
+    if (w > MAX || h > MAX) {
+      const ratio = Math.min(MAX / w, MAX / h);
+      w = Math.round(w * ratio);
+      h = Math.round(h * ratio);
+    }
+
+    canvas.width  = w;
+    canvas.height = h;
+
+    // Draw original
+    ctx.drawImage(img, 0, 0, w, h);
+    const rawData = ctx.getImageData(0, 0, w, h);
+
+    showLoading('Processant línies...');
+    setTimeout(() => {
+      processImage(rawData, w, h);
+      hideLoading();
+      document.getElementById('dropZone').style.display = 'none';
+      document.getElementById('canvasWrapper').style.display = 'block';
+      document.getElementById('infoBar').textContent = `Imatge ${w}×${h}px — Selecciona un color i clica per omplir!`;
+      undoStack = [];
+      redoStack = [];
+    }, 50);
+  };
+  img.onerror = () => { hideLoading(); alert('No s\'ha pogut carregar la imatge.'); };
+  img.src = url;
+}
+
+// Convert image to clean B&W lines + prepare color layer
+function processImage(rawData, w, h) {
+  const src  = rawData.data;
+  const lines = new Uint8ClampedArray(w * h * 4);
+  const colors = new Uint8ClampedArray(w * h * 4).fill(0);
+
+  // 1. Grayscale + threshold to detect "ink" pixels
+  // A pixel is "ink" if it's dark enough
+  const THRESHOLD = 128;
+
+  for (let i = 0; i < w * h; i++) {
+    const r = src[i*4], g = src[i*4+1], b = src[i*4+2];
+    const gray = 0.299*r + 0.587*g + 0.114*b;
+    const isInk = gray < THRESHOLD;
+
+    if (isInk) {
+      // Black line
+      lines[i*4]   = 0;
+      lines[i*4+1] = 0;
+      lines[i*4+2] = 0;
+      lines[i*4+3] = 255;
+    } else {
+      // White/transparent background
+      lines[i*4]   = 255;
+      lines[i*4+1] = 255;
+      lines[i*4+2] = 255;
+      lines[i*4+3] = 255;
+    }
+    // Color layer starts transparent
+    colors[i*4+3] = 0;
+  }
+
+  linesImageData = new ImageData(lines, w, h);
+  colorLayer     = new ImageData(colors, w, h);
+
+  renderCanvas();
+}
+
+// ─── Render: composite color layer + lines ───────────────────────────────────
+function renderCanvas() {
+  const w = canvas.width, h = canvas.height;
+  const out = ctx.createImageData(w, h);
+  const o   = out.data;
+  const l   = linesImageData.data;
+  const c   = colorLayer.data;
+
+  for (let i = 0; i < w * h; i++) {
+    const li = i * 4;
+    const isInk = l[li+3] === 255 && l[li] === 0 && l[li+1] === 0 && l[li+2] === 0;
+
+    if (isInk) {
+      o[li] = 0; o[li+1] = 0; o[li+2] = 0; o[li+3] = 255;
+    } else if (c[li+3] > 0) {
+      // Colored pixel
+      o[li]   = c[li];
+      o[li+1] = c[li+1];
+      o[li+2] = c[li+2];
+      o[li+3] = 255;
+    } else {
+      // White background
+      o[li] = 255; o[li+1] = 255; o[li+2] = 255; o[li+3] = 255;
+    }
+  }
+  ctx.putImageData(out, 0, 0);
+}
+
+// ─── Canvas click → flood fill ───────────────────────────────────────────────
+canvas.addEventListener('click', handleCanvasClick);
+canvas.addEventListener('touchend', e => {
+  e.preventDefault();
+  const touch = e.changedTouches[0];
+  const rect = canvas.getBoundingClientRect();
+  handleCanvasClick({
+    clientX: touch.clientX,
+    clientY: touch.clientY,
+    _rect: rect
+  });
+});
+
+function handleCanvasClick(e) {
+  if (!linesImageData) return;
+  const rect = e._rect || canvas.getBoundingClientRect();
+  const scaleX = canvas.width  / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const x = Math.floor((e.clientX - rect.left) * scaleX);
+  const y = Math.floor((e.clientY - rect.top)  * scaleY);
+
+  if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) return;
+
+  // Don't fill on ink pixels
+  const idx = (y * canvas.width + x) * 4;
+  const l   = linesImageData.data;
+  if (l[idx] === 0 && l[idx+1] === 0 && l[idx+2] === 0 && l[idx+3] === 255) return;
+
+  // Save undo state
+  pushUndo();
+
+  if (selectedColor === null) {
+    // Eraser: flood fill with transparent
+    floodFill(x, y, null);
+  } else {
+    floodFill(x, y, selectedColor);
+  }
+
+  renderCanvas();
+}
+
+// ─── Flood fill (BFS on colorLayer, bounded by linesImageData) ───────────────
+function hexToRGB(hex) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return [r, g, b];
+}
+
+function colorDistance(r1,g1,b1, r2,g2,b2) {
+  return Math.abs(r1-r2) + Math.abs(g1-g2) + Math.abs(b1-b2);
+}
+
+function floodFill(startX, startY, colorHex) {
+  const w = canvas.width;
+  const h = canvas.height;
+  const l = linesImageData.data;
+  const c = colorLayer.data;
+
+  const [fillR, fillG, fillB] = colorHex ? hexToRGB(colorHex) : [0,0,0];
+  const fillA = colorHex ? 255 : 0;
+
+  // Target: current color at start pixel
+  const si = (startY * w + startX) * 4;
+  const targetR = c[si];
+  const targetG = c[si+1];
+  const targetB = c[si+2];
+  const targetA = c[si+3];
+
+  // If already same color, nothing to do
+  if (colorHex && targetA === 255 && targetR === fillR && targetG === fillG && targetB === fillB) return;
+  if (!colorHex && targetA === 0) return;
+
+  const visited = new Uint8Array(w * h);
+  const queue   = [startX + startY * w];
+  visited[startX + startY * w] = 1;
+
+  while (queue.length > 0) {
+    const pos = queue.pop();
+    const px  = pos % w;
+    const py  = (pos - px) / w;
+    const li  = pos * 4;
+
+    // Paint
+    c[li]   = fillR;
+    c[li+1] = fillG;
+    c[li+2] = fillB;
+    c[li+3] = fillA;
+
+    // Neighbours (4-connected)
+    const neighbors = [
+      px > 0     ? pos - 1 : -1,
+      px < w-1   ? pos + 1 : -1,
+      py > 0     ? pos - w : -1,
+      py < h-1   ? pos + w : -1,
+    ];
+
+    for (const n of neighbors) {
+      if (n < 0 || visited[n]) continue;
+      visited[n] = 1;
+
+      // Skip ink pixels
+      const ni = n * 4;
+      if (l[ni] === 0 && l[ni+1] === 0 && l[ni+2] === 0 && l[ni+3] === 255) continue;
+
+      // Check color tolerance vs target
+      const dr = c[ni]   - targetR;
+      const dg = c[ni+1] - targetG;
+      const db = c[ni+2] - targetB;
+      const da = c[ni+3] - targetA;
+      const dist = Math.abs(dr) + Math.abs(dg) + Math.abs(db) + Math.abs(da);
+      if (dist <= tolerance * 4) {
+        queue.push(n);
+      }
+    }
+  }
+}
+
+// ─── Undo / Redo ─────────────────────────────────────────────────────────────
+function pushUndo() {
+  undoStack.push(colorLayer.data.slice());
+  if (undoStack.length > 30) undoStack.shift();
+  redoStack = [];
+}
+
+function undo() {
+  if (undoStack.length === 0) return;
+  redoStack.push(colorLayer.data.slice());
+  colorLayer.data.set(undoStack.pop());
+  renderCanvas();
+}
+
+function redo() {
+  if (redoStack.length === 0) return;
+  undoStack.push(colorLayer.data.slice());
+  colorLayer.data.set(redoStack.pop());
+  renderCanvas();
+}
+
+// ─── Clear colors ─────────────────────────────────────────────────────────────
+function clearColors() {
+  if (!colorLayer) return;
+  pushUndo();
+  colorLayer.data.fill(0);
+  renderCanvas();
+}
+
+// ─── Download ────────────────────────────────────────────────────────────────
+function downloadImage() {
+  if (!canvas) return;
+  const link = document.createElement('a');
+  link.download = 'dibuix-colorat.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+// ─── Loading overlay ─────────────────────────────────────────────────────────
+function showLoading(msg) {
+  document.getElementById('loadingMsg').textContent = msg || 'Carregant...';
+  document.getElementById('loadingOverlay').classList.add('active');
+}
+function hideLoading() {
+  document.getElementById('loadingOverlay').classList.remove('active');
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+buildPalette();
+// Start with eraser deselected, pick first color
+selectColor(PALETTE[0], document.querySelector('.color-swatch'));
+</script>
+</body>
+</html>
