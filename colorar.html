@@ -128,22 +128,63 @@
     #dropZone strong { color: #4f8ef7; }
     #fileInput { display: none; }
 
-    /* Canvas wrapper */
-    #canvasWrapper {
+    /* Canvas viewport (clips the zoomed canvas) */
+    #canvasViewport {
       display: none;
+      flex: 1;
+      width: 100%;
       position: relative;
-      max-width: 100%;
-      overflow: auto;
-      background: #fff;
+      overflow: hidden;
+      background: #e8edf3;
       border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+      box-shadow: inset 0 2px 8px rgba(0,0,0,0.08);
+      min-height: 300px;
+      cursor: crosshair;
+    }
+
+    /* Inner wrapper: moved by pan, scaled by zoom */
+    #canvasWrapper {
+      position: absolute;
+      top: 0; left: 0;
+      transform-origin: 0 0;
     }
 
     #drawingCanvas {
       display: block;
-      cursor: crosshair;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.18);
       touch-action: none;
     }
+
+    /* Zoom controls bar */
+    .zoom-bar {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .zoom-btn {
+      width: 28px; height: 28px;
+      border: none;
+      border-radius: 6px;
+      background: #e8edf3;
+      color: #444;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.12s;
+    }
+    .zoom-btn:hover { background: #d0d8e4; }
+    #zoomLabel {
+      min-width: 46px;
+      text-align: center;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #555;
+      cursor: pointer;
+      padding: 4px 2px;
+      border-radius: 4px;
+    }
+    #zoomLabel:hover { background: #e8edf3; }
 
     /* Loading overlay */
     #loadingOverlay {
@@ -222,6 +263,12 @@
     <button class="btn btn-danger" onclick="clearColors()">🗑 Esborrar colors</button>
     <button class="btn btn-secondary" onclick="downloadImage()">⬇ Desar</button>
     <div class="tool-sep"></div>
+    <div class="zoom-bar">
+      <button class="zoom-btn" onclick="zoomBy(-0.25)" title="Reduir (-)">−</button>
+      <span id="zoomLabel" onclick="zoomFit()" title="Clic per ajustar a pantalla">100%</span>
+      <button class="zoom-btn" onclick="zoomBy(+0.25)" title="Ampliar (+)">+</button>
+    </div>
+    <div class="tool-sep"></div>
     <div class="tol-wrap">
       <span>Tolerància:</span>
       <input type="range" id="tolerance" min="0" max="128" value="32">
@@ -253,9 +300,11 @@
     </p>
   </div>
 
-  <!-- Canvas -->
-  <div id="canvasWrapper">
-    <canvas id="drawingCanvas"></canvas>
+  <!-- Canvas viewport -->
+  <div id="canvasViewport">
+    <div id="canvasWrapper">
+      <canvas id="drawingCanvas"></canvas>
+    </div>
   </div>
 </main>
 
@@ -276,16 +325,163 @@ let selectedColor = null; // null = eraser
 let tolerance = 32;
 
 // ─── State ───────────────────────────────────────────────────────────────────
-const canvas = document.getElementById('drawingCanvas');
-const ctx    = canvas.getContext('2d', { willReadFrequently: true });
+const canvas      = document.getElementById('drawingCanvas');
+const ctx         = canvas.getContext('2d', { willReadFrequently: true });
+const viewport    = document.getElementById('canvasViewport');
+const wrapper     = document.getElementById('canvasWrapper');
 
-// We maintain two layers:
-//  - linesImageData: the original B&W lines (pixels that are "ink")
-//  - colorLayer: ImageData where we paint colors
-let linesImageData = null; // ImageData of processed lines
-let colorLayer     = null; // ImageData (RGBA) for colors
+let linesImageData = null;
+let colorLayer     = null;
 let undoStack      = [];
 let redoStack      = [];
+
+// ─── Zoom / Pan ───────────────────────────────────────────────────────────────
+let zoom  = 1;
+let panX  = 0;
+let panY  = 0;
+const ZOOM_MIN = 0.1;
+const ZOOM_MAX = 8;
+
+function applyTransform() {
+  wrapper.style.transform = `scale(${zoom})`;
+  wrapper.style.left = panX + 'px';
+  wrapper.style.top  = panY + 'px';
+  document.getElementById('zoomLabel').textContent = Math.round(zoom * 100) + '%';
+}
+
+function clampPan() {
+  // Allow canvas to be dragged but keep at least 80px visible
+  const vw = viewport.clientWidth;
+  const vh = viewport.clientHeight;
+  const cw = canvas.width  * zoom;
+  const ch = canvas.height * zoom;
+  const margin = 80;
+  panX = Math.min(panX, vw - margin);
+  panX = Math.max(panX, margin - cw);
+  panY = Math.min(panY, vh - margin);
+  panY = Math.max(panY, margin - ch);
+}
+
+function zoomTo(newZoom, pivotX, pivotY) {
+  // pivotX/Y in viewport coords — zoom toward that point
+  newZoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, newZoom));
+  if (pivotX === undefined) {
+    pivotX = viewport.clientWidth  / 2;
+    pivotY = viewport.clientHeight / 2;
+  }
+  // canvas coords of pivot before zoom
+  const cx = (pivotX - panX) / zoom;
+  const cy = (pivotY - panY) / zoom;
+  zoom = newZoom;
+  panX = pivotX - cx * zoom;
+  panY = pivotY - cy * zoom;
+  clampPan();
+  applyTransform();
+}
+
+function zoomBy(delta) {
+  // Step through nice levels
+  const steps = [0.1,0.25,0.33,0.5,0.67,0.75,1,1.25,1.5,2,2.5,3,4,5,6,8];
+  let idx = steps.findIndex(s => s >= zoom - 0.001);
+  if (delta > 0) idx = Math.min(steps.length - 1, idx + 1);
+  else           idx = Math.max(0, (idx < 0 ? steps.length - 1 : idx) - 1);
+  zoomTo(steps[idx]);
+}
+
+function zoomFit() {
+  if (!linesImageData) return;
+  const vw = viewport.clientWidth  - 32;
+  const vh = viewport.clientHeight - 32;
+  const z  = Math.min(vw / canvas.width, vh / canvas.height, 1);
+  zoom = z;
+  panX = (viewport.clientWidth  - canvas.width  * zoom) / 2;
+  panY = (viewport.clientHeight - canvas.height * zoom) / 2;
+  applyTransform();
+}
+
+// Ctrl+wheel to zoom
+viewport.addEventListener('wheel', e => {
+  if (e.ctrlKey || e.metaKey) {
+    e.preventDefault();
+    const rect = viewport.getBoundingClientRect();
+    zoomTo(zoom * (e.deltaY < 0 ? 1.15 : 1/1.15),
+           e.clientX - rect.left, e.clientY - rect.top);
+  }
+}, { passive: false });
+
+// Also plain scroll (no ctrl) zooms on desktop for convenience
+viewport.addEventListener('wheel', e => {
+  if (!e.ctrlKey && !e.metaKey) {
+    e.preventDefault();
+    const rect = viewport.getBoundingClientRect();
+    zoomTo(zoom * (e.deltaY < 0 ? 1.12 : 1/1.12),
+           e.clientX - rect.left, e.clientY - rect.top);
+  }
+}, { passive: false });
+
+// Keyboard zoom
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); zoomBy(+1); }
+  if ((e.ctrlKey || e.metaKey) && e.key === '-')                    { e.preventDefault(); zoomBy(-1); }
+  if ((e.ctrlKey || e.metaKey) && e.key === '0')                    { e.preventDefault(); zoomFit(); }
+});
+
+// ─── Pan (middle-click drag or Alt+left-drag on viewport) ────────────────────
+let isPanning = false;
+let panStart  = { x: 0, y: 0, px: 0, py: 0 };
+
+viewport.addEventListener('mousedown', e => {
+  if (e.button === 1 || (e.button === 0 && e.altKey)) {
+    isPanning = true;
+    panStart = { x: e.clientX, y: e.clientY, px: panX, py: panY };
+    viewport.style.cursor = 'grabbing';
+    e.preventDefault();
+  }
+});
+window.addEventListener('mousemove', e => {
+  if (!isPanning) return;
+  panX = panStart.px + (e.clientX - panStart.x);
+  panY = panStart.py + (e.clientY - panStart.y);
+  clampPan();
+  applyTransform();
+});
+window.addEventListener('mouseup', e => {
+  if (isPanning) {
+    isPanning = false;
+    viewport.style.cursor = '';
+  }
+});
+
+// Touch pan (two fingers) & pinch-zoom
+let lastTouches = null;
+viewport.addEventListener('touchstart', e => {
+  lastTouches = e.touches;
+}, { passive: true });
+viewport.addEventListener('touchmove', e => {
+  if (e.touches.length === 2 && lastTouches && lastTouches.length === 2) {
+    e.preventDefault();
+    const rect = viewport.getBoundingClientRect();
+    // Pinch center
+    const cx = ((e.touches[0].clientX + e.touches[1].clientX) / 2) - rect.left;
+    const cy = ((e.touches[0].clientY + e.touches[1].clientY) / 2) - rect.top;
+    const pcx = ((lastTouches[0].clientX + lastTouches[1].clientX) / 2) - rect.left;
+    const pcy = ((lastTouches[0].clientY + lastTouches[1].clientY) / 2) - rect.top;
+    // Pinch distance
+    const d0 = Math.hypot(lastTouches[1].clientX - lastTouches[0].clientX,
+                          lastTouches[1].clientY - lastTouches[0].clientY);
+    const d1 = Math.hypot(e.touches[1].clientX - e.touches[0].clientX,
+                          e.touches[1].clientY - e.touches[0].clientY);
+    const newZoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, zoom * d1 / d0));
+    const canCx = (cx - panX) / zoom;
+    const canCy = (cy - panY) / zoom;
+    zoom = newZoom;
+    panX = cx - canCx * zoom + (cx - pcx);
+    panY = cy - canCy * zoom + (cy - pcy);
+    clampPan();
+    applyTransform();
+  }
+  lastTouches = e.touches;
+}, { passive: false });
 
 // ─── Build palette UI ────────────────────────────────────────────────────────
 function buildPalette() {
@@ -387,10 +583,13 @@ function loadImageFromURL(url) {
       processImage(rawData, w, h);
       hideLoading();
       document.getElementById('dropZone').style.display = 'none';
-      document.getElementById('canvasWrapper').style.display = 'block';
-      document.getElementById('infoBar').textContent = `Imatge ${w}×${h}px — Selecciona un color i clica per omplir!`;
+      document.getElementById('canvasViewport').style.display = 'block';
+      document.getElementById('infoBar').textContent =
+        `Imatge ${w}×${h}px · Roda = zoom · Alt+arrossega o botó central = moure · Clic = omplir`;
       undoStack = [];
       redoStack = [];
+      // Small delay to let viewport render before measuring
+      requestAnimationFrame(zoomFit);
     }, 50);
   };
   img.onerror = () => { hideLoading(); alert('No s\'ha pogut carregar la imatge.'); };
@@ -464,25 +663,29 @@ function renderCanvas() {
 }
 
 // ─── Canvas click → flood fill ───────────────────────────────────────────────
-canvas.addEventListener('click', handleCanvasClick);
+// Single-tap detection: ignore if panning
+let pointerMoved = false;
+viewport.addEventListener('mousedown', e => { if (e.button === 0 && !e.altKey) pointerMoved = false; });
+viewport.addEventListener('mousemove', e => { if (e.buttons === 1 && !e.altKey) pointerMoved = true; });
+
+canvas.addEventListener('click', e => {
+  if (!pointerMoved) handleCanvasClick(e);
+});
+
 canvas.addEventListener('touchend', e => {
+  if (e.changedTouches.length !== 1) return; // only single-finger tap
   e.preventDefault();
   const touch = e.changedTouches[0];
   const rect = canvas.getBoundingClientRect();
-  handleCanvasClick({
-    clientX: touch.clientX,
-    clientY: touch.clientY,
-    _rect: rect
-  });
+  handleCanvasClick({ clientX: touch.clientX, clientY: touch.clientY, _rect: rect });
 });
 
 function handleCanvasClick(e) {
   if (!linesImageData) return;
+  // getBoundingClientRect of the canvas already reflects CSS zoom/pan transform
   const rect = e._rect || canvas.getBoundingClientRect();
-  const scaleX = canvas.width  / rect.width;
-  const scaleY = canvas.height / rect.height;
-  const x = Math.floor((e.clientX - rect.left) * scaleX);
-  const y = Math.floor((e.clientY - rect.top)  * scaleY);
+  const x = Math.floor((e.clientX - rect.left) / zoom);
+  const y = Math.floor((e.clientY - rect.top)  / zoom);
 
   if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) return;
 
