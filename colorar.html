@@ -25,12 +25,7 @@
       flex-wrap: wrap;
       z-index: 10;
     }
-
-    header h1 {
-      font-size: 1.3rem;
-      color: #333;
-      font-weight: 700;
-    }
+    header h1 { font-size: 1.3rem; color: #333; font-weight: 700; }
 
     .toolbar {
       display: flex;
@@ -49,18 +44,16 @@
       font-weight: 600;
       transition: all 0.15s;
     }
-    .btn-primary { background: #4f8ef7; color: #fff; }
-    .btn-primary:hover { background: #3a75e0; }
+    .btn-primary   { background: #4f8ef7; color: #fff; }
+    .btn-primary:hover   { background: #3a75e0; }
     .btn-secondary { background: #e8edf3; color: #444; }
     .btn-secondary:hover { background: #d8dfe8; }
-    .btn-danger { background: #ff6b6b; color: #fff; }
-    .btn-danger:hover { background: #e85555; }
+    .btn-danger    { background: #ff6b6b; color: #fff; }
+    .btn-danger:hover    { background: #e85555; }
+    .btn-success   { background: #34c759; color: #fff; }
+    .btn-success:hover   { background: #28a745; }
 
     .tool-sep { width: 1px; height: 28px; background: #dde; margin: 0 4px; }
-
-    /* Size control */
-    .size-label { font-size: 0.8rem; color: #666; }
-    #brushSize { width: 80px; }
 
     /* Palette */
     .palette {
@@ -69,57 +62,69 @@
       flex-wrap: wrap;
       align-items: center;
     }
-
     .color-swatch {
-      width: 30px;
-      height: 30px;
+      width: 30px; height: 30px;
       border-radius: 50%;
       border: 3px solid transparent;
       cursor: pointer;
       transition: transform 0.1s, border-color 0.1s;
     }
-    .color-swatch:hover { transform: scale(1.15); }
+    .color-swatch:hover  { transform: scale(1.15); }
     .color-swatch.selected { border-color: #333; transform: scale(1.2); }
-
     .color-swatch.eraser {
-      background: #fff;
-      border: 3px solid #ccc;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
+      background: #fff; border: 3px solid #ccc;
+      display: flex; align-items: center; justify-content: center; font-size: 14px;
+    }
+    #customColor {
+      width: 30px; height: 30px; border-radius: 50%;
+      border: 3px solid #aaa; cursor: pointer; padding: 0; overflow: hidden;
     }
 
-    #customColor {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      border: 3px solid #aaa;
-      cursor: pointer;
-      padding: 0;
-      overflow: hidden;
+    /* Zoom bar */
+    .zoom-bar { display: flex; align-items: center; gap: 4px; }
+    .zoom-btn {
+      width: 28px; height: 28px; border: none; border-radius: 6px;
+      background: #e8edf3; color: #444; font-size: 1rem; font-weight: 700;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background 0.12s;
     }
+    .zoom-btn:hover { background: #d0d8e4; }
+    #zoomLabel {
+      min-width: 46px; text-align: center; font-size: 0.82rem; font-weight: 600;
+      color: #555; cursor: pointer; padding: 4px 2px; border-radius: 4px;
+    }
+    #zoomLabel:hover { background: #e8edf3; }
+
+    /* Tolerance */
+    .tol-wrap { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #555; }
+    #tolerance { width: 70px; }
 
     /* Main area */
-    main {
-      flex: 1;
+    main { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 20px; gap: 16px; }
+
+    /* Restore banner */
+    #restoreBanner {
+      display: none;
+      width: 100%;
+      max-width: 700px;
+      background: #fffbea;
+      border: 1.5px solid #f5c842;
+      border-radius: 10px;
+      padding: 12px 16px;
       display: flex;
-      flex-direction: column;
       align-items: center;
-      padding: 20px;
-      gap: 16px;
+      gap: 12px;
+      flex-wrap: wrap;
     }
+    #restoreBanner.hidden { display: none !important; }
+    #restoreBanner span { flex: 1; font-size: 0.9rem; color: #7a6000; }
+    #restoreBanner .btn { padding: 6px 14px; font-size: 0.82rem; }
 
     /* Drop zone */
     #dropZone {
-      width: 100%;
-      max-width: 700px;
-      border: 3px dashed #b0bec5;
-      border-radius: 16px;
-      background: #fff;
-      padding: 40px 20px;
-      text-align: center;
-      cursor: pointer;
+      width: 100%; max-width: 700px;
+      border: 3px dashed #b0bec5; border-radius: 16px;
+      background: #fff; padding: 40px 20px; text-align: center; cursor: pointer;
       transition: border-color 0.2s, background 0.2s;
     }
     #dropZone.drag-over { border-color: #4f8ef7; background: #eef3ff; }
@@ -128,127 +133,77 @@
     #dropZone strong { color: #4f8ef7; }
     #fileInput { display: none; }
 
-    /* Canvas viewport (clips the zoomed canvas) */
+    /* Canvas viewport */
     #canvasViewport {
       display: none;
-      flex: 1;
-      width: 100%;
-      position: relative;
-      overflow: hidden;
-      background: #e8edf3;
-      border-radius: 12px;
+      flex: 1; width: 100%;
+      position: relative; overflow: hidden;
+      background: #e8edf3; border-radius: 12px;
       box-shadow: inset 0 2px 8px rgba(0,0,0,0.08);
-      min-height: 300px;
-      cursor: crosshair;
+      min-height: 300px; cursor: crosshair;
     }
+    #canvasWrapper { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
+    #drawingCanvas { display: block; box-shadow: 0 4px 20px rgba(0,0,0,0.18); touch-action: none; }
 
-    /* Inner wrapper: moved by pan, scaled by zoom */
-    #canvasWrapper {
-      position: absolute;
-      top: 0; left: 0;
-      transform-origin: 0 0;
-    }
+    /* Info bar */
+    #infoBar { font-size: 0.8rem; color: #888; text-align: center; }
 
-    #drawingCanvas {
-      display: block;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.18);
-      touch-action: none;
+    /* Auto-save indicator */
+    #saveIndicator {
+      position: fixed; bottom: 16px; right: 16px;
+      background: rgba(52,199,89,0.92); color: #fff;
+      border-radius: 20px; padding: 6px 14px;
+      font-size: 0.8rem; font-weight: 600;
+      opacity: 0; transition: opacity 0.4s;
+      pointer-events: none; z-index: 200;
     }
-
-    /* Zoom controls bar */
-    .zoom-bar {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .zoom-btn {
-      width: 28px; height: 28px;
-      border: none;
-      border-radius: 6px;
-      background: #e8edf3;
-      color: #444;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: background 0.12s;
-    }
-    .zoom-btn:hover { background: #d0d8e4; }
-    #zoomLabel {
-      min-width: 46px;
-      text-align: center;
-      font-size: 0.82rem;
-      font-weight: 600;
-      color: #555;
-      cursor: pointer;
-      padding: 4px 2px;
-      border-radius: 4px;
-    }
-    #zoomLabel:hover { background: #e8edf3; }
+    #saveIndicator.show { opacity: 1; }
 
     /* Loading overlay */
     #loadingOverlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(255,255,255,0.85);
-      z-index: 100;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 16px;
-      font-size: 1.1rem;
-      color: #444;
+      display: none; position: fixed; inset: 0;
+      background: rgba(255,255,255,0.85); z-index: 100;
+      flex-direction: column; align-items: center; justify-content: center;
+      gap: 16px; font-size: 1.1rem; color: #444;
     }
     #loadingOverlay.active { display: flex; }
-
     .spinner {
-      width: 48px;
-      height: 48px;
-      border: 5px solid #e0e7ff;
-      border-top-color: #4f8ef7;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+      width: 48px; height: 48px;
+      border: 5px solid #e0e7ff; border-top-color: #4f8ef7;
+      border-radius: 50%; animation: spin 0.8s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Undo/redo count badge */
-    .badge {
-      display: inline-block;
-      background: #4f8ef7;
-      color: #fff;
-      border-radius: 10px;
-      padding: 1px 6px;
-      font-size: 0.7rem;
-      margin-left: 4px;
+    /* ── Mode-choice modal ─────────────────────────────────── */
+    #modeModal {
+      display: none; position: fixed; inset: 0; z-index: 300;
+      background: rgba(0,0,0,0.45);
+      align-items: center; justify-content: center;
     }
-
-    /* Info bar */
-    #infoBar {
-      font-size: 0.8rem;
-      color: #888;
+    #modeModal.active { display: flex; }
+    .modal-box {
+      background: #fff; border-radius: 18px;
+      padding: 32px 28px; max-width: 520px; width: 92%;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.25);
       text-align: center;
     }
-
-    /* Threshold control */
-    .threshold-wrap {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.8rem;
-      color: #555;
+    .modal-box h2 { font-size: 1.2rem; margin-bottom: 8px; color: #222; }
+    .modal-box p  { font-size: 0.9rem; color: #666; margin-bottom: 24px; line-height: 1.5; }
+    .modal-preview-row {
+      display: flex; gap: 16px; margin-bottom: 24px; justify-content: center;
     }
-    #threshold { width: 70px; }
-
-    /* Tolerance */
-    .tol-wrap {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.8rem;
-      color: #555;
+    .modal-option {
+      flex: 1; max-width: 200px;
+      border: 2.5px solid #dde; border-radius: 12px;
+      padding: 16px 12px; cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
     }
-    #tolerance { width: 70px; }
+    .modal-option:hover { border-color: #4f8ef7; background: #eef3ff; }
+    .modal-option canvas { display: block; margin: 0 auto 10px; border-radius: 6px; max-width: 100%; }
+    .modal-option strong { display: block; font-size: 0.9rem; color: #333; margin-bottom: 4px; }
+    .modal-option small  { font-size: 0.78rem; color: #777; line-height: 1.4; }
+    .modal-option.opt-bw:hover     { border-color: #333; background: #f5f5f5; }
+    .modal-option.opt-color:hover  { border-color: #4f8ef7; background: #eef3ff; }
   </style>
 </head>
 <body>
@@ -258,15 +213,15 @@
   <div class="toolbar">
     <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">📂 Obrir imatge</button>
     <input type="file" id="fileInput" accept="image/*">
-    <button class="btn btn-secondary" id="btnUndo" onclick="undo()" title="Desfer (Ctrl+Z)">↩ Desfer</button>
-    <button class="btn btn-secondary" id="btnRedo" onclick="redo()" title="Refer (Ctrl+Y)">↪ Refer</button>
+    <button class="btn btn-secondary" onclick="undo()" title="Desfer (Ctrl+Z)">↩ Desfer</button>
+    <button class="btn btn-secondary" onclick="redo()" title="Refer (Ctrl+Y)">↪ Refer</button>
     <button class="btn btn-danger" onclick="clearColors()">🗑 Esborrar colors</button>
     <button class="btn btn-secondary" onclick="downloadImage()">⬇ Desar</button>
     <div class="tool-sep"></div>
     <div class="zoom-bar">
-      <button class="zoom-btn" onclick="zoomBy(-0.25)" title="Reduir (-)">−</button>
+      <button class="zoom-btn" onclick="zoomBy(-1)" title="Reduir (-)">−</button>
       <span id="zoomLabel" onclick="zoomFit()" title="Clic per ajustar a pantalla">100%</span>
-      <button class="zoom-btn" onclick="zoomBy(+0.25)" title="Ampliar (+)">+</button>
+      <button class="zoom-btn" onclick="zoomBy(+1)" title="Ampliar (+)">+</button>
     </div>
     <div class="tool-sep"></div>
     <div class="tol-wrap">
@@ -280,15 +235,21 @@
 <main>
   <!-- Palette -->
   <div class="palette" id="palette">
-    <!-- Colors filled by JS -->
     <div class="tool-sep"></div>
     <label title="Color personalitzat">
       <input type="color" id="customColor" value="#ff0000" onchange="selectCustomColor(this.value)">
     </label>
-    <div class="color-swatch eraser selected" id="eraserSwatch" onclick="selectEraser()" title="Goma d'esborrar">✕</div>
+    <div class="color-swatch eraser" id="eraserSwatch" onclick="selectEraser()" title="Goma d'esborrar">✕</div>
   </div>
 
   <div id="infoBar">Puja o enganxa una imatge per començar a colorar</div>
+
+  <!-- Restore session banner -->
+  <div id="restoreBanner" class="hidden">
+    <span>💾 Tens una sessió anterior desada. Vols continuar on ho vas deixar?</span>
+    <button class="btn btn-success" onclick="restoreSession()">Continuar</button>
+    <button class="btn btn-secondary" onclick="discardSession()">Descartar</button>
+  </div>
 
   <!-- Drop zone -->
   <div id="dropZone" onclick="document.getElementById('fileInput').click()">
@@ -308,39 +269,65 @@
   </div>
 </main>
 
+<!-- Auto-save indicator -->
+<div id="saveIndicator">✓ Desat automàticament</div>
+
+<!-- Loading overlay -->
 <div id="loadingOverlay">
   <div class="spinner"></div>
   <span id="loadingMsg">Processant imatge...</span>
 </div>
 
+<!-- Mode choice modal -->
+<div id="modeModal">
+  <div class="modal-box">
+    <h2>Com vols treballar amb aquesta imatge?</h2>
+    <p>Pots convertir-la a blanc i negre per obtenir línies netes, o bé colorar directament les zones clares de la imatge original.</p>
+    <div class="modal-preview-row">
+      <div class="modal-option opt-bw" onclick="confirmMode('bw')">
+        <canvas id="previewBW" width="160" height="120"></canvas>
+        <strong>Blanc i negre</strong>
+        <small>Converteix a línies netes sobre fons blanc. Ideal per dibuixos lineals.</small>
+      </div>
+      <div class="modal-option opt-color" onclick="confirmMode('original')">
+        <canvas id="previewOrig" width="160" height="120"></canvas>
+        <strong>Imatge original</strong>
+        <small>Manté els colors de la imatge i omple les zones clares.</small>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-// ─── Palette colors ──────────────────────────────────────────────────────────
+// ─── Palette ─────────────────────────────────────────────────────────────────
 const PALETTE = [
   '#FF0000','#FF6600','#FFAA00','#FFD700','#00C000',
   '#00AAFF','#0044CC','#8800CC','#FF00AA','#FF69B4',
   '#A0522D','#808080','#000000','#FFFFFF',
 ];
 
-let selectedColor = null; // null = eraser
-let tolerance = 32;
+let selectedColor = PALETTE[0];
+let tolerance     = 32;
+
+// ─── DOM refs ────────────────────────────────────────────────────────────────
+const canvas   = document.getElementById('drawingCanvas');
+const ctx      = canvas.getContext('2d', { willReadFrequently: true });
+const viewport = document.getElementById('canvasViewport');
+const wrapper  = document.getElementById('canvasWrapper');
 
 // ─── State ───────────────────────────────────────────────────────────────────
-const canvas      = document.getElementById('drawingCanvas');
-const ctx         = canvas.getContext('2d', { willReadFrequently: true });
-const viewport    = document.getElementById('canvasViewport');
-const wrapper     = document.getElementById('canvasWrapper');
-
-let linesImageData = null;
-let colorLayer     = null;
+let linesImageData = null; // ink layer
+let colorLayer     = null; // color layer (RGBA)
+let currentMode    = 'bw'; // 'bw' | 'original'
 let undoStack      = [];
 let redoStack      = [];
 
+// Pending raw image while awaiting mode choice
+let pendingRaw = null; // { data: ImageData, w, h }
+
 // ─── Zoom / Pan ───────────────────────────────────────────────────────────────
-let zoom  = 1;
-let panX  = 0;
-let panY  = 0;
-const ZOOM_MIN = 0.1;
-const ZOOM_MAX = 8;
+let zoom = 1, panX = 0, panY = 0;
+const ZOOM_MIN = 0.1, ZOOM_MAX = 8;
 
 function applyTransform() {
   wrapper.style.transform = `scale(${zoom})`;
@@ -350,48 +337,33 @@ function applyTransform() {
 }
 
 function clampPan() {
-  // Allow canvas to be dragged but keep at least 80px visible
-  const vw = viewport.clientWidth;
-  const vh = viewport.clientHeight;
-  const cw = canvas.width  * zoom;
-  const ch = canvas.height * zoom;
-  const margin = 80;
-  panX = Math.min(panX, vw - margin);
-  panX = Math.max(panX, margin - cw);
-  panY = Math.min(panY, vh - margin);
-  panY = Math.max(panY, margin - ch);
+  const vw = viewport.clientWidth, vh = viewport.clientHeight;
+  const cw = canvas.width * zoom,  ch = canvas.height * zoom;
+  const m  = 80;
+  panX = Math.min(panX, vw - m); panX = Math.max(panX, m - cw);
+  panY = Math.min(panY, vh - m); panY = Math.max(panY, m - ch);
 }
 
 function zoomTo(newZoom, pivotX, pivotY) {
-  // pivotX/Y in viewport coords — zoom toward that point
   newZoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, newZoom));
-  if (pivotX === undefined) {
-    pivotX = viewport.clientWidth  / 2;
-    pivotY = viewport.clientHeight / 2;
-  }
-  // canvas coords of pivot before zoom
-  const cx = (pivotX - panX) / zoom;
-  const cy = (pivotY - panY) / zoom;
+  if (pivotX === undefined) { pivotX = viewport.clientWidth / 2; pivotY = viewport.clientHeight / 2; }
+  const cx = (pivotX - panX) / zoom, cy = (pivotY - panY) / zoom;
   zoom = newZoom;
-  panX = pivotX - cx * zoom;
-  panY = pivotY - cy * zoom;
-  clampPan();
-  applyTransform();
+  panX = pivotX - cx * zoom; panY = pivotY - cy * zoom;
+  clampPan(); applyTransform();
 }
 
-function zoomBy(delta) {
-  // Step through nice levels
+function zoomBy(dir) {
   const steps = [0.1,0.25,0.33,0.5,0.67,0.75,1,1.25,1.5,2,2.5,3,4,5,6,8];
   let idx = steps.findIndex(s => s >= zoom - 0.001);
-  if (delta > 0) idx = Math.min(steps.length - 1, idx + 1);
-  else           idx = Math.max(0, (idx < 0 ? steps.length - 1 : idx) - 1);
+  if (dir > 0) idx = Math.min(steps.length - 1, idx + 1);
+  else         idx = Math.max(0, (idx < 0 ? steps.length - 1 : idx) - 1);
   zoomTo(steps[idx]);
 }
 
 function zoomFit() {
   if (!linesImageData) return;
-  const vw = viewport.clientWidth  - 32;
-  const vh = viewport.clientHeight - 32;
+  const vw = viewport.clientWidth - 32, vh = viewport.clientHeight - 32;
   const z  = Math.min(vw / canvas.width, vh / canvas.height, 1);
   zoom = z;
   panX = (viewport.clientWidth  - canvas.width  * zoom) / 2;
@@ -399,37 +371,22 @@ function zoomFit() {
   applyTransform();
 }
 
-// Ctrl+wheel to zoom
 viewport.addEventListener('wheel', e => {
-  if (e.ctrlKey || e.metaKey) {
-    e.preventDefault();
-    const rect = viewport.getBoundingClientRect();
-    zoomTo(zoom * (e.deltaY < 0 ? 1.15 : 1/1.15),
-           e.clientX - rect.left, e.clientY - rect.top);
-  }
+  e.preventDefault();
+  const rect = viewport.getBoundingClientRect();
+  zoomTo(zoom * (e.deltaY < 0 ? 1.13 : 1/1.13), e.clientX - rect.left, e.clientY - rect.top);
 }, { passive: false });
 
-// Also plain scroll (no ctrl) zooms on desktop for convenience
-viewport.addEventListener('wheel', e => {
-  if (!e.ctrlKey && !e.metaKey) {
-    e.preventDefault();
-    const rect = viewport.getBoundingClientRect();
-    zoomTo(zoom * (e.deltaY < 0 ? 1.12 : 1/1.12),
-           e.clientX - rect.left, e.clientY - rect.top);
-  }
-}, { passive: false });
-
-// Keyboard zoom
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '=')) { e.preventDefault(); zoomBy(+1); }
   if ((e.ctrlKey || e.metaKey) && e.key === '-')                    { e.preventDefault(); zoomBy(-1); }
   if ((e.ctrlKey || e.metaKey) && e.key === '0')                    { e.preventDefault(); zoomFit(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z')                    { e.preventDefault(); undo(); }
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key === 'z'))) { e.preventDefault(); redo(); }
 });
 
-// ─── Pan (middle-click drag or Alt+left-drag on viewport) ────────────────────
-let isPanning = false;
-let panStart  = { x: 0, y: 0, px: 0, py: 0 };
-
+// Pan: middle-click or Alt+drag
+let isPanning = false, panStart = {};
 viewport.addEventListener('mousedown', e => {
   if (e.button === 1 || (e.button === 0 && e.altKey)) {
     isPanning = true;
@@ -442,48 +399,34 @@ window.addEventListener('mousemove', e => {
   if (!isPanning) return;
   panX = panStart.px + (e.clientX - panStart.x);
   panY = panStart.py + (e.clientY - panStart.y);
-  clampPan();
-  applyTransform();
+  clampPan(); applyTransform();
 });
-window.addEventListener('mouseup', e => {
-  if (isPanning) {
-    isPanning = false;
-    viewport.style.cursor = '';
-  }
-});
+window.addEventListener('mouseup', () => { if (isPanning) { isPanning = false; viewport.style.cursor = ''; } });
 
-// Touch pan (two fingers) & pinch-zoom
+// Touch pinch+pan
 let lastTouches = null;
-viewport.addEventListener('touchstart', e => {
-  lastTouches = e.touches;
-}, { passive: true });
+viewport.addEventListener('touchstart', e => { lastTouches = e.touches; }, { passive: true });
 viewport.addEventListener('touchmove', e => {
-  if (e.touches.length === 2 && lastTouches && lastTouches.length === 2) {
+  if (e.touches.length === 2 && lastTouches?.length === 2) {
     e.preventDefault();
     const rect = viewport.getBoundingClientRect();
-    // Pinch center
-    const cx = ((e.touches[0].clientX + e.touches[1].clientX) / 2) - rect.left;
-    const cy = ((e.touches[0].clientY + e.touches[1].clientY) / 2) - rect.top;
+    const cx  = ((e.touches[0].clientX + e.touches[1].clientX) / 2) - rect.left;
+    const cy  = ((e.touches[0].clientY + e.touches[1].clientY) / 2) - rect.top;
     const pcx = ((lastTouches[0].clientX + lastTouches[1].clientX) / 2) - rect.left;
     const pcy = ((lastTouches[0].clientY + lastTouches[1].clientY) / 2) - rect.top;
-    // Pinch distance
-    const d0 = Math.hypot(lastTouches[1].clientX - lastTouches[0].clientX,
-                          lastTouches[1].clientY - lastTouches[0].clientY);
-    const d1 = Math.hypot(e.touches[1].clientX - e.touches[0].clientX,
-                          e.touches[1].clientY - e.touches[0].clientY);
-    const newZoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, zoom * d1 / d0));
-    const canCx = (cx - panX) / zoom;
-    const canCy = (cy - panY) / zoom;
-    zoom = newZoom;
+    const d0  = Math.hypot(lastTouches[1].clientX - lastTouches[0].clientX, lastTouches[1].clientY - lastTouches[0].clientY);
+    const d1  = Math.hypot(e.touches[1].clientX - e.touches[0].clientX, e.touches[1].clientY - e.touches[0].clientY);
+    const nz  = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, zoom * d1 / d0));
+    const canCx = (cx - panX) / zoom, canCy = (cy - panY) / zoom;
+    zoom = nz;
     panX = cx - canCx * zoom + (cx - pcx);
     panY = cy - canCy * zoom + (cy - pcy);
-    clampPan();
-    applyTransform();
+    clampPan(); applyTransform();
   }
   lastTouches = e.touches;
 }, { passive: false });
 
-// ─── Build palette UI ────────────────────────────────────────────────────────
+// ─── Palette UI ───────────────────────────────────────────────────────────────
 function buildPalette() {
   const pal = document.getElementById('palette');
   PALETTE.forEach(c => {
@@ -496,10 +439,10 @@ function buildPalette() {
   });
 }
 
-function selectColor(color, swatchEl) {
+function selectColor(color, el) {
   selectedColor = color;
   document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
-  if (swatchEl) swatchEl.classList.add('selected');
+  if (el) el.classList.add('selected');
 }
 
 function selectCustomColor(color) {
@@ -513,7 +456,6 @@ function selectEraser() {
   document.getElementById('eraserSwatch').classList.add('selected');
 }
 
-// ─── Tolerance slider ────────────────────────────────────────────────────────
 document.getElementById('tolerance').addEventListener('input', function() {
   tolerance = +this.value;
   document.getElementById('toleranceVal').textContent = tolerance;
@@ -522,35 +464,25 @@ document.getElementById('tolerance').addEventListener('input', function() {
 // ─── File input / drag / paste ───────────────────────────────────────────────
 document.getElementById('fileInput').addEventListener('change', e => {
   if (e.target.files[0]) loadFile(e.target.files[0]);
+  e.target.value = '';
 });
 
 const dropZone = document.getElementById('dropZone');
 dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
 dropZone.addEventListener('drop', e => {
-  e.preventDefault();
-  dropZone.classList.remove('drag-over');
-  const file = e.dataTransfer.files[0];
-  if (file && file.type.startsWith('image/')) loadFile(file);
+  e.preventDefault(); dropZone.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f?.type.startsWith('image/')) loadFile(f);
 });
 
 document.addEventListener('paste', e => {
-  const items = e.clipboardData?.items;
-  if (!items) return;
-  for (const item of items) {
-    if (item.type.startsWith('image/')) {
-      loadFile(item.getAsFile());
-      break;
-    }
+  for (const item of (e.clipboardData?.items || [])) {
+    if (item.type.startsWith('image/')) { loadFile(item.getAsFile()); break; }
   }
 });
 
-document.addEventListener('keydown', e => {
-  if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); undo(); }
-  if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key === 'z'))) { e.preventDefault(); redo(); }
-});
-
-// ─── Load & process image ────────────────────────────────────────────────────
+// ─── Load image → show mode modal ────────────────────────────────────────────
 function loadFile(file) {
   const reader = new FileReader();
   reader.onload = e => loadImageFromURL(e.target.result);
@@ -561,225 +493,217 @@ function loadImageFromURL(url) {
   showLoading('Carregant imatge...');
   const img = new Image();
   img.onload = () => {
-    // Limit max size for performance
     const MAX = 1400;
-    let w = img.naturalWidth;
-    let h = img.naturalHeight;
+    let w = img.naturalWidth, h = img.naturalHeight;
     if (w > MAX || h > MAX) {
-      const ratio = Math.min(MAX / w, MAX / h);
-      w = Math.round(w * ratio);
-      h = Math.round(h * ratio);
+      const r = Math.min(MAX / w, MAX / h);
+      w = Math.round(w * r); h = Math.round(h * r);
     }
-
-    canvas.width  = w;
-    canvas.height = h;
-
-    // Draw original
-    ctx.drawImage(img, 0, 0, w, h);
-    const rawData = ctx.getImageData(0, 0, w, h);
-
-    showLoading('Processant línies...');
-    setTimeout(() => {
-      processImage(rawData, w, h);
-      hideLoading();
-      document.getElementById('dropZone').style.display = 'none';
-      document.getElementById('canvasViewport').style.display = 'block';
-      document.getElementById('infoBar').textContent =
-        `Imatge ${w}×${h}px · Roda = zoom · Alt+arrossega o botó central = moure · Clic = omplir`;
-      undoStack = [];
-      redoStack = [];
-      // Small delay to let viewport render before measuring
-      requestAnimationFrame(zoomFit);
-    }, 50);
+    // Draw to offscreen to get pixel data
+    const off = document.createElement('canvas');
+    off.width = w; off.height = h;
+    const offCtx = off.getContext('2d');
+    offCtx.drawImage(img, 0, 0, w, h);
+    pendingRaw = { data: offCtx.getImageData(0, 0, w, h), w, h };
+    hideLoading();
+    showModeModal(pendingRaw);
   };
-  img.onerror = () => { hideLoading(); alert('No s\'ha pogut carregar la imatge.'); };
+  img.onerror = () => { hideLoading(); alert("No s'ha pogut carregar la imatge."); };
   img.src = url;
 }
 
-// Convert image to clean B&W lines + prepare color layer
-function processImage(rawData, w, h) {
-  const src  = rawData.data;
-  const lines = new Uint8ClampedArray(w * h * 4);
-  const colors = new Uint8ClampedArray(w * h * 4).fill(0);
+// ─── Mode modal ───────────────────────────────────────────────────────────────
+function showModeModal(raw) {
+  // Render preview thumbnails
+  renderPreview(document.getElementById('previewBW'),   raw, 'bw');
+  renderPreview(document.getElementById('previewOrig'), raw, 'original');
+  document.getElementById('modeModal').classList.add('active');
+}
 
-  // 1. Grayscale + threshold to detect "ink" pixels
-  // A pixel is "ink" if it's dark enough
+function renderPreview(previewCanvas, raw, mode) {
+  const pw = previewCanvas.width, ph = previewCanvas.height;
+  const scale = Math.min(pw / raw.w, ph / raw.h);
+  const dw = Math.round(raw.w * scale), dh = Math.round(raw.h * scale);
+  previewCanvas.width = dw; previewCanvas.height = dh;
+  const pCtx = previewCanvas.getContext('2d');
+  // Scale down raw data into a temp canvas
+  const tmp = document.createElement('canvas');
+  tmp.width = raw.w; tmp.height = raw.h;
+  tmp.getContext('2d').putImageData(raw.data, 0, 0);
+  if (mode === 'bw') {
+    // Draw scaled, then threshold
+    pCtx.drawImage(tmp, 0, 0, dw, dh);
+    const id = pCtx.getImageData(0, 0, dw, dh);
+    for (let i = 0; i < dw * dh; i++) {
+      const gray = 0.299*id.data[i*4] + 0.587*id.data[i*4+1] + 0.114*id.data[i*4+2];
+      const v = gray < 128 ? 0 : 255;
+      id.data[i*4] = id.data[i*4+1] = id.data[i*4+2] = v; id.data[i*4+3] = 255;
+    }
+    pCtx.putImageData(id, 0, 0);
+  } else {
+    pCtx.drawImage(tmp, 0, 0, dw, dh);
+  }
+}
+
+function confirmMode(mode) {
+  document.getElementById('modeModal').classList.remove('active');
+  currentMode = mode;
+  applyModeAndStart(pendingRaw, mode);
+  pendingRaw = null;
+}
+
+// ─── Process image ────────────────────────────────────────────────────────────
+function applyModeAndStart(raw, mode) {
+  showLoading('Processant línies...');
+  setTimeout(() => {
+    canvas.width  = raw.w;
+    canvas.height = raw.h;
+    processImage(raw.data, raw.w, raw.h, mode);
+    hideLoading();
+    document.getElementById('dropZone').style.display = 'none';
+    document.getElementById('canvasViewport').style.display = 'block';
+    document.getElementById('restoreBanner').classList.add('hidden');
+    document.getElementById('infoBar').textContent =
+      `Imatge ${raw.w}×${raw.h}px · Roda = zoom · Alt+arrossega = moure · Clic = omplir`;
+    undoStack = []; redoStack = [];
+    requestAnimationFrame(zoomFit);
+    scheduleAutosave();
+  }, 50);
+}
+
+function processImage(rawData, w, h, mode) {
+  const src    = rawData.data;
+  const lines  = new Uint8ClampedArray(w * h * 4);
+  const colors = new Uint8ClampedArray(w * h * 4);
+
   const THRESHOLD = 128;
 
   for (let i = 0; i < w * h; i++) {
     const r = src[i*4], g = src[i*4+1], b = src[i*4+2];
-    const gray = 0.299*r + 0.587*g + 0.114*b;
+    const gray  = 0.299*r + 0.587*g + 0.114*b;
     const isInk = gray < THRESHOLD;
 
-    if (isInk) {
-      // Black line
-      lines[i*4]   = 0;
-      lines[i*4+1] = 0;
-      lines[i*4+2] = 0;
+    if (mode === 'bw') {
+      lines[i*4]   = isInk ? 0   : 255;
+      lines[i*4+1] = isInk ? 0   : 255;
+      lines[i*4+2] = isInk ? 0   : 255;
       lines[i*4+3] = 255;
     } else {
-      // White/transparent background
-      lines[i*4]   = 255;
-      lines[i*4+1] = 255;
-      lines[i*4+2] = 255;
-      lines[i*4+3] = 255;
+      // Original mode: keep original colors as the lines layer
+      lines[i*4]   = r; lines[i*4+1] = g; lines[i*4+2] = b; lines[i*4+3] = 255;
     }
-    // Color layer starts transparent
+    // Color layer transparent
     colors[i*4+3] = 0;
   }
 
   linesImageData = new ImageData(lines, w, h);
   colorLayer     = new ImageData(colors, w, h);
-
   renderCanvas();
 }
 
-// ─── Render: composite color layer + lines ───────────────────────────────────
 function renderCanvas() {
   const w = canvas.width, h = canvas.height;
   const out = ctx.createImageData(w, h);
-  const o   = out.data;
-  const l   = linesImageData.data;
-  const c   = colorLayer.data;
+  const o = out.data, l = linesImageData.data, c = colorLayer.data;
 
   for (let i = 0; i < w * h; i++) {
     const li = i * 4;
-    const isInk = l[li+3] === 255 && l[li] === 0 && l[li+1] === 0 && l[li+2] === 0;
+    const isInk = currentMode === 'bw'
+      ? (l[li] === 0 && l[li+3] === 255)
+      : (0.299*l[li] + 0.587*l[li+1] + 0.114*l[li+2]) < 128;
 
     if (isInk) {
-      o[li] = 0; o[li+1] = 0; o[li+2] = 0; o[li+3] = 255;
+      o[li] = l[li]; o[li+1] = l[li+1]; o[li+2] = l[li+2]; o[li+3] = 255;
     } else if (c[li+3] > 0) {
-      // Colored pixel
-      o[li]   = c[li];
-      o[li+1] = c[li+1];
-      o[li+2] = c[li+2];
-      o[li+3] = 255;
+      o[li] = c[li]; o[li+1] = c[li+1]; o[li+2] = c[li+2]; o[li+3] = 255;
     } else {
-      // White background
-      o[li] = 255; o[li+1] = 255; o[li+2] = 255; o[li+3] = 255;
+      // In original mode show the original bg; in bw mode show white
+      if (currentMode === 'original') {
+        o[li] = l[li]; o[li+1] = l[li+1]; o[li+2] = l[li+2]; o[li+3] = 255;
+      } else {
+        o[li] = 255; o[li+1] = 255; o[li+2] = 255; o[li+3] = 255;
+      }
     }
   }
   ctx.putImageData(out, 0, 0);
 }
 
-// ─── Canvas click → flood fill ───────────────────────────────────────────────
-// Single-tap detection: ignore if panning
+// ─── Flood fill ───────────────────────────────────────────────────────────────
 let pointerMoved = false;
 viewport.addEventListener('mousedown', e => { if (e.button === 0 && !e.altKey) pointerMoved = false; });
 viewport.addEventListener('mousemove', e => { if (e.buttons === 1 && !e.altKey) pointerMoved = true; });
 
-canvas.addEventListener('click', e => {
-  if (!pointerMoved) handleCanvasClick(e);
-});
-
+canvas.addEventListener('click', e => { if (!pointerMoved) handleCanvasClick(e); });
 canvas.addEventListener('touchend', e => {
-  if (e.changedTouches.length !== 1) return; // only single-finger tap
+  if (e.changedTouches.length !== 1) return;
   e.preventDefault();
-  const touch = e.changedTouches[0];
-  const rect = canvas.getBoundingClientRect();
-  handleCanvasClick({ clientX: touch.clientX, clientY: touch.clientY, _rect: rect });
+  const t = e.changedTouches[0];
+  handleCanvasClick({ clientX: t.clientX, clientY: t.clientY, _rect: canvas.getBoundingClientRect() });
 });
 
 function handleCanvasClick(e) {
   if (!linesImageData) return;
-  // getBoundingClientRect of the canvas already reflects CSS zoom/pan transform
   const rect = e._rect || canvas.getBoundingClientRect();
   const x = Math.floor((e.clientX - rect.left) / zoom);
   const y = Math.floor((e.clientY - rect.top)  / zoom);
-
   if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) return;
 
-  // Don't fill on ink pixels
-  const idx = (y * canvas.width + x) * 4;
-  const l   = linesImageData.data;
-  if (l[idx] === 0 && l[idx+1] === 0 && l[idx+2] === 0 && l[idx+3] === 255) return;
+  // Skip ink pixels
+  const li = (y * canvas.width + x) * 4;
+  const l  = linesImageData.data;
+  const isInk = currentMode === 'bw'
+    ? (l[li] === 0 && l[li+3] === 255)
+    : (0.299*l[li] + 0.587*l[li+1] + 0.114*l[li+2]) < 128;
+  if (isInk) return;
 
-  // Save undo state
   pushUndo();
-
-  if (selectedColor === null) {
-    // Eraser: flood fill with transparent
-    floodFill(x, y, null);
-  } else {
-    floodFill(x, y, selectedColor);
-  }
-
+  floodFill(x, y, selectedColor);
   renderCanvas();
+  scheduleAutosave();
 }
 
-// ─── Flood fill (BFS on colorLayer, bounded by linesImageData) ───────────────
 function hexToRGB(hex) {
-  const r = parseInt(hex.slice(1,3),16);
-  const g = parseInt(hex.slice(3,5),16);
-  const b = parseInt(hex.slice(5,7),16);
-  return [r, g, b];
-}
-
-function colorDistance(r1,g1,b1, r2,g2,b2) {
-  return Math.abs(r1-r2) + Math.abs(g1-g2) + Math.abs(b1-b2);
+  return [parseInt(hex.slice(1,3),16), parseInt(hex.slice(3,5),16), parseInt(hex.slice(5,7),16)];
 }
 
 function floodFill(startX, startY, colorHex) {
-  const w = canvas.width;
-  const h = canvas.height;
-  const l = linesImageData.data;
-  const c = colorLayer.data;
-
+  const w = canvas.width, h = canvas.height;
+  const l = linesImageData.data, c = colorLayer.data;
   const [fillR, fillG, fillB] = colorHex ? hexToRGB(colorHex) : [0,0,0];
   const fillA = colorHex ? 255 : 0;
 
-  // Target: current color at start pixel
   const si = (startY * w + startX) * 4;
-  const targetR = c[si];
-  const targetG = c[si+1];
-  const targetB = c[si+2];
-  const targetA = c[si+3];
+  const targetR = c[si], targetG = c[si+1], targetB = c[si+2], targetA = c[si+3];
 
-  // If already same color, nothing to do
   if (colorHex && targetA === 255 && targetR === fillR && targetG === fillG && targetB === fillB) return;
   if (!colorHex && targetA === 0) return;
 
   const visited = new Uint8Array(w * h);
   const queue   = [startX + startY * w];
-  visited[startX + startY * w] = 1;
+  visited[queue[0]] = 1;
 
   while (queue.length > 0) {
     const pos = queue.pop();
-    const px  = pos % w;
-    const py  = (pos - px) / w;
+    const px  = pos % w, py = (pos - px) / w;
     const li  = pos * 4;
+    c[li] = fillR; c[li+1] = fillG; c[li+2] = fillB; c[li+3] = fillA;
 
-    // Paint
-    c[li]   = fillR;
-    c[li+1] = fillG;
-    c[li+2] = fillB;
-    c[li+3] = fillA;
-
-    // Neighbours (4-connected)
-    const neighbors = [
-      px > 0     ? pos - 1 : -1,
-      px < w-1   ? pos + 1 : -1,
-      py > 0     ? pos - w : -1,
-      py < h-1   ? pos + w : -1,
-    ];
-
-    for (const n of neighbors) {
+    for (const n of [
+      px > 0   ? pos-1 : -1,
+      px < w-1 ? pos+1 : -1,
+      py > 0   ? pos-w : -1,
+      py < h-1 ? pos+w : -1,
+    ]) {
       if (n < 0 || visited[n]) continue;
       visited[n] = 1;
-
-      // Skip ink pixels
       const ni = n * 4;
-      if (l[ni] === 0 && l[ni+1] === 0 && l[ni+2] === 0 && l[ni+3] === 255) continue;
-
-      // Check color tolerance vs target
-      const dr = c[ni]   - targetR;
-      const dg = c[ni+1] - targetG;
-      const db = c[ni+2] - targetB;
-      const da = c[ni+3] - targetA;
-      const dist = Math.abs(dr) + Math.abs(dg) + Math.abs(db) + Math.abs(da);
-      if (dist <= tolerance * 4) {
-        queue.push(n);
-      }
+      const isInk = currentMode === 'bw'
+        ? (l[ni] === 0 && l[ni+3] === 255)
+        : (0.299*l[ni] + 0.587*l[ni+1] + 0.114*l[ni+2]) < 128;
+      if (isInk) continue;
+      const dist = Math.abs(c[ni]-targetR) + Math.abs(c[ni+1]-targetG)
+                 + Math.abs(c[ni+2]-targetB) + Math.abs(c[ni+3]-targetA);
+      if (dist <= tolerance * 4) queue.push(n);
     }
   }
 }
@@ -790,32 +714,28 @@ function pushUndo() {
   if (undoStack.length > 30) undoStack.shift();
   redoStack = [];
 }
-
 function undo() {
-  if (undoStack.length === 0) return;
+  if (!undoStack.length) return;
   redoStack.push(colorLayer.data.slice());
   colorLayer.data.set(undoStack.pop());
-  renderCanvas();
+  renderCanvas(); scheduleAutosave();
 }
-
 function redo() {
-  if (redoStack.length === 0) return;
+  if (!redoStack.length) return;
   undoStack.push(colorLayer.data.slice());
   colorLayer.data.set(redoStack.pop());
-  renderCanvas();
+  renderCanvas(); scheduleAutosave();
 }
 
-// ─── Clear colors ─────────────────────────────────────────────────────────────
 function clearColors() {
   if (!colorLayer) return;
   pushUndo();
   colorLayer.data.fill(0);
-  renderCanvas();
+  renderCanvas(); scheduleAutosave();
 }
 
 // ─── Download ────────────────────────────────────────────────────────────────
 function downloadImage() {
-  if (!canvas) return;
   const link = document.createElement('a');
   link.download = 'dibuix-colorat.png';
   link.href = canvas.toDataURL('image/png');
@@ -831,10 +751,113 @@ function hideLoading() {
   document.getElementById('loadingOverlay').classList.remove('active');
 }
 
-// ─── Init ─────────────────────────────────────────────────────────────────────
+// ─── Auto-save to localStorage ───────────────────────────────────────────────
+const LS_KEY = 'colorar_session_v1';
+let saveTimer = null;
+let saveIndicatorTimer = null;
+
+function imageDataToDataURL(imageData) {
+  const off = document.createElement('canvas');
+  off.width  = imageData.width;
+  off.height = imageData.height;
+  off.getContext('2d').putImageData(imageData, 0, 0);
+  return off.toDataURL('image/png');
+}
+
+function scheduleAutosave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(doAutosave, 1500);
+}
+
+function doAutosave() {
+  if (!linesImageData || !colorLayer) return;
+  try {
+    const payload = JSON.stringify({
+      mode:   currentMode,
+      w:      canvas.width,
+      h:      canvas.height,
+      lines:  imageDataToDataURL(linesImageData),
+      colors: imageDataToDataURL(colorLayer),
+    });
+    localStorage.setItem(LS_KEY, payload);
+    flashSaveIndicator();
+  } catch(e) {
+    // localStorage full or unavailable — silently ignore
+    console.warn('Auto-save failed:', e);
+  }
+}
+
+function flashSaveIndicator() {
+  const el = document.getElementById('saveIndicator');
+  el.classList.add('show');
+  clearTimeout(saveIndicatorTimer);
+  saveIndicatorTimer = setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// Load ImageData from a dataURL via an offscreen canvas
+function dataURLtoImageData(url, w, h) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const off = document.createElement('canvas');
+      off.width = w; off.height = h;
+      const c = off.getContext('2d');
+      c.drawImage(img, 0, 0, w, h);
+      resolve(c.getImageData(0, 0, w, h));
+    };
+    img.src = url;
+  });
+}
+
+async function restoreSession() {
+  const raw = localStorage.getItem(LS_KEY);
+  if (!raw) return;
+  try {
+    showLoading('Recuperant sessió...');
+    const saved = JSON.parse(raw);
+    const { mode, w, h, lines, colors } = saved;
+
+    canvas.width = w; canvas.height = h;
+    currentMode    = mode;
+    linesImageData = await dataURLtoImageData(lines,  w, h);
+    colorLayer     = await dataURLtoImageData(colors, w, h);
+
+    renderCanvas();
+    hideLoading();
+    document.getElementById('dropZone').style.display = 'none';
+    document.getElementById('canvasViewport').style.display = 'block';
+    document.getElementById('restoreBanner').classList.add('hidden');
+    document.getElementById('infoBar').textContent =
+      `Sessió recuperada (${w}×${h}px) · Roda = zoom · Alt+arrossega = moure · Clic = omplir`;
+    undoStack = []; redoStack = [];
+    requestAnimationFrame(zoomFit);
+  } catch(e) {
+    hideLoading();
+    console.error('Could not restore session:', e);
+  }
+}
+
+function discardSession() {
+  localStorage.removeItem(LS_KEY);
+  document.getElementById('restoreBanner').classList.add('hidden');
+}
+
+// Check for saved session on startup
+function checkSavedSession() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return;
+    JSON.parse(raw); // validate
+    document.getElementById('restoreBanner').classList.remove('hidden');
+  } catch(e) {
+    localStorage.removeItem(LS_KEY);
+  }
+}
+
+// ─── Init ────────────────────────────────────────────────────────────────────
 buildPalette();
-// Start with eraser deselected, pick first color
 selectColor(PALETTE[0], document.querySelector('.color-swatch'));
+checkSavedSession();
 </script>
 </body>
 </html>
