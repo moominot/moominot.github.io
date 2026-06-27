@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Joc de Colorar</title>
+  <link rel="manifest" href="colorar-manifest.json">
+  <meta name="theme-color" content="#4f8ef7">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Colorar">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -852,6 +857,13 @@ function checkSavedSession() {
   } catch(e) {
     localStorage.removeItem(LS_KEY);
   }
+}
+
+// ─── PWA: registre del service worker ────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./colorar-sw.js').catch(() => {});
+  });
 }
 
 // ─── Init ────────────────────────────────────────────────────────────────────
